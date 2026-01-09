@@ -1,10 +1,27 @@
 
 import { GoogleGenAI, Modality } from "@google/genai";
 
-// Always use process.env.API_KEY directly as per guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Check if API key is configured
+const apiKey = process.env.API_KEY;
+const isApiKeyValid = apiKey && apiKey !== 'your_api_key_here' && apiKey.trim().length > 0;
+
+// Only initialize AI if we have a valid API key
+const ai = isApiKeyValid ? new GoogleGenAI({ apiKey }) : null;
 
 export const playTTS = async (text: string): Promise<void> => {
+  // If no valid API key, use browser TTS directly
+  if (!isApiKeyValid || !ai) {
+    console.warn("Gemini API key not configured. Using browser TTS fallback.");
+    return new Promise((resolve) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.onend = () => resolve();
+      utterance.onerror = () => resolve();
+      window.speechSynthesis.speak(utterance);
+    });
+  }
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
@@ -24,7 +41,7 @@ export const playTTS = async (text: string): Promise<void> => {
 
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     const audioBuffer = await decodeAudioData(decodeBase64(base64Audio), audioContext, 24000, 1);
-    
+
     return new Promise((resolve) => {
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
@@ -36,9 +53,12 @@ export const playTTS = async (text: string): Promise<void> => {
     console.error("TTS Error:", error);
     // Fallback to native browser TTS if Gemini fails
     return new Promise((resolve) => {
-      const utternance = new SpeechSynthesisUtterance(text);
-      utternance.onend = () => resolve();
-      window.speechSynthesis.speak(utternance);
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.onend = () => resolve();
+      utterance.onerror = () => resolve();
+      window.speechSynthesis.speak(utterance);
     });
   }
 };
