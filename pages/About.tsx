@@ -1,4 +1,5 @@
 import React from 'react';
+import Main2 from '../assets/images/main2.jpg';
 
 const About: React.FC = () => {
   return (
@@ -10,16 +11,14 @@ const About: React.FC = () => {
 
         <div className="prose prose-lg text-zinc-600 leading-relaxed space-y-6">
           <p>
-            Manage LC is Uzbekistan's premier destination for high-quality English and Mathematics
-            education. Founded in 2021, our center has helped over 5,000 students achieve their
-            academic and professional goals.
+            Manage LC is Uzbekistan's premier destination for high-quality English education.
+            Founded in 2022, our center has helped over 300+ students achieve their academic and
+            professional goals. ManageLC is an interactive platform where you can practice IELTS
+            speaking, track your progress, and boost your confidence with AI-powered feedback.
           </p>
 
-          <div className="h-64 rounded-3xl overflow-hidden my-12">
-            <img
-              src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop"
-              className="w-full h-full object-cover"
-            />
+          <div className="h-64 rounded-3xl flex overflow-hidden my-12">
+            <img src={Main2} className="w-full h-full object-cover" />
           </div>
 
           <h3 className="text-2xl font-bold text-[#222222]">Our Mission</h3>
@@ -40,15 +39,15 @@ const About: React.FC = () => {
 
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div>
-            <p className="text-4xl font-black text-[#ff7300]">50+</p>
+            <p className="text-4xl font-black text-[#ff7300]">10+</p>
             <p className="text-zinc-500 text-sm">Expert Teachers</p>
           </div>
           <div>
-            <p className="text-4xl font-black text-[#ff7300]">10k+</p>
+            <p className="text-4xl font-black text-[#ff7300]">300+</p>
             <p className="text-zinc-500 text-sm">Exams Taken</p>
           </div>
           <div>
-            <p className="text-4xl font-black text-[#ff7300]">12</p>
+            <p className="text-4xl font-black text-[#ff7300]">10+</p>
             <p className="text-zinc-500 text-sm">Campuses</p>
           </div>
           <div>

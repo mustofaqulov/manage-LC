@@ -1,109 +1,24 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage LC | English Learning Center</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f9fafb;
-      color: #222222;
-      overflow-x: hidden;
-    }
-    .primary-orange { color: #ff7300; }
-    .bg-primary-orange { background-color: #ff7300; }
-    .border-primary-orange { border-color: #ff7300; }
-    
-    /* Animation for recording pulse */
-    @keyframes pulse-red {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
-    .animate-recording {
-      animation: pulse-red 2s infinite;
-    }
-
-    /* Floating Gradient Animations */
-    @keyframes float {
-      0% { transform: translate(0, 0) rotate(0deg); }
-      33% { transform: translate(10vw, 10vh) rotate(120deg); }
-      66% { transform: translate(-5vw, 15vh) rotate(240deg); }
-      100% { transform: translate(0, 0) rotate(360deg); }
-    }
-
-    @keyframes float-reverse {
-      0% { transform: translate(0, 0) rotate(360deg); }
-      33% { transform: translate(-10vw, -10vh) rotate(240deg); }
-      66% { transform: translate(5vw, -15vh) rotate(120deg); }
-      100% { transform: translate(0, 0) rotate(0deg); }
-    }
-
-    .bg-blob {
-      position: fixed;
-      width: 50vw;
-      height: 50vw;
-      border-radius: 50%;
-      filter: blur(100px);
-      z-index: -1;
-      opacity: 0.15;
-      pointer-events: none;
-    }
-
-    .blob-1 {
-      background: #ff7300;
-      top: -10%;
-      left: -10%;
-      animation: float 25s infinite linear;
-    }
-
-    .blob-2 {
-      background: #3b82f6;
-      bottom: -10%;
-      right: -10%;
-      animation: float-reverse 30s infinite linear;
-    }
-
-    .blob-3 {
-      background: #8b5cf6;
-      top: 40%;
-      left: 30%;
-      width: 30vw;
-      height: 30vw;
-      animation: float 20s infinite ease-in-out;
-      opacity: 0.1;
-    }
-
-    /* Ensure content stays above */
-    #root {
-      position: relative;
-      z-index: 1;
-    }
-  </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage LC | English Learning Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/index.css">
 </head>
+
 <body>
-  <div class="bg-blob blob-1"></div>
-  <div class="bg-blob blob-2"></div>
-  <div class="bg-blob blob-3"></div>
-  <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>

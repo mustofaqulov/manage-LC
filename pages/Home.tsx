@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import MainImg from '../assets/images/main.jpg';
+import StudentImg from '../assets/images/manages-stdnts.jpg';
+import StudentsImg from '../assets/images/1k.jpg';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
 
   return (
     <div className="bg-transparent">
-      {/* Hero Section */}
       <section className="relative py-24 px-6 md:px-12 overflow-hidden">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1 space-y-6">
@@ -32,11 +34,7 @@ const Home: React.FC = () => {
           </div>
           <div className="flex-1 relative">
             <div className="w-full h-[400px] bg-zinc-200/50 rounded-3xl overflow-hidden shadow-2xl relative border border-white/20 backdrop-blur-sm">
-              <img
-                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop"
-                alt="Student studying"
-                className="w-full h-full object-cover"
-              />
+              <img src={MainImg} alt="Student studying" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-tr from-[#ff7300]/20 to-transparent"></div>
             </div>
             {/* Stats Badge */}
@@ -48,7 +46,6 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Courses Section */}
       <section className="py-24 px-6 md:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -90,7 +87,6 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Why Us Section */}
       <section className="py-24 bg-[#222222]/95 backdrop-blur-lg text-white px-6 md:px-12">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
@@ -100,20 +96,20 @@ const Home: React.FC = () => {
             <div className="space-y-6">
               {[
                 {
-                  title: 'AI-Powered Assessment',
-                  desc: 'Real-time feedback on your speaking performance using cutting-edge models.',
+                  title: 'Fast & Interactive',
+                  desc: 'Practice speaking tests instantly with real exam-style questions.',
                 },
                 {
-                  title: 'Official Exam Simulation',
-                  desc: 'Timing and structure exactly like the real CEFR Multi-level exam.',
+                  title: 'Track Progress',
+                  desc: 'See your scores, strengths, and areas for improvement.',
                 },
                 {
-                  title: 'Track Your Progress',
-                  desc: 'Detailed history and statistics to visualize your improvements over time.',
+                  title: 'Community',
+                  desc: 'Join learners worldwide and improve together.',
                 },
               ].map((item, idx) => (
                 <div key={idx} className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#ff7300] flex items-center justify-center font-bold">
+                  <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-[#ff7300] font-bold">
                     {idx + 1}
                   </div>
                   <div>
@@ -125,18 +121,18 @@ const Home: React.FC = () => {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="h-64 bg-zinc-800 rounded-2xl overflow-hidden shadow-2xl border border-white/5">
-              <img
-                src="https://picsum.photos/seed/learn1/400/400"
-                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
-                alt="LC Classroom"
-              />
-            </div>
             <div className="h-64 bg-zinc-800 rounded-2xl mt-8 overflow-hidden shadow-2xl border border-white/5">
               <img
-                src="https://picsum.photos/seed/learn2/400/400"
-                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                src={StudentsImg}
+                className="w-full h-full object-cover transition-all duration-500"
                 alt="Student Life"
+              />
+            </div>
+            <div className="h-64 bg-zinc-800 rounded-2xl overflow-hidden shadow-2xl border border-white/5">
+              <img
+                src={StudentImg}
+                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                alt="LC Classroom"
               />
             </div>
           </div>

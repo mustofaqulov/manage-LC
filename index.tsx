@@ -7,6 +7,12 @@ if (!rootElement) {
   throw new Error('Could not find root element to mount to');
 }
 
+if (import.meta.env.PROD) {
+  console.log = () => {};
+  console.warn = () => {};
+  console.error = () => {};
+}
+
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>

@@ -1,0 +1,121 @@
+/* Base styles for the application */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f9fafb;
+  color: #222222;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.primary-orange {
+  color: #ff7300;
+}
+
+.bg-primary-orange {
+  background-color: #ff7300;
+}
+
+.border-primary-orange {
+  border-color: #ff7300;
+}
+
+@keyframes pulse-red {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.animate-recording {
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  33% {
+    transform: translate(10vw, 10vh) rotate(120deg);
+  }
+
+  66% {
+    transform: translate(-5vw, 15vh) rotate(240deg);
+  }
+
+  100% {
+    transform: translate(0, 0) rotate(360deg);
+  }
+}
+
+@keyframes float-reverse {
+  0% {
+    transform: translate(0, 0) rotate(360deg);
+  }
+
+  33% {
+    transform: translate(-10vw, -10vh) rotate(240deg);
+  }
+
+  66% {
+    transform: translate(5vw, -15vh) rotate(120deg);
+  }
+
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+.bg-blob {
+  position: fixed;
+  width: 50vw;
+  height: 50vw;
+  border-radius: 50%;
+  filter: blur(100px);
+  z-index: -1;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.blob-1 {
+  background: #ff7300;
+  top: -10%;
+  left: -10%;
+  animation: float 25s infinite linear;
+}
+
+.blob-2 {
+  background: #3b82f6;
+  bottom: -10%;
+  right: -10%;
+  animation: float-reverse 30s infinite linear;
+}
+
+.blob-3 {
+  background: #8b5cf6;
+  top: 40%;
+  left: 30%;
+  width: 30vw;
+  height: 30vw;
+  animation: float 20s infinite ease-in-out;
+  opacity: 0.1;
+}
+
+/* Ensure content stays above */
+#root {
+  position: relative;
+  z-index: 1;
+}

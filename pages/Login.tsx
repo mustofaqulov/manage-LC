@@ -11,10 +11,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [code, setCode] = useState('');
   const navigate = useNavigate();
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+    setPhone(value);
+  };
+
   const handleSendCode = () => {
     if (phone.length < 9) return;
     setStep('CODE');
-    // In real app, trigger Telegram bot message here
   };
 
   const handleVerify = () => {
@@ -39,15 +43,17 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 Phone Number
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 font-bold">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 font-bold">
                   +998
                 </span>
                 <input
-                  type="tel"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={9}
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={handlePhoneChange}
                   placeholder="90 123 45 67"
-                  className="w-full pl-16 pr-4 py-4 bg-zinc-50 border border-zinc-200 rounded-2xl focus:border-[#ff7300] focus:ring-1 focus:ring-[#ff7300] outline-none transition-all font-bold text-lg"
+                  className="w-full pl-16 text-zinc-600 font-bold pr-4 py-4 bg-zinc-50 border border-zinc-200 rounded-2xl focus:border-[#ff7300] focus:ring-1 focus:ring-[#ff7300] outline-none transition-all font-bold"
                 />
               </div>
             </div>
@@ -89,16 +95,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
         )}
 
-        <div className="mt-12 pt-8 border-t border-zinc-100 flex flex-col items-center gap-4">
+        <div className="mt-8 pt-8 border-t border-zinc-100 flex flex-col items-center gap-4">
           <p className="text-xs text-zinc-400">By logging in, you agree to our Terms of Service.</p>
-          <div className="flex gap-4">
-            <div className="w-8 h-8 bg-zinc-50 rounded-lg flex items-center justify-center grayscale opacity-50">
-              UZ
-            </div>
-            <div className="w-8 h-8 bg-zinc-50 rounded-lg flex items-center justify-center grayscale opacity-50">
-              EN
-            </div>
-          </div>
         </div>
       </div>
     </div>

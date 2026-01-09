@@ -23,8 +23,6 @@ const ExamFlow: React.FC = () => {
   const [isMicrophoneAllowed, setIsMicrophoneAllowed] = useState(false);
   const [isExamStarted, setIsExamStarted] = useState(false);
 
-  const timerCircleRef = useRef<SVGCircleElement>(null);
-
   const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number>(null);
   const isExecutingRef = useRef(false);
@@ -77,45 +75,27 @@ const ExamFlow: React.FC = () => {
     return new Promise((resolve) => {
       const startTime = performance.now();
       const durationMs = seconds * 1000;
-      const fullCircumference = 263.9;
 
-      setDisplayTime(seconds);
-      setTimeProgress(1);
-
-      if (timerCircleRef.current) {
-        timerCircleRef.current.style.strokeDashoffset = '0';
-        timerCircleRef.current.style.stroke = getTimerColor(1);
-      }
-
-      const animate = (now: number) => {
+      const update = (now: number) => {
         const elapsed = now - startTime;
-        const progress = Math.min(1, elapsed / durationMs);
-        const timeLeftRatio = 1 - progress;
-
         const remainingMs = Math.max(0, durationMs - elapsed);
-        const remainingSec = Math.ceil(remainingMs / 1000);
-        const color = getTimerColor(timeLeftRatio);
 
-        if (timerCircleRef.current) {
-          timerCircleRef.current.style.strokeDashoffset = (fullCircumference * progress).toString();
-          timerCircleRef.current.style.stroke = color;
-        }
+        const progress = remainingMs / durationMs; // 1.0 dan 0.0 gacha
+        const secondsLeft = Math.ceil(remainingMs / 1000);
 
-        setDisplayTime(remainingSec);
-        setTimeProgress(timeLeftRatio);
+        setTimeProgress(progress);
+        setDisplayTime(secondsLeft);
 
-        if (progress < 1) {
-          animationFrameRef.current = requestAnimationFrame(animate);
+        if (remainingMs > 0) {
+          animationFrameRef.current = requestAnimationFrame(update);
         } else {
           resolve();
         }
       };
 
-      animationFrameRef.current = requestAnimationFrame(animate);
+      animationFrameRef.current = requestAnimationFrame(update);
     });
   };
-
-  console.log(displayTime);
 
   const drawWaveform = useCallback(() => {
     if (!waveformCanvasRef.current || !analyserRef.current) return;
@@ -167,29 +147,32 @@ const ExamFlow: React.FC = () => {
       isExecutingRef.current = true;
 
       try {
+        // 1. READING STATUS
         setStatus('READING');
-        let prompt = q.topic;
-        if (q.text) prompt += '. ' + q.text;
+        let prompt = `${q.topic}. ${q.text || ''}`;
 
-        const ttsPromise = playTTS(prompt);
-        const timeoutPromise = new Promise((res) => setTimeout(res, 8000));
-        await Promise.race([ttsPromise, timeoutPromise]);
+        // TTS ni chaqiramiz (endi izohda emas)
+        await playTTS(prompt);
         await playBeep();
 
+        // 2. PREPARING STATUS
         if (q.prepTime > 0) {
           setStatus('PREPARING');
           await startExamTimer(q.prepTime);
           await playBeep();
         }
 
+        // 3. RECORDING STATUS
         setStatus('RECORDING');
         await startExamTimer(q.recordTime);
         await playBeep();
 
+        // Navbatdagi savolga o'tish
         isExecutingRef.current = false;
         if (currentQuestionIdx < questionsInPart.length - 1) {
           setCurrentQuestionIdx((prev) => prev + 1);
         } else {
+          // Part tugadi, foydalanuvchi "Next Part"ni bosishini kutamiz
           setStatus('IDLE');
         }
       } catch (error) {
@@ -201,13 +184,21 @@ const ExamFlow: React.FC = () => {
   );
 
   useEffect(() => {
-    if (!isExamStarted || !currentQuestion || isExecutingRef.current) return;
+    if (!isExamStarted || !currentQuestion || isExecutingRef.current || status === 'FINISHED')
+      return;
 
-    const isFirstQuestion = currentQuestionIdx === 0 && currentPartIdx === 0 && status === 'IDLE';
-    const isNextQuestion = currentQuestionIdx > 0 && !isExecutingRef.current;
-
-    if (isFirstQuestion || isNextQuestion) {
-      runQuestionCycle(currentQuestion);
+    // Faqat IDLE holatda yoki yangi savolga o'tganda boshlash
+    if (status === 'IDLE' || (currentQuestionIdx >= 0 && !isExecutingRef.current)) {
+      // Agar part tugagan bo'lsa (IDLE va oxirgi savol), boshlamaslik kerak
+      if (
+        !(
+          status === 'IDLE' &&
+          currentQuestionIdx === questionsInPart.length - 1 &&
+          currentQuestionIdx !== 0
+        )
+      ) {
+        runQuestionCycle(currentQuestion);
+      }
     }
 
     return () => {
@@ -220,9 +211,15 @@ const ExamFlow: React.FC = () => {
     status,
     currentQuestion,
     runQuestionCycle,
+    questionsInPart.length,
   ]);
 
-  const handleStartExam = () => setIsExamStarted(true);
+  const handleStartExam = () => {
+    // Audio kontekstni uyg'otish
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    ctx.resume();
+    setIsExamStarted(true);
+  };
 
   const handleNextPart = () => {
     if (currentPartIdx < parts.length - 1) {
@@ -282,7 +279,6 @@ const ExamFlow: React.FC = () => {
           status={status}
           displayTime={displayTime}
           timeProgress={timeProgress}
-          timerCircleRef={timerCircleRef}
           getTimerColor={getTimerColor}
           onExit={handleExit}
         />

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Teacher from '../assets/images/Jakhongir.jpg';
 
 const CourseDetail: React.FC = () => {
   return (
     <div className="bg-white min-h-screen">
-      {/* Hero Section */}
       <section className="bg-[#222222] text-white py-20 px-6 md:px-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1">
@@ -98,7 +98,6 @@ const CourseDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Teacher Sidebar */}
         <div className="lg:col-span-1">
           <div className="sticky top-24 bg-zinc-50 rounded-3xl p-8 border border-zinc-200">
             <h3 className="text-xl font-bold mb-6 uppercase tracking-widest text-zinc-400 text-sm">
@@ -106,7 +105,7 @@ const CourseDetail: React.FC = () => {
             </h3>
             <div className="relative mb-6 rounded-2xl overflow-hidden shadow-xl aspect-square">
               <img
-                src="https://raw.githubusercontent.com/ai-code-preview/storage/main/jahongir.jpg"
+                src={Teacher}
                 alt="Jahongir Shahabov"
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -151,7 +150,6 @@ const CourseDetail: React.FC = () => {
         </div>
       </section>
 
-      {/* Social Proof */}
       <section className="bg-zinc-900 py-20 px-6 text-white text-center">
         <h2 className="text-3xl font-bold mb-12">What our students achieve</h2>
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">

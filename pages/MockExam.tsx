@@ -19,7 +19,6 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
       return;
     }
 
-    // Redirect to exam flow
     navigate(`/exam-flow/${mode}`);
   };
 
@@ -34,7 +33,6 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Full Test */}
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-zinc-200 flex flex-col items-center text-center hover:shadow-xl hover:border-[#ff7300] transition-all group">
             <div className="w-16 h-16 rounded-full bg-[#ff7300]/10 flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform">
               🏆
@@ -50,7 +48,6 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
             </button>
           </div>
 
-          {/* Random Test */}
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-zinc-200 flex flex-col items-center text-center hover:shadow-xl hover:border-[#ff7300] transition-all group">
             <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform">
               🎲
@@ -66,7 +63,6 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
             </button>
           </div>
 
-          {/* Custom Test */}
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-zinc-200 flex flex-col items-center text-center hover:shadow-xl hover:border-[#ff7300] transition-all group">
             <div className="w-16 h-16 rounded-full bg-purple-50 flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform">
               ⚙️
@@ -83,7 +79,6 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
           </div>
         </div>
 
-        {/* Requirements Note */}
         <div className="mt-16 bg-[#222222] text-white p-8 rounded-3xl">
           <h4 className="font-bold mb-4 flex items-center gap-2">
             <span className="text-[#ff7300]">!</span> Technical Requirements
