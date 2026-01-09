@@ -1,0 +1,7 @@
+{
+  "name": "Manage LC - Learning Center & Mock Exam Platform",
+  "description": "A comprehensive English learning platform featuring an automated CEFR-style mock speaking exam system with AI-driven voice prompts and automated performance tracking.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
