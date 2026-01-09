@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { User } from '../types';
-import Logo from '../assets/images/logo.png';
+import Logo from '../assets/images/logo.jpg';
 
 interface HeaderProps {
   user: User | null;
