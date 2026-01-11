@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface LoginProps {
   onLogin: (phone: string) => void;
@@ -9,6 +10,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [step, setStep] = useState<'PHONE' | 'CODE'>('PHONE');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -16,21 +18,29 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setPhone(value);
   };
 
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     if (phone.length < 9) return;
+    setIsLoading(true);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    setIsLoading(false);
     setStep('CODE');
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (code.length === 4) {
+      setIsLoading(true);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 800));
       onLogin(phone);
+      setIsLoading(false);
       navigate('/mock-exam');
     }
   };
 
   return (
     <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-2xl border border-zinc-100">
+      <form className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-2xl border border-zinc-100" onSubmit={(e) => e.preventDefault()}>
         <div className="text-center mb-10">
           <h2 className="text-3xl font-black text-[#222222] mb-2">Welcome Back</h2>
           <p className="text-zinc-500">Log in via Telegram to access mock exams.</p>
@@ -59,9 +69,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
             <button
               onClick={handleSendCode}
-              disabled={phone.length < 9}
-              className="w-full bg-[#ff7300] disabled:bg-zinc-300 text-white py-4 rounded-2xl font-black text-lg hover:bg-[#e66700] transition-all transform active:scale-95 shadow-lg">
-              Get Code via Telegram
+              disabled={phone.length < 9 || isLoading}
+              className="w-full bg-[#ff7300] disabled:bg-zinc-300 text-white py-4 rounded-2xl font-black text-lg hover:bg-[#e66700] transition-all transform active:scale-95 shadow-lg flex items-center justify-center gap-2">
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Sending...
+                </>
+              ) : (
+                'Get Code via Telegram'
+              )}
             </button>
           </div>
         ) : (
@@ -84,8 +101,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
             <button
               onClick={handleVerify}
-              className="w-full bg-[#222222] text-white py-4 rounded-2xl font-black text-lg hover:bg-zinc-800 transition-all transform active:scale-95 shadow-lg">
-              Verify & Login
+              disabled={code.length !== 4 || isLoading}
+              className="w-full bg-[#222222] disabled:bg-zinc-400 text-white py-4 rounded-2xl font-black text-lg hover:bg-zinc-800 transition-all transform active:scale-95 shadow-lg flex items-center justify-center gap-2">
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Verifying...
+                </>
+              ) : (
+                'Verify & Login'
+              )}
             </button>
             <button
               onClick={() => setStep('PHONE')}
@@ -98,7 +123,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <div className="mt-8 pt-8 border-t border-zinc-100 flex flex-col items-center gap-4">
           <p className="text-xs text-zinc-400">By logging in, you agree to our Terms of Service.</p>
         </div>
-      </div>
+      </form>
     </div>
   );
 };

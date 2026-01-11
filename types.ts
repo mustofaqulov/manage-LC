@@ -12,6 +12,14 @@ export enum ExamPart {
   PART_3 = 'PART_3'
 }
 
+export enum ExamStatus {
+  IDLE = 'IDLE',
+  READING = 'READING',
+  PREPARING = 'PREPARING',
+  RECORDING = 'RECORDING',
+  FINISHED = 'FINISHED'
+}
+
 export interface Question {
   id: string;
   topic: string;
@@ -30,7 +38,7 @@ export interface ExamSession {
   questions: Record<ExamPart, Question[]>;
   currentPartIndex: number;
   currentQuestionIndex: number;
-  status: 'IDLE' | 'READING' | 'PREPARING' | 'RECORDING' | 'FINISHED';
+  status: ExamStatus;
 }
 
 export interface User {
@@ -46,4 +54,35 @@ export interface ExamHistoryItem {
   mode: ExamMode;
   score?: number;
   recordingsCount: number;
+}
+
+// API Response types
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: ApiError;
+}
+
+export interface ApiError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+// Scoring types
+export interface ExamScore {
+  totalScore: number;
+  fluency: number;
+  pronunciation: number;
+  vocabulary: number;
+  grammar: number;
+  feedback: string;
+}
+
+export interface RecordingData {
+  id: string;
+  blob: Blob;
+  questionId: string;
+  duration: number;
+  timestamp: Date;
 }

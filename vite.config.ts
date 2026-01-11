@@ -5,8 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   define: {
-    // API KEYni shu yerda saqlash xavfsiz emas, lekin vaqtinchalik ishlatish uchun:
-    'process.env.GEMINI_API_KEY': JSON.stringify('AIzaSyDIxqm-fpuHi7GVhJY4i6-HSHpvvrbeGqw'),
+    __VITE_GEMINI_API_KEY__: JSON.stringify(process.env.VITE_GEMINI_API_KEY || ''),
   },
   resolve: {
     alias: {

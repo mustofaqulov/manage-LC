@@ -1,8 +1,8 @@
 import React from 'react';
-import { ExamPart, Question } from '../../types';
+import { ExamPart, Question, ExamStatus } from '../../types';
 
 interface ExamBodyProps {
-  status: 'IDLE' | 'READING' | 'PREPARING' | 'RECORDING' | 'FINISHED';
+  status: ExamStatus;
   currentQuestion?: Question;
   currentPart?: ExamPart;
   waveformCanvasRef: React.RefObject<HTMLCanvasElement>;
@@ -21,25 +21,25 @@ const ExamBody: React.FC<ExamBodyProps> = ({
       <div className="absolute top-12 left-0 right-0 flex justify-center">
         <span
           className={`inline-block text-[11px] font-black uppercase tracking-[0.3em] px-8 py-3 rounded-full ${
-            status === 'RECORDING'
+            status === ExamStatus.RECORDING
               ? 'text-red-500 bg-red-50'
-              : status === 'PREPARING'
+              : status === ExamStatus.PREPARING
               ? 'text-blue-500 bg-[#eef2ff]'
-              : status === 'READING'
+              : status === ExamStatus.READING
               ? 'text-zinc-400 bg-zinc-50'
               : 'text-zinc-300 bg-zinc-50'
           }`}>
-          {status === 'READING'
+          {status === ExamStatus.READING
             ? 'AI INSTRUCTOR SPEAKING'
-            : status === 'PREPARING'
+            : status === ExamStatus.PREPARING
             ? 'PREPARATION TIME'
-            : status === 'RECORDING'
+            : status === ExamStatus.RECORDING
             ? 'RECORDING NOW'
             : 'PLEASE WAIT'}
         </span>
       </div>
 
-      {status === 'READING' && (
+      {status === ExamStatus.READING && (
         <div className="space-y-10 animate-in fade-in duration-700">
           <div className="relative inline-flex items-center justify-center w-32 h-32 bg-[#ff7300]/5 rounded-[2.5rem]">
             <div className="absolute inset-0 bg-[#ff7300]/10 blur-3xl rounded-full animate-pulse"></div>
@@ -56,7 +56,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
         </div>
       )}
 
-      {(status === 'PREPARING' || status === 'RECORDING') && (
+      {(status === ExamStatus.PREPARING || status === ExamStatus.RECORDING) && (
         <div className="w-full space-y-12 animate-in fade-in zoom-in duration-700">
           <div className="space-y-6">
             <h3 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-[#222222] tracking-tighter leading-none">

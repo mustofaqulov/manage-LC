@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ExamMode, ExamPart, Question } from '../types';
+import { ExamMode, ExamPart, Question, ExamStatus } from '../types';
 import { MOCK_QUESTIONS } from '../constants';
-import { playTTS, playBeep } from '../services/geminiService';
+import { playTTS, playBeep, stopAllAudio } from '../services/geminiService';
 import MicPermissionScreen from '../components/examflow/MicPermissionScreen';
 import StartExamScreen from '../components/examflow/StartExamScreen';
 import FinishedScreen from '../components/examflow/FinishedScreen';
@@ -17,9 +17,7 @@ const ExamFlow: React.FC = () => {
   const [currentPartIdx, setCurrentPartIdx] = useState(0);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
 
-  const [status, setStatus] = useState<'IDLE' | 'READING' | 'PREPARING' | 'RECORDING' | 'FINISHED'>(
-    'IDLE',
-  );
+  const [status, setStatus] = useState<ExamStatus>(ExamStatus.IDLE);
   const [displayTime, setDisplayTime] = useState(0);
   const [timeProgress, setTimeProgress] = useState(1);
 
@@ -28,18 +26,84 @@ const ExamFlow: React.FC = () => {
 
   const rafRef = useRef<number | null>(null);
   const runningRef = useRef(false);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+  // Cleanup barcha audio va resurslarni
+  const cleanupAll = () => {
+    try {
+      console.log('🧹 Starting cleanup...');
+
+      // Gemini service'dan barcha audio'ni to'xtatish (TTS + Beep)
+      stopAllAudio();
+
+      // MediaRecorder ni to'xtatish
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+        console.log('  - Stopped MediaRecorder');
+      }
+
+      // Microphone stream tracklarini to'xtatish
+      if (micStreamRef.current) {
+        micStreamRef.current.getTracks().forEach((track) => {
+          track.stop();
+        });
+        micStreamRef.current = null;
+        console.log('  - Stopped microphone stream');
+      }
+
+      // RAF timerni bekor qilish
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+        console.log('  - Cancelled RAF timer');
+      }
+
+      runningRef.current = false;
+
+      console.log('✅ All audio and resources cleaned up');
+    } catch (error) {
+      console.warn('⚠️ Cleanup error:', error);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupAll();
+    };
+  }, []);
 
   // Parts
   useEffect(() => {
     if (mode === ExamMode.FULL) {
       setParts([ExamPart.PART_1_1, ExamPart.PART_1_2, ExamPart.PART_2, ExamPart.PART_3]);
+    } else if (mode === ExamMode.RANDOM) {
+      // Random mode: har qismdan random savollar
+      const allParts = [ExamPart.PART_1_1, ExamPart.PART_1_2, ExamPart.PART_2, ExamPart.PART_3];
+      setParts(allParts);
     } else {
       setParts([ExamPart.PART_1_1, ExamPart.PART_1_2]);
     }
   }, [mode]);
 
   const currentPart = parts[currentPartIdx];
-  const questions = currentPart ? MOCK_QUESTIONS[currentPart] : [];
+  const allQuestions = currentPart ? MOCK_QUESTIONS[currentPart] : [];
+
+  // Random mode uchun savollarni aralashtirish
+  const [shuffledQuestions, setShuffledQuestions] = useState<Question[]>([]);
+
+  useEffect(() => {
+    if (mode === ExamMode.RANDOM && allQuestions.length > 0) {
+      // Savollarni random tartibda aralashtirish
+      const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+      setShuffledQuestions(shuffled.slice(0, Math.min(3, shuffled.length))); // Max 3 savol
+    } else {
+      setShuffledQuestions(allQuestions);
+    }
+  }, [allQuestions, mode]);
+
+  const questions = mode === ExamMode.RANDOM ? shuffledQuestions : allQuestions;
   const currentQuestion = questions[currentQuestionIdx];
 
   // ---------------- TIMER ENGINE ----------------
@@ -80,7 +144,12 @@ const ExamFlow: React.FC = () => {
 
     try {
       setStatus('READING');
-      await playTTS(`${q.topic}. ${q.text || ''}`);
+      try {
+        await playTTS(`${q.topic}. ${q.text || ''}`);
+      } catch (error) {
+        console.error('TTS Error:', error);
+        alert('Failed to play audio. Please check your audio settings.');
+      }
       await playBeep();
 
       if (q.prepTime > 0) {
@@ -99,6 +168,10 @@ const ExamFlow: React.FC = () => {
       } else {
         setStatus('IDLE');
       }
+    } catch (error) {
+      console.error('Question flow error:', error);
+      alert('An error occurred during the exam. Please try again.');
+      setStatus('IDLE');
     } finally {
       runningRef.current = false;
     }
@@ -116,8 +189,55 @@ const ExamFlow: React.FC = () => {
 
   // ---------------- MIC ----------------
   const requestMic = async () => {
-    await navigator.mediaDevices.getUserMedia({ audio: true });
-    setIsMicAllowed(true);
+    try {
+      console.log('🎤 Requesting microphone permission...');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('✅ Microphone access granted');
+      console.log('📊 Stream info:', {
+        tracks: stream.getTracks().length,
+        track: stream.getAudioTracks()[0]?.getSettings(),
+        enabled: stream.getAudioTracks()[0]?.enabled,
+      });
+
+      // Stream'ni ref'da saqlash
+      micStreamRef.current = stream;
+      setIsMicAllowed(true);
+
+      // Recordingni boshlash uchun
+      const mediaRecorder = new MediaRecorder(stream);
+      const audioChunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+          console.log('🎙️ Recording data chunk:', event.data.size, 'bytes');
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        console.log('🔊 Recording completed:', {
+          size: audioBlob.size,
+          type: audioBlob.type,
+          duration: 'calculating...',
+        });
+
+        const audioUrl = URL.createObjectURL(audioBlob);
+        console.log('🔗 Audio URL:', audioUrl);
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      (window as any).mediaRecorder = mediaRecorder;
+      (window as any).audioChunks = audioChunks;
+
+      console.log('🎬 MediaRecorder initialized:', mediaRecorder.state);
+    } catch (error) {
+      console.error('❌ Microphone access denied:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(
+        `Microphone access failed: ${errorMessage}. Microphone access is required for the speaking exam.`,
+      );
+    }
   };
 
   const getTimerColor = (p: number) => {
@@ -145,8 +265,25 @@ const ExamFlow: React.FC = () => {
   if (status === 'FINISHED') return <FinishedScreen onGoToResults={() => navigate('/history')} />;
 
   return (
-    <div className="min-h-screen bg-[#f3f4f6] p-10 flex justify-center">
-      <div className="max-w-5xl w-full space-y-10">
+    <div className="min-h-screen bg-[#f3f4f6] p-4 md:p-10 flex items-center justify-center overflow-hidden relative">
+      {/* Enhanced Back Button */}
+      <button
+        onClick={() => {
+          cleanupAll();
+          navigate(-1);
+        }}
+        className="absolute top-6 left-6 bg-white/90 hover:bg-white text-gray-700 hover:text-gray-900 p-4 rounded-full shadow-xl transition-all z-10 group flex items-center gap-2">
+        <svg
+          className="w-6 h-6 group-hover:-translate-x-1 transition-transform"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        <span className="font-medium">Back</span>
+      </button>
+
+      <div className="max-w-5xl w-full flex flex-col gap-10">
         <ExamHeader
           currentPartIdx={currentPartIdx}
           currentQuestionIdx={currentQuestionIdx}
@@ -156,7 +293,10 @@ const ExamFlow: React.FC = () => {
           displayTime={displayTime}
           timeProgress={timeProgress}
           getTimerColor={getTimerColor}
-          onExit={() => navigate('/mock-exam')}
+          onExit={() => {
+            cleanupAll();
+            navigate('/mock-exam');
+          }}
         />
 
         <ExamBody
