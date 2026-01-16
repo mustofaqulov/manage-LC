@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LoadingSpinner from '../components/LoadingSpinner';
 
 interface LoginProps {
   onLogin: (phone: string) => void;
@@ -18,112 +17,173 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setPhone(value);
   };
 
+  const fakeDelay = () => new Promise((r) => setTimeout(r, 900));
+
   const handleSendCode = async () => {
     if (phone.length < 9) return;
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await fakeDelay();
     setIsLoading(false);
     setStep('CODE');
   };
 
   const handleVerify = async () => {
-    if (code.length === 4) {
-      setIsLoading(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      onLogin(phone);
-      setIsLoading(false);
-      navigate('/mock-exam');
-    }
+    if (code.length !== 4) return;
+    setIsLoading(true);
+    await fakeDelay();
+    onLogin(phone);
+    setIsLoading(false);
+    navigate('/mock-exam');
   };
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center p-6">
-      <form className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-2xl border border-zinc-100" onSubmit={(e) => e.preventDefault()}>
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-black text-[#222222] mb-2">Welcome Back</h2>
-          <p className="text-zinc-500">Log in via Telegram to access mock exams.</p>
-        </div>
+    <div className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden bg-[#050505]">
+      {/* 🌌 Global dark background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#070707] via-[#120c06] to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,115,0,0.25),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(124,58,237,0.18),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:90px_90px]" />
 
-        {step === 'PHONE' ? (
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-zinc-700 mb-2 uppercase tracking-widest">
-                Phone Number
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 font-bold">
-                  +998
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={9}
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  placeholder="90 123 45 67"
-                  className="w-full pl-16 text-zinc-600 font-bold pr-4 py-4 bg-zinc-50 border border-zinc-200 rounded-2xl focus:border-[#ff7300] focus:ring-1 focus:ring-[#ff7300] outline-none transition-all font-bold"
-                />
-              </div>
-            </div>
-            <button
-              onClick={handleSendCode}
-              disabled={phone.length < 9 || isLoading}
-              className="w-full bg-[#ff7300] disabled:bg-zinc-300 text-white py-4 rounded-2xl font-black text-lg hover:bg-[#e66700] transition-all transform active:scale-95 shadow-lg flex items-center justify-center gap-2">
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Sending...
-                </>
-              ) : (
-                'Get Code via Telegram'
-              )}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-zinc-700 mb-2 uppercase tracking-widest">
-                Verification Code
-              </label>
-              <input
-                type="text"
-                maxLength={4}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="0000"
-                className="w-full px-4 py-4 bg-zinc-50 border border-zinc-200 rounded-2xl focus:border-[#ff7300] focus:ring-1 focus:ring-[#ff7300] outline-none transition-all text-center text-4xl font-black tracking-[0.5em]"
-              />
-              <p className="text-xs text-zinc-400 mt-4 text-center">
-                Enter the 4-digit code sent to your Telegram account.
+      {/* 🔐 Login Card */}
+      <div className="relative z-10 w-full max-w-md">
+        <div
+          className="
+            relative p-10 rounded-[2.8rem]
+            bg-white/5 backdrop-blur-2xl
+            border border-white/10
+            shadow-[0_30px_120px_rgba(0,0,0,0.9)]
+          ">
+          {/* Glow */}
+          <div className="absolute -inset-1 rounded-[3rem] blur-2xl bg-gradient-to-br from-orange-500/30 via-amber-400/20 to-transparent opacity-60" />
+
+          <div className="relative">
+            {/* Header */}
+            <div className="text-center mb-10">
+              <h2 className="text-4xl font-black mb-3 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                Welcome Back
+              </h2>
+              <p className="text-white/55 text-sm">
+                Secure login via Telegram to access mock exams
               </p>
             </div>
-            <button
-              onClick={handleVerify}
-              disabled={code.length !== 4 || isLoading}
-              className="w-full bg-[#222222] disabled:bg-zinc-400 text-white py-4 rounded-2xl font-black text-lg hover:bg-zinc-800 transition-all transform active:scale-95 shadow-lg flex items-center justify-center gap-2">
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Verifying...
-                </>
-              ) : (
-                'Verify & Login'
-              )}
-            </button>
-            <button
-              onClick={() => setStep('PHONE')}
-              className="w-full text-zinc-400 text-sm font-bold hover:text-zinc-600 transition-colors">
-              Change Phone Number
-            </button>
-          </div>
-        )}
 
-        <div className="mt-8 pt-8 border-t border-zinc-100 flex flex-col items-center gap-4">
-          <p className="text-xs text-zinc-400">By logging in, you agree to our Terms of Service.</p>
+            {step === 'PHONE' ? (
+              <div className="space-y-7">
+                {/* Phone input */}
+                <div>
+                  <label className="block text-xs font-bold text-white/60 mb-3 uppercase tracking-[0.25em]">
+                    Phone Number
+                  </label>
+
+                  <div className="relative">
+                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-white/60 font-bold">
+                      +998
+                    </span>
+                    <input
+                      type="text"
+                      value={phone}
+                      onChange={handlePhoneChange}
+                      placeholder="90 123 45 67"
+                      className="
+                        w-full pl-16 pr-4 py-4 rounded-2xl
+                        bg-black/40 text-white font-bold
+                        border border-white/15
+                        focus:border-orange-400 focus:ring-1 focus:ring-orange-400
+                        outline-none transition-all
+                      "
+                    />
+                  </div>
+                </div>
+
+                {/* Send code */}
+                <button
+                  onClick={handleSendCode}
+                  disabled={phone.length < 9 || isLoading}
+                  className="
+                    w-full py-4 rounded-2xl font-black text-lg
+                    bg-gradient-to-r from-orange-500 to-amber-400
+                    text-white
+                    shadow-[0_15px_50px_rgba(255,115,0,0.45)]
+                    hover:shadow-[0_25px_80px_rgba(255,115,0,0.65)]
+                    hover:scale-[1.04]
+                    disabled:opacity-40 disabled:hover:scale-100
+                    transition-all
+                    flex items-center justify-center gap-3
+                  ">
+                  {isLoading && (
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  )}
+                  Get Code via Telegram
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-7">
+                {/* Code input */}
+                <div>
+                  <label className="block text-xs font-bold text-white/60 mb-3 uppercase tracking-[0.25em]">
+                    Verification Code
+                  </label>
+
+                  <input
+                    type="text"
+                    maxLength={4}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="0000"
+                    className="
+                      w-full py-4 rounded-2xl text-center
+                      bg-black/40 text-white text-4xl font-black
+                      tracking-[0.5em]
+                      border border-white/15
+                      focus:border-orange-400 focus:ring-1 focus:ring-orange-400
+                      outline-none transition-all
+                    "
+                  />
+
+                  <p className="text-xs text-white/40 mt-4 text-center">
+                    Enter the 4-digit code sent to your Telegram
+                  </p>
+                </div>
+
+                {/* Verify */}
+                <button
+                  onClick={handleVerify}
+                  disabled={code.length !== 4 || isLoading}
+                  className="
+                    w-full py-4 rounded-2xl font-black text-lg
+                    bg-gradient-to-r from-zinc-800 to-zinc-900
+                    text-white
+                    border border-white/10
+                    hover:bg-zinc-800
+                    hover:scale-[1.04]
+                    disabled:opacity-40 disabled:hover:scale-100
+                    transition-all
+                    flex items-center justify-center gap-3
+                  ">
+                  {isLoading && (
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  )}
+                  Verify & Login
+                </button>
+
+                {/* Back */}
+                <button
+                  onClick={() => setStep('PHONE')}
+                  className="w-full text-white/40 text-sm font-bold hover:text-white/70 transition">
+                  Change phone number
+                </button>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="mt-10 pt-8 border-t border-white/10 text-center">
+              <p className="text-xs text-white/35">
+                By logging in, you agree to our Terms of Service
+              </p>
+            </div>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

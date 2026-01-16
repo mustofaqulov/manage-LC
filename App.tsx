@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import { User } from './types';
 import { userService } from './services/userService';
+import styles from './App.module.scss';
 
 const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
@@ -45,10 +46,10 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f9fafb]">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#ff7300]/20 border-t-[#ff7300] rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-zinc-500">Loading...</p>
+      <div className={styles.loadingWrapper}>
+        <div className={styles.loadingInner}>
+          <div className={styles.spinner} />
+          <p className={styles.loadingText}>Loading...</p>
         </div>
       </div>
     );
@@ -58,7 +59,7 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <Router>
         <Layout user={user} onLogout={handleLogout}>
-          <Suspense fallback={<div className="p-10 text-center text-zinc-500">Loading...</div>}>
+          <Suspense fallback={<div className={styles.suspenseFallback}>Loading...</div>}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
@@ -77,14 +78,12 @@ const App: React.FC = () => {
               <Route
                 path="/custom-exam"
                 element={
-                  <div className="p-20 text-center">
-                    <h1 className="text-3xl font-bold">Custom Exam Config</h1>
-                    <p className="text-zinc-500 mt-4">
+                  <div className={styles.customExamBox}>
+                    <h1 className={styles.customExamTitle}>Custom Exam Config</h1>
+                    <p className={styles.customExamText}>
                       Module coming soon. Use Full or Random test for now.
                     </p>
-                    <button
-                      onClick={() => window.history.back()}
-                      className="mt-8 bg-[#ff7300] text-white px-6 py-2 rounded">
+                    <button onClick={() => window.history.back()} className={styles.customExamBack}>
                       Go Back
                     </button>
                   </div>

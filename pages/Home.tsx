@@ -1,139 +1,255 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import MainImg from '../assets/images/main.jpg';
 import StudentImg from '../assets/images/manages-stdnts.jpg';
 import StudentsImg from '../assets/images/1k.jpg';
+import Bg from '../assets/images/background-1.jpg';
+import Course from '../assets/images/main.jpg';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const courses = [
+    {
+      level: 'CEFR A2',
+      title: 'Elementary Level',
+      description: 'Perfect for beginners building foundational skills',
+      overlayGradient: 'from-cyan-400/25 via-blue-500/20 to-indigo-600/20',
+      accentGlow: 'rgba(56,189,248,0.45)', // cyan
+      bg: Course,
+    },
+    {
+      level: 'CEFR B1',
+      title: 'Intermediate Level',
+      description: 'Develop confidence in everyday conversations',
+      overlayGradient: 'from-emerald-400/25 via-green-500/20 to-teal-600/20',
+      accentGlow: 'rgba(34,197,94,0.45)', // green
+      bg: Course,
+    },
+    {
+      level: 'CEFR B2',
+      title: 'Upper-Intermediate',
+      description: 'Master complex topics and fluent communication',
+      overlayGradient: 'from-orange-400/30 via-amber-500/25 to-yellow-400/20',
+      accentGlow: 'rgba(251,146,60,0.5)', // orange
+      bg: Course,
+    },
+    {
+      level: 'CEFR C1',
+      title: 'Advanced Level',
+      description: 'Achieve near-native proficiency and precision',
+      overlayGradient: 'from-purple-500/30 via-fuchsia-500/25 to-pink-500/20',
+      accentGlow: 'rgba(168,85,247,0.55)', // violet
+      bg: Course,
+    },
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % courses.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [courses.length]);
 
   return (
     <div className="bg-transparent">
-      <section className="relative py-24 px-6 md:px-12 overflow-hidden">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
-          <div className="flex-1 space-y-6">
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-[#222222]">
-              Master Your <span className="text-[#ff7300]">CEFR</span> Speaking.
-            </h1>
-            <p className="text-xl text-zinc-600 max-w-lg leading-relaxed">
-              Experience the most realistic mock exams in Uzbekistan. Automated timing, AI-powered
-              prompts, and comprehensive analytics.
-            </p>
-            <div className="flex flex-wrap gap-4 pt-4">
-              <Link
-                to="/mock-exam"
-                className="bg-[#ff7300] hover:bg-[#e66700] text-white px-8 py-4 rounded-lg font-bold text-lg transition-all transform hover:scale-105 shadow-lg">
-                Take a Mock Exam
-              </Link>
-              <Link
-                to="/about"
-                className="bg-[#222222] hover:bg-zinc-800 text-white px-8 py-4 rounded-lg font-bold text-lg transition-all transform hover:scale-105">
-                Learn More
-              </Link>
-            </div>
-          </div>
-          <div className="flex-1 relative">
-            <div className="w-full h-[400px] bg-zinc-200/50 rounded-3xl overflow-hidden shadow-2xl relative border border-white/20 backdrop-blur-sm">
-              <img src={MainImg} alt="Student studying" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#ff7300]/20 to-transparent"></div>
-            </div>
-            {/* Stats Badge */}
-            <div className="absolute -bottom-6 -left-6 bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/50 hidden lg:block">
-              <p className="text-[#ff7300] text-4xl font-black">98%</p>
-              <p className="text-zinc-500 font-medium">Success Rate</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24 px-6 md:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Professional Courses</h2>
-            <div className="w-20 h-1 bg-[#ff7300] mx-auto"></div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <section className="relative w-full  py-28 overflow-hidden -mt-14 md:-mt-28">
+        <div className="absolute inset-0 z-0">
+          {courses.map((course, index) => (
             <div
-              onClick={() => navigate('/courses/english')}
-              className="group bg-white/60 backdrop-blur-md border border-white/50 p-8 rounded-3xl hover:border-[#ff7300] transition-all cursor-pointer shadow-sm hover:shadow-xl">
-              <div className="w-16 h-16 bg-[#ff7300]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#ff7300] transition-colors">
-                <span className="text-[#ff7300] group-hover:text-white text-3xl font-bold">EN</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-4">English Language</h3>
-              <p className="text-zinc-500 mb-6">
-                From beginner to IELTS/CEFR mastery. Our curriculum is designed by Jahongir Shahabov
-                to make you fluent and confident.
-              </p>
-              <button className="text-[#ff7300] font-bold flex items-center gap-2 group-hover:gap-4 transition-all">
-                Learn more <span>&rarr;</span>
-              </button>
-            </div>
+              key={index}
+              className={`absolute inset-0 transition-all duration-1000 ${
+                index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
+              }`}>
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${Bg})` }}>
+                <div className="absolute inset-0 bg-gradient-to-br from-[#050505]/90 via-[#0e0e0e]/90 to-black/90" />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${course.overlayGradient}`}
+                  style={{ opacity: 0.55 }}
+                />
 
-            <div className="group bg-white/40 backdrop-blur-md border border-white/30 p-8 rounded-3xl opacity-60 transition-all cursor-not-allowed shadow-sm">
-              <div className="w-16 h-16 bg-[#222222]/10 rounded-2xl flex items-center justify-center mb-6">
-                <span className="text-[#222222] text-3xl font-bold">MA</span>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,115,0,0.35),transparent_60%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(255,215,0,0.25),transparent_60%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:80px_80px]" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">Mathematics</h3>
-              <p className="text-zinc-500 mb-6">
-                Master the art of numbers. Perfect for school preparation and national university
-                entrance exams.
-              </p>
-              <button className="text-[#222222] font-bold flex items-center gap-2 transition-all">
-                Coming soon...
-              </button>
             </div>
-          </div>
+          ))}
         </div>
-      </section>
 
-      <section className="py-24 bg-[#222222]/95 backdrop-blur-lg text-white px-6 md:px-12">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 className="text-4xl font-bold mb-8">
-              Why Students Choose <span className="text-[#ff7300]">Manage LC</span>?
-            </h2>
-            <div className="space-y-6">
-              {[
-                {
-                  title: 'Fast & Interactive',
-                  desc: 'Practice speaking tests instantly with real exam-style questions.',
-                },
-                {
-                  title: 'Track Progress',
-                  desc: 'See your scores, strengths, and areas for improvement.',
-                },
-                {
-                  title: 'Community',
-                  desc: 'Join learners worldwide and improve together.',
-                },
-              ].map((item, idx) => (
-                <div key={idx} className="flex gap-4">
-                  <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-[#ff7300] font-bold">
-                    {idx + 1}
+        <div className="relative z-20 h-full flex flex-col">
+          <div className="flex justify-center px-4">
+            <div
+              className="relative mt-40 w-[80%] min-h-[720px] md:min-h-[800px]
+                        bg-white/10 backdrop-blur-2xl border border-white/20
+                        rounded-[40px] p-16
+                        shadow-[0_40px_140px_rgba(0,0,0,0.95)]">
+              <div className="absolute -inset-3 bg-gradient-to-br from-orange-500/30 to-yellow-400/20 blur-3xl rounded-3xl" />
+              <div className="relative top-[60%] w-[max-content] text-center space-y-6">
+                <div className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white flex gap-2 items-center">
+                  <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-yellow-400 rounded-full animate-pulse" />
+                  AI-Powered Learning Platform
+                </div>
+                <div className="flex justify-center gap-4 mt-6">
+                  <Link
+                    to="/courses/english"
+                    className="px-10 py-4 bg-gradient-to-r from-orange-500 to-yellow-400 rounded-2xl font-bold text-white shadow-xl hover:scale-105 transition">
+                    Enroll to Course
+                  </Link>
+
+                  <Link
+                    to="/mock-exam"
+                    className="px-10 py-4 bg-black/60 border border-white/20 rounded-2xl text-white hover:bg-black/80 transition">
+                    Take Mock Exam
+                  </Link>
+                </div>
+
+                {/* Stats */}
+                <div className="mt-8 flex justify-center gap-12 text-white">
+                  <div>
+                    <div className="text-4xl font-black text-orange-400">1000+</div>
+                    <div className="text-white/60">Active Students</div>
                   </div>
                   <div>
-                    <h4 className="text-xl font-bold mb-2">{item.title}</h4>
-                    <p className="text-zinc-400">{item.desc}</p>
+                    <div className="text-4xl font-black text-orange-400">98%</div>
+                    <div className="text-white/60">Success Rate</div>
+                  </div>
+                  <div>
+                    <div className="text-4xl font-black text-orange-400">4.9/5</div>
+                    <div className="text-white/60">Student Rating</div>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-64 bg-zinc-800 rounded-2xl mt-8 overflow-hidden shadow-2xl border border-white/5">
-              <img
-                src={StudentsImg}
-                className="w-full h-full object-cover transition-all duration-500"
-                alt="Student Life"
+          <div className="flex-grow" />
+        </div>
+
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-30">
+          {courses.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentSlide(i)}
+              className={`h-2 transition-all ${
+                i === currentSlide
+                  ? 'w-10 bg-orange-500 shadow-[0_0_15px_orange]'
+                  : 'w-2 bg-white/40'
+              } rounded-full`}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="relative py-32 px-6 md:px-12 bg-[#050505] overflow-hidden">
+        {/* Dark cinematic background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0b0b0b] via-[#120c06] to-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_35%,rgba(255,115,0,0.25),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_65%,rgba(124,58,237,0.22),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:90px_90px]" />
+
+        <div className="relative z-10 max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-24">
+            <h2
+              className="
+        text-5xl md:text-6xl xl:text-7xl font-black leading-tight mb-6
+        text-white
+        drop-shadow-[0_12px_45px_rgba(255,115,0,0.35)]
+      ">
+              Our{' '}
+              <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                Professional
+              </span>{' '}
+              Courses
+            </h2>
+
+            <div className="w-28 h-1.5 bg-gradient-to-r from-orange-500 via-yellow-400 to-orange-500 mx-auto rounded-full" />
+          </div>
+
+          {/* Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-14">
+            {/* English */}
+            <div
+              onClick={() => navigate('/courses/english')}
+              className="
+          group relative cursor-pointer
+          rounded-[42px] p-12
+          bg-white/5 backdrop-blur-xl
+          border border-white/15
+          shadow-[0_25px_90px_rgba(0,0,0,0.9)]
+          transition-all duration-500
+          hover:-translate-y-2 hover:scale-[1.05]
+          hover:shadow-[0_45px_140px_rgba(255,140,0,0.45)]
+        ">
+              {/* Hover glow */}
+              <div
+                className="
+          absolute -inset-4 rounded-[46px]
+          bg-gradient-to-br from-orange-400/45 via-amber-300/35 to-pink-400/30
+          blur-3xl opacity-0
+          group-hover:opacity-100
+          transition duration-500
+        "
               />
+
+              <div className="relative z-10">
+                <div
+                  className="
+            w-20 h-20 rounded-2xl mb-8
+            bg-gradient-to-br from-orange-500 to-yellow-400
+            flex items-center justify-center
+            shadow-[0_18px_50px_rgba(255,140,0,0.6)]
+            transition-transform duration-500
+            group-hover:scale-110
+          ">
+                  <span className="text-white text-4xl font-black">EN</span>
+                </div>
+
+                <h3 className="text-3xl font-black text-white mb-4">English Language</h3>
+
+                <p className="text-white/65 text-lg leading-relaxed mb-8 max-w-md">
+                  From beginner to IELTS & CEFR mastery. Built for real fluency, confidence, and
+                  exam results.
+                </p>
+
+                <div
+                  className="
+            flex items-center gap-3
+            text-orange-400 font-bold text-lg
+            transition-all duration-300
+            group-hover:gap-6
+          ">
+                  Learn more <span>→</span>
+                </div>
+              </div>
             </div>
-            <div className="h-64 bg-zinc-800 rounded-2xl overflow-hidden shadow-2xl border border-white/5">
-              <img
-                src={StudentImg}
-                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
-                alt="LC Classroom"
-              />
+
+            {/* Mathematics */}
+            <div
+              className="
+          relative rounded-[42px] p-12
+          bg-white/4 backdrop-blur-xl
+          border border-white/10
+          opacity-60
+          shadow-[0_20px_70px_rgba(0,0,0,0.8)]
+        ">
+              <div
+                className="
+          w-20 h-20 rounded-2xl mb-8
+          bg-gradient-to-br from-zinc-700 to-zinc-800
+          flex items-center justify-center
+        ">
+                <span className="text-zinc-300 text-4xl font-black">MA</span>
+              </div>
+
+              <h3 className="text-3xl font-black text-zinc-300 mb-4">Mathematics</h3>
+
+              <p className="text-zinc-400 text-lg leading-relaxed mb-8 max-w-md">
+                Master the art of numbers. Designed for school preparation and national exams.
+              </p>
+
+              <div className="text-zinc-400 font-bold">Coming soon…</div>
             </div>
           </div>
         </div>

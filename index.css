@@ -10,6 +10,10 @@ body {
   padding: 0;
 }
 
+#root::-webkit-scrollbar {
+    display: none;
+}
+
 .primary-orange {
   color: #ff7300;
 }
@@ -104,6 +108,10 @@ body {
   animation: float-reverse 30s infinite linear;
 }
 
+.mt {
+    margin-top: 60px;
+}
+
 .blob-3 {
   background: #8b5cf6;
   top: 40%;
@@ -118,4 +126,14 @@ body {
 #root {
   position: relative;
   z-index: 1;
+}
+
+/* Hero grid animation */
+@keyframes grid {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(60px, 60px);
+  }
 }

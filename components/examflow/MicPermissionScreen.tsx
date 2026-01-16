@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './MicPermissionScreen.module.scss';
 
 interface MicPermissionScreenProps {
   onEnableMicrophone: () => void;
@@ -10,28 +11,69 @@ const MicPermissionScreen: React.FC<MicPermissionScreenProps> = ({
   onCancel,
 }) => {
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white p-12 rounded-[3rem] shadow-2xl text-center border border-zinc-100/50">
-        <div className="w-24 h-24 bg-[#ff7300]/5 text-[#ff7300] rounded-full flex items-center justify-center mx-auto mb-8 text-4xl shadow-inner">
-          <span className="animate-pulse">🎙️</span>
-        </div>
-        <h2 className="text-3xl font-black mb-4 text-[#222222]">Microphone Required</h2>
-        <p className="text-zinc-500 mb-10 font-medium leading-relaxed">
-          To simulate a real CEFR speaking exam, we need permission to capture your voice responses.
-        </p>
-        <div className="flex flex-col gap-4">
+    <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
+      {/* Dark immersive background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#1a1410] to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,140,0,0.15),transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(255,180,60,0.08),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:80px_80px] opacity-30" />
+
+      {/* Floating card with entrance animation */}
+      <div className="relative max-w-lg w-full animate-[fadeInUp_0.6s_ease-out]">
+        {/* Orange glow underneath */}
+        <div className="absolute -inset-4 bg-gradient-to-br from-orange-500/20 via-amber-500/15 to-yellow-500/10 rounded-[48px] blur-3xl opacity-60" />
+
+        {/* Glassmorphic card */}
+        <div className="relative bg-white/5 backdrop-blur-2xl rounded-[40px] p-12 border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
+          {/* Microphone icon with pulse */}
+          <div className="relative w-28 h-28 mx-auto mb-10">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full blur-xl opacity-50 animate-pulse" />
+            <div className="relative w-28 h-28 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(255,140,0,0.6)]">
+              <svg className="w-14 h-14 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-4xl font-black text-white mb-5 text-center tracking-tight">
+            Microphone Access Required
+          </h2>
+
+          {/* Short description */}
+          <p className="text-white/60 text-lg mb-10 text-center font-medium leading-relaxed">
+            We need microphone access to simulate a real CEFR speaking exam.
+          </p>
+
+          {/* Primary button */}
           <button
             onClick={onEnableMicrophone}
-            className="w-full bg-[#ff7300] text-white py-5 rounded-2xl font-black text-xl hover:bg-[#e66700] transition-all transform active:scale-[0.98] shadow-[0_10px_30px_rgba(255,115,0,0.3)]">
+            className="w-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white py-5 rounded-2xl font-black text-xl shadow-[0_8px_40px_rgba(255,140,0,0.5)] hover:shadow-[0_12px_50px_rgba(255,140,0,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 mb-4">
             Enable Microphone
           </button>
+
+          {/* Secondary cancel button */}
           <button
             onClick={onCancel}
-            className="w-full bg-zinc-100 text-[#555555] py-4 rounded-2xl font-bold text-lg hover:bg-zinc-200 transition-all active:scale-[0.98]">
+            className="w-full text-white/40 hover:text-white/70 py-3 font-semibold text-base transition-colors duration-200">
             Cancel
           </button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 };

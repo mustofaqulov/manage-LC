@@ -4,170 +4,106 @@ import Teacher from '../assets/images/Jakhongir.jpg';
 
 const CourseDetail: React.FC = () => {
   return (
-    <div className="bg-white min-h-screen">
-      <section className="bg-[#222222] text-white py-20 px-6 md:px-12">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
-          <div className="flex-1">
-            <nav className="flex gap-2 text-zinc-400 text-sm mb-6 font-medium">
-              <Link to="/" className="hover:text-[#ff7300]">
+    <div className="relative bg-[#050505] text-white overflow-hidden">
+      {/* Global background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0b0b0b] via-[#120c06] to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_40%,rgba(255,115,0,0.28),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_70%,rgba(34,197,94,0.18),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:90px_90px]" />
+
+      <section className="relative min-h-[80vh] flex items-center px-6 md:px-12">
+        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          {/* LEFT */}
+          <div>
+            {/* Breadcrumb */}
+            <nav className="flex items-center gap-2 text-sm text-white/50 mb-8">
+              <Link to="/" className="hover:text-orange-400 transition">
                 Home
               </Link>
               <span>/</span>
-              <span className="text-white">English Mastery</span>
+              <span className="text-white">English Course</span>
             </nav>
-            <h1 className="text-4xl md:text-6xl font-black mb-6">
-              Master the <span className="text-[#ff7300]">English Language</span>
+
+            {/* Title */}
+            <h1 className="text-5xl md:text-6xl xl:text-7xl font-black leading-tight mb-6">
+              English{' '}
+              <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                Mastery
+              </span>
             </h1>
-            <p className="text-xl text-zinc-400 leading-relaxed max-w-2xl">
-              From foundational grammar to advanced CEFR/IELTS preparation. Join the most effective
-              English course in Uzbekistan designed for rapid progress and real-world confidence.
+
+            {/* Subtitle */}
+            <p className="text-white/65 text-lg max-w-xl leading-relaxed mb-10">
+              A results-driven CEFR & IELTS program focused on real speaking confidence, not boring
+              theory.
             </p>
-            <div className="mt-8 flex gap-4">
-              <button className="bg-[#ff7300] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#e66700] transition-colors shadow-lg">
-                Join the Course
-              </button>
-              <div className="flex items-center gap-2 text-zinc-300 font-medium">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                Next group starts: June 1st
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Course Content */}
-      <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-16">
-        <div className="lg:col-span-2 space-y-12">
-          <div>
-            <h2 className="text-3xl font-bold mb-6">Course Overview</h2>
-            <p className="text-zinc-600 leading-relaxed mb-6">
-              Our English Mastery program is meticulously designed to take students from any level
-              to C1/C2 fluency. We combine traditional academic excellence with modern communicative
-              techniques, ensuring you don't just "know" English, but can actually "use" it.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                'Interactive Speaking Workshops',
-                'CEFR & IELTS Focused Curriculum',
-                'Advanced Grammar Mastery',
-                'Academic Writing Skills',
-                'Weekly Performance Tracking',
-                'Immersive Media Lab',
-              ].map((feature, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-4 bg-zinc-50 rounded-xl border border-zinc-100">
-                  <span className="text-[#ff7300] font-bold">✓</span>
-                  <span className="font-medium text-zinc-700">{feature}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-bold mb-8">Curriculum Structure</h2>
-            <div className="space-y-4">
-              {[
-                {
-                  level: 'Level 1: Foundation',
-                  topics: 'Essentials of structure, daily communication, and phonetics.',
-                },
-                {
-                  level: 'Level 2: Intermediate',
-                  topics: 'Complex tenses, opinion essays, and business discussions.',
-                },
-                {
-                  level: 'Level 3: Upper Intermediate',
-                  topics: 'Advanced idiomatic language, debate, and report writing.',
-                },
-                {
-                  level: 'Level 4: Exam Readiness',
-                  topics: 'Intensive mock exams, speed reading, and exam psychology.',
-                },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="p-6 border border-zinc-200 rounded-2xl hover:border-[#ff7300] transition-colors group">
-                  <h4 className="font-bold text-xl group-hover:text-[#ff7300] transition-colors">
-                    {item.level}
-                  </h4>
-                  <p className="text-zinc-500 mt-2">{item.topics}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="lg:col-span-1">
-          <div className="sticky top-24 bg-zinc-50 rounded-3xl p-8 border border-zinc-200">
-            <h3 className="text-xl font-bold mb-6 uppercase tracking-widest text-zinc-400 text-sm">
-              Lead Instructor
-            </h3>
-            <div className="relative mb-6 rounded-2xl overflow-hidden shadow-xl aspect-square">
-              <img
-                src={Teacher}
-                alt="Jahongir Shahabov"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400';
-                }}
-              />
-            </div>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-2xl font-black">Jahongir Shahabov</h4>
-                <p className="text-[#ff7300] font-bold uppercase text-xs tracking-wider">
-                  LC Founder & Senior Teacher
-                </p>
-              </div>
-
-              <div className="space-y-3 pt-4 border-t border-zinc-200">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-zinc-500">Experience</span>
-                  <span className="font-bold">7 Years</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-zinc-500">IELTS Score</span>
-                  <span className="font-bold bg-zinc-800 text-white px-2 py-0.5 rounded">7.5</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-zinc-500">CEFR Certification</span>
-                  <span className="font-bold text-[#ff7300]">C1 Level</span>
-                </div>
-              </div>
-
-              <p className="text-sm text-zinc-500 italic leading-relaxed pt-4">
-                "My mission is to break the language barrier for every student in Uzbekistan.
-                English isn't just a subject; it's the key to your global future."
-              </p>
-
-              <button className="w-full mt-6 bg-[#222222] text-white py-4 rounded-xl font-bold hover:bg-zinc-800 transition-colors">
-                Book a Consultation
+            {/* CTA */}
+            <div className="flex flex-wrap gap-5">
+              <a href="https://forms.gle/u3T9MVfcRbJQN2Rr6">
+                <button
+                  className="
+                  px-10 py-4 rounded-2xl font-black
+                  bg-gradient-to-r from-orange-500 to-amber-400
+                  text-white
+                  shadow-[0_15px_50px_rgba(255,115,0,0.45)]
+                  hover:shadow-[0_25px_80px_rgba(255,115,0,0.65)]
+                  hover:scale-[1.05]
+                  transition-all duration-300
+                ">
+                  Join Course
+                </button>
+              </a>
+              <button
+                className="
+                  px-10 py-4 rounded-2xl font-semibold
+                  border border-white/20
+                  bg-white/5 backdrop-blur-sm
+                  hover:bg-white/10 hover:border-white/30
+                  transition-all duration-300
+                ">
+                Free Consultation
               </button>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="bg-zinc-900 py-20 px-6 text-white text-center">
-        <h2 className="text-3xl font-bold mb-12">What our students achieve</h2>
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div>
-            <p className="text-4xl font-black text-[#ff7300]">8.0</p>
-            <p className="text-zinc-500 text-sm">Top IELTS Score</p>
-          </div>
-          <div>
-            <p className="text-4xl font-black text-[#ff7300]">C1</p>
-            <p className="text-zinc-500 text-sm">Avg. CEFR Result</p>
-          </div>
-          <div>
-            <p className="text-4xl font-black text-[#ff7300]">500+</p>
-            <p className="text-zinc-500 text-sm">Students monthly</p>
-          </div>
-          <div>
-            <p className="text-4xl font-black text-[#ff7300]">100%</p>
-            <p className="text-zinc-500 text-sm">Satisfaction Rate</p>
+          {/* RIGHT – STATS */}
+          <div className="grid grid-cols-2 gap-6">
+            {[
+              { value: 'C1+', label: 'Target Level', glow: 'from-orange-400/40 to-amber-400/30' },
+              { value: '8.0', label: 'Top IELTS', glow: 'from-blue-400/40 to-cyan-400/30' },
+              {
+                value: '500+',
+                label: 'Active Students',
+                glow: 'from-green-400/40 to-emerald-400/30',
+              },
+              { value: '98%', label: 'Success Rate', glow: 'from-purple-400/40 to-fuchsia-400/30' },
+            ].map((item, i) => (
+              <div key={i} className="group relative">
+                {/* Glow */}
+                <div
+                  className={`
+                    absolute -inset-1 rounded-3xl blur-2xl opacity-0
+                    bg-gradient-to-br ${item.glow}
+                    group-hover:opacity-100 transition-all duration-500
+                  `}
+                />
+
+                {/* Card */}
+                <div
+                  className="
+                    relative rounded-3xl p-8
+                    bg-white/10 backdrop-blur-xl
+                    border border-white/15
+                    shadow-[0_20px_60px_rgba(0,0,0,0.6)]
+                    transition-all duration-500 ease-out
+                    group-hover:-translate-y-2 group-hover:scale-[1.04]
+                  ">
+                  <div className="text-4xl font-black mb-2 text-white">{item.value}</div>
+                  <div className="text-white/60 text-sm uppercase tracking-wider">{item.label}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
