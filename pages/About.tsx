@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from '../i18n/useTranslation';
 import Main2 from '../assets/images/main2.jpg';
 
 const About: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <div className="relative min-h-screen py-28 px-6 md:px-12 overflow-hidden bg-[#050505]">
       {/* Dark premium background */}
@@ -14,10 +16,8 @@ const About: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl font-black mb-4">
-            About{' '}
-            <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
-              Manage LC
-            </span>
+            {t('about.title')}
+            <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent"></span>
           </h1>
           <div className="w-24 h-1.5 bg-gradient-to-r from-orange-500 to-amber-400 mx-auto rounded-full" />
         </div>
@@ -44,12 +44,9 @@ const About: React.FC = () => {
                 <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
                   🎯
                 </span>
-                Our Mission
+                {t('about.mission')}
               </h3>
-              <p className="text-white/70 text-lg leading-relaxed">
-                We believe education must be modern, accessible, and results-driven. Our mock exam
-                system replicates real CEFR exams to deliver measurable progress.
-              </p>
+              <p className="text-white/70 text-lg leading-relaxed">{t('about.missionDesc')}</p>
             </div>
           </div>
         </div>

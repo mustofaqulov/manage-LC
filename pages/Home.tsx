@@ -1,43 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from '../i18n/useTranslation';
 import StudentImg from '../assets/images/manages-stdnts.jpg';
 import StudentsImg from '../assets/images/1k.jpg';
 import Bg from '../assets/images/background-1.jpg';
 import Course from '../assets/images/main.jpg';
 
 const Home: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const courses = [
     {
       level: 'CEFR A2',
-      title: 'Elementary Level',
-      description: 'Perfect for beginners building foundational skills',
+      title: t('home.elementaryLevel'),
+      description: t('home.elementaryDesc'),
       overlayGradient: 'from-cyan-400/25 via-blue-500/20 to-indigo-600/20',
       accentGlow: 'rgba(56,189,248,0.45)', // cyan
       bg: Course,
     },
     {
       level: 'CEFR B1',
-      title: 'Intermediate Level',
-      description: 'Develop confidence in everyday conversations',
+      title: t('home.intermediateLevel'),
+      description: t('home.intermediateDesc'),
       overlayGradient: 'from-emerald-400/25 via-green-500/20 to-teal-600/20',
       accentGlow: 'rgba(34,197,94,0.45)', // green
       bg: Course,
     },
     {
       level: 'CEFR B2',
-      title: 'Upper-Intermediate',
-      description: 'Master complex topics and fluent communication',
+      title: t('home.upperIntermediateLevel'),
+      description: t('home.upperIntermediateDesc'),
       overlayGradient: 'from-orange-400/30 via-amber-500/25 to-yellow-400/20',
       accentGlow: 'rgba(251,146,60,0.5)', // orange
       bg: Course,
     },
     {
       level: 'CEFR C1',
-      title: 'Advanced Level',
-      description: 'Achieve near-native proficiency and precision',
+      title: t('home.advancedLevel'),
+      description: t('home.advancedDesc'),
       overlayGradient: 'from-purple-500/30 via-fuchsia-500/25 to-pink-500/20',
       accentGlow: 'rgba(168,85,247,0.55)', // violet
       bg: Course,
@@ -95,13 +97,13 @@ const Home: React.FC = () => {
                   <Link
                     to="/courses/english"
                     className="px-10 py-4 bg-gradient-to-r from-orange-500 to-yellow-400 rounded-2xl font-bold text-white shadow-xl hover:scale-105 transition">
-                    Enroll to Course
+                    {t('home.exploreCourses')}
                   </Link>
 
                   <Link
                     to="/mock-exam"
                     className="px-10 py-4 bg-black/60 border border-white/20 rounded-2xl text-white hover:bg-black/80 transition">
-                    Take Mock Exam
+                    {t('mockExam.startExam')}
                   </Link>
                 </div>
 
@@ -157,11 +159,10 @@ const Home: React.FC = () => {
         text-white
         drop-shadow-[0_12px_45px_rgba(255,115,0,0.35)]
       ">
-              Our{' '}
+              {t('home.heroCta')}{' '}
               <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
-                Professional
-              </span>{' '}
-              Courses
+                {t('common.courses')}
+              </span>
             </h2>
 
             <div className="w-28 h-1.5 bg-gradient-to-r from-orange-500 via-yellow-400 to-orange-500 mx-auto rounded-full" />

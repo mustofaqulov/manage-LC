@@ -22,7 +22,6 @@ const ExamBody: React.FC<ExamBodyProps> = ({
 }) => {
   return (
     <div className="relative group">
-      {/* Subtle glow underneath */}
       <div className="absolute -inset-2 bg-gradient-to-br from-orange-500/5 via-red-500/5 to-amber-500/5 rounded-[40px] blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
 
       {/* Main glassmorphic container */}
@@ -76,10 +75,6 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               </div>
             </div>
 
-            {/* Topic title - SMALLER and cleaner */}
-            <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-              {currentQuestion?.topic}
-            </h3>
 
             {/* Question text */}
             {currentQuestion?.text && (

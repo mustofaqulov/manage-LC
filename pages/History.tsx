@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from '../i18n/useTranslation';
 import { ExamMode } from '../types';
 
 const History: React.FC = () => {
+  const { t } = useTranslation();
   const mockHistory = [
     { id: '1', date: '2023-11-20', mode: ExamMode.FULL, score: 8.5, recordings: 10 },
     { id: '2', date: '2023-11-15', mode: ExamMode.RANDOM, score: 7.0, recordings: 3 },
@@ -20,9 +22,9 @@ const History: React.FC = () => {
         {/* Header */}
         <div className="mb-16">
           <h1 className="text-4xl md:text-5xl font-black mb-3">
-            Exam <span className="text-orange-400">History</span>
+            {t('history.title')} <span className="text-orange-400"></span>
           </h1>
-          <p className="text-white/60 text-lg">Track your progress and review past exam results</p>
+          <p className="text-white/60 text-lg">{t('history.subtitle')}</p>
         </div>
 
         {/* Stats */}
@@ -33,7 +35,9 @@ const History: React.FC = () => {
             <div
               className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8
               hover:-translate-y-2 transition">
-              <p className="text-white/50 text-xs font-bold uppercase mb-2">Total Exams</p>
+              <p className="text-white/50 text-xs font-bold uppercase mb-2">
+                {t('history.totalExams')}
+              </p>
               <p className="text-5xl font-black">12</p>
             </div>
           </div>
@@ -45,19 +49,23 @@ const History: React.FC = () => {
               className="relative bg-gradient-to-br from-orange-500 to-amber-500 rounded-3xl p-8
               shadow-[0_20px_70px_rgba(255,115,0,0.45)]
               hover:-translate-y-2 transition">
-              <p className="text-orange-100 text-xs font-bold uppercase mb-2">Avg Score</p>
+              <p className="text-orange-100 text-xs font-bold uppercase mb-2">
+                {t('history.avgScore')}
+              </p>
               <p className="text-5xl font-black text-white">7.2</p>
             </div>
           </div>
 
-          {/* Improvement */}
+          {/* Best Score */}
           <div className="group relative">
             <div className="absolute -inset-1 bg-green-500/30 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition" />
             <div
               className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8
               hover:-translate-y-2 transition">
-              <p className="text-white/50 text-xs font-bold uppercase mb-2">Improvement</p>
-              <p className="text-5xl font-black text-green-400">+0.7</p>
+              <p className="text-white/50 text-xs font-bold uppercase mb-2">
+                {t('history.bestScore')}
+              </p>
+              <p className="text-5xl font-black text-green-400">8.5</p>
             </div>
           </div>
         </div>
@@ -69,7 +77,13 @@ const History: React.FC = () => {
             <table className="w-full text-left">
               <thead className="bg-white/5">
                 <tr>
-                  {['Date', 'Mode', 'Recordings', 'Score', 'Action'].map((h) => (
+                  {[
+                    t('history.date'),
+                    t('history.mode'),
+                    t('history.recordings'),
+                    t('history.score'),
+                    'Action',
+                  ].map((h) => (
                     <th
                       key={h}
                       className="px-8 py-5 text-xs font-black uppercase tracking-wider text-white/60">
@@ -95,7 +109,9 @@ const History: React.FC = () => {
                       </span>
                     </td>
 
-                    <td className="px-8 py-6 text-white/60">{item.recordings} files</td>
+                    <td className="px-8 py-6 text-white/60">
+                      {item.recordings} {t('history.recordings')}
+                    </td>
 
                     <td className="px-8 py-6 text-2xl font-black">{item.score}</td>
 

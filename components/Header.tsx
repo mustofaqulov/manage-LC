@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from '../i18n';
 import { User } from '../types';
 import Logo from '../assets/images/logo.svg';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface HeaderProps {
   user: User | null;
@@ -9,12 +11,22 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+  const { t } = useTranslation();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
   // Detect exam context for minimal mode
   const isExamContext =
     location.pathname.includes('/exam') || location.pathname.includes('/mock-exam');
+
+  const navLinks = [
+    { key: 'home', path: '/', essential: false },
+    { key: 'about', path: '/about', essential: true },
+    { key: 'courses', path: '/courses/english', essential: false },
+    { key: 'exams', path: '/mock-exam', essential: true },
+    { key: 'history', path: '/history', essential: true },
+    { key: 'leaderboard', path: '/leaderboard', essential: true },
+  ];
 
   return (
     <div className="fixed top-4 left-0 right-0 z-50 px-4 md:px-8 pointer-events-none">
@@ -35,15 +47,8 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
 
         {/* Center Menu */}
         <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-          {[
-            { name: 'Home', path: '/', essential: false },
-            { name: 'About', path: '/about', essential: true },
-            { name: 'Courses', path: '/courses/english', essential: false },
-            { name: 'Exams', path: '/mock-exam', essential: true },
-            { name: 'History', path: '/history', essential: true },
-            { name: 'Leaderboard', path: '/leaderboard', essential: true },
-          ]
-            .filter((link) => !isExamContext || link.essential) // Hide non-essential in exam mode
+          {navLinks
+            .filter((link) => !isExamContext || link.essential)
             .map((link) => (
               <Link
                 key={link.path}
@@ -53,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                     ? 'text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-orange-300'
                     : 'text-white/60 hover:text-white/90'
                 }`}>
-                {link.name}
+                {t(`common.${link.key}`)}
                 {isActive(link.path) && (
                   <span className="absolute -bottom-0.5 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-orange-400 to-transparent shadow-[0_0_8px_rgba(251,146,60,0.6)]" />
                 )}
@@ -61,8 +66,9 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
             ))}
         </div>
 
-        {/* Right Side: User or Login */}
+        {/* Right Side: Language Switcher, User or Login */}
         <div className="flex items-center gap-3">
+          <LanguageSwitcher />
           {user ? (
             <>
               {/* Compact User Pill */}
@@ -85,7 +91,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                         className={`text-[9px] font-bold uppercase tracking-wider ${
                           user.isSubscribed ? 'text-green-400/90' : 'text-amber-400/90'
                         }`}>
-                        {user.isSubscribed ? 'Pro' : 'Free'}
+                        {t(`common.${user.isSubscribed ? 'pro' : 'free'}`)}
                       </span>
                     </div>
                   </div>
@@ -95,14 +101,14 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
               <button
                 onClick={onLogout}
                 className="px-4 py-1.5 rounded-xl text-xs font-semibold text-white/70 hover:text-white border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all duration-300">
-                Logout
+                {t('common.logout')}
               </button>
             </>
           ) : (
             <Link
               to="/login"
               className="px-6 py-2 rounded-xl font-semibold text-sm bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 hover:from-orange-400 hover:via-amber-400 hover:to-orange-300 text-white shadow-[0_4px_20px_rgba(255,115,0,0.3)] hover:shadow-[0_6px_24px_rgba(255,115,0,0.5)] transition-all duration-300">
-              Login
+              {t('common.login')}
             </Link>
           )}
         </div>

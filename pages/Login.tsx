@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../i18n';
 
 interface LoginProps {
   onLogin: (phone: string) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'PHONE' | 'CODE'>('PHONE');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -38,13 +40,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden bg-[#050505]">
-      {/* 🌌 Global dark background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#070707] via-[#120c06] to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,115,0,0.25),transparent_60%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(124,58,237,0.18),transparent_60%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:90px_90px]" />
 
-      {/* 🔐 Login Card */}
       <div className="relative z-10 w-full max-w-md">
         <div
           className="
@@ -53,37 +53,32 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             border border-white/10
             shadow-[0_30px_120px_rgba(0,0,0,0.9)]
           ">
-          {/* Glow */}
           <div className="absolute -inset-1 rounded-[3rem] blur-2xl bg-gradient-to-br from-orange-500/30 via-amber-400/20 to-transparent opacity-60" />
 
           <div className="relative">
-            {/* Header */}
             <div className="text-center mb-10">
               <h2 className="text-4xl font-black mb-3 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
-                Welcome Back
+                {t('login.title')}
               </h2>
-              <p className="text-white/55 text-sm">
-                Secure login via Telegram to access mock exams
-              </p>
+              <p className="text-white/55 text-sm">{t('login.subtitle')}</p>
             </div>
 
             {step === 'PHONE' ? (
               <div className="space-y-7">
-                {/* Phone input */}
                 <div>
                   <label className="block text-xs font-bold text-white/60 mb-3 uppercase tracking-[0.25em]">
-                    Phone Number
+                    {t('login.phoneLabel')}
                   </label>
 
                   <div className="relative">
                     <span className="absolute left-5 top-1/2 -translate-y-1/2 text-white/60 font-bold">
-                      +998
+                      {t('login.phoneCountryCode')}
                     </span>
                     <input
                       type="text"
                       value={phone}
                       onChange={handlePhoneChange}
-                      placeholder="90 123 45 67"
+                      placeholder={t('login.phonePlaceholder')}
                       className="
                         w-full pl-16 pr-4 py-4 rounded-2xl
                         bg-black/40 text-white font-bold
@@ -95,7 +90,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   </div>
                 </div>
 
-                {/* Send code */}
                 <button
                   onClick={handleSendCode}
                   disabled={phone.length < 9 || isLoading}
@@ -113,15 +107,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   {isLoading && (
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
-                  Get Code via Telegram
+                  {t('login.sendCode')}
                 </button>
               </div>
             ) : (
               <div className="space-y-7">
-                {/* Code input */}
                 <div>
                   <label className="block text-xs font-bold text-white/60 mb-3 uppercase tracking-[0.25em]">
-                    Verification Code
+                    {t('login.verifyCode')}
                   </label>
 
                   <input
@@ -129,7 +122,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     maxLength={4}
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="0000"
+                    placeholder={t('login.codePlaceholder')}
                     className="
                       w-full py-4 rounded-2xl text-center
                       bg-black/40 text-white text-4xl font-black
@@ -141,11 +134,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   />
 
                   <p className="text-xs text-white/40 mt-4 text-center">
-                    Enter the 4-digit code sent to your Telegram
+                    {t('login.codeDescription')}
                   </p>
                 </div>
 
-                {/* Verify */}
                 <button
                   onClick={handleVerify}
                   disabled={code.length !== 4 || isLoading}
@@ -163,19 +155,17 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   {isLoading && (
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
-                  Verify & Login
+                  {t('login.verifyCode')}
                 </button>
 
-                {/* Back */}
                 <button
                   onClick={() => setStep('PHONE')}
                   className="w-full text-white/40 text-sm font-bold hover:text-white/70 transition">
-                  Change phone number
+                  {t('login.resendCode')}
                 </button>
               </div>
             )}
 
-            {/* Footer */}
             <div className="mt-10 pt-8 border-t border-white/10 text-center">
               <p className="text-xs text-white/35">
                 By logging in, you agree to our Terms of Service

@@ -31,21 +31,17 @@ const ExamFlow: React.FC = () => {
   const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  // Cleanup barcha audio va resurslarni
   const cleanupAll = () => {
     try {
       console.log('🧹 Starting cleanup...');
 
-      // Gemini service'dan barcha audio'ni to'xtatish (TTS + Beep)
       stopAllAudio();
 
-      // MediaRecorder ni to'xtatish
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
         console.log('  - Stopped MediaRecorder');
       }
 
-      // Microphone stream tracklarini to'xtatish
       if (micStreamRef.current) {
         micStreamRef.current.getTracks().forEach((track) => {
           track.stop();
@@ -54,7 +50,6 @@ const ExamFlow: React.FC = () => {
         console.log('  - Stopped microphone stream');
       }
 
-      // RAF timerni bekor qilish
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
@@ -69,19 +64,16 @@ const ExamFlow: React.FC = () => {
     }
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       cleanupAll();
     };
   }, []);
 
-  // Parts
   useEffect(() => {
     if (mode === ExamMode.FULL) {
       setParts([ExamPart.PART_1_1, ExamPart.PART_1_2, ExamPart.PART_2, ExamPart.PART_3]);
     } else if (mode === ExamMode.RANDOM) {
-      // Random mode: har qismdan random savollar
       const allParts = [ExamPart.PART_1_1, ExamPart.PART_1_2, ExamPart.PART_2, ExamPart.PART_3];
       setParts(allParts);
     } else {
@@ -92,12 +84,10 @@ const ExamFlow: React.FC = () => {
   const currentPart = parts[currentPartIdx];
   const allQuestions = currentPart ? MOCK_QUESTIONS[currentPart] : [];
 
-  // Random mode uchun savollarni aralashtirish
   const [shuffledQuestions, setShuffledQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
     if (mode === ExamMode.RANDOM && allQuestions.length > 0) {
-      // Savollarni random tartibda aralashtirish
       const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
       setShuffledQuestions(shuffled.slice(0, Math.min(3, shuffled.length))); // Max 3 savol
     } else {
@@ -108,7 +98,6 @@ const ExamFlow: React.FC = () => {
   const questions = mode === ExamMode.RANDOM ? shuffledQuestions : allQuestions;
   const currentQuestion = questions[currentQuestionIdx];
 
-  // ---------------- TIMER ENGINE ----------------
   const startTimer = (seconds: number) => {
     return new Promise<void>((resolve) => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -139,13 +128,11 @@ const ExamFlow: React.FC = () => {
     });
   };
 
-  // ---------------- QUESTION FLOW ----------------
   const runQuestion = async (q: Question) => {
     if (runningRef.current) return;
     runningRef.current = true;
 
     try {
-      // READING phase
       setStatus('READING');
       try {
         await playTTS(`${q.topic}. ${q.text || ''}`);
@@ -155,16 +142,14 @@ const ExamFlow: React.FC = () => {
       }
       await playBeep();
 
-      // PREPARING phase
       if (q.prepTime > 0) {
         setStatus('PREPARING');
         await startTimer(q.prepTime);
         await playBeep();
       }
 
-      // RECORDING phase - Start MediaRecorder
       setStatus('RECORDING');
-      audioChunksRef.current = []; // Reset chunks for new recording
+      audioChunksRef.current = []; 
 
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
         try {
@@ -178,7 +163,6 @@ const ExamFlow: React.FC = () => {
       await startTimer(q.recordTime);
       await playBeep();
 
-      // Stop MediaRecorder
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         try {
           mediaRecorderRef.current.stop();
@@ -188,34 +172,24 @@ const ExamFlow: React.FC = () => {
         }
       }
 
-      // Move to next question or next part
       if (currentQuestionIdx < questions.length - 1) {
-        // More questions in current part
         setCurrentQuestionIdx((i) => i + 1);
         setStatus('IDLE');
       } else {
-        // Finished all questions in this part
         const nextPart = parts[currentPartIdx + 1];
 
         if (currentPartIdx < parts.length - 1) {
           console.log(`✅ Part ${currentPart} completed, next part: ${nextPart}`);
 
-          // Check if we need to show "Continue" button
-          // PART_1_1 → PART_1_2: automatic
-          // PART_1_2 → PART_2: show Continue button
-          // PART_2 → PART_3: show Continue button
           if (currentPart === ExamPart.PART_1_1 && nextPart === ExamPart.PART_1_2) {
-            // Automatically move to PART_1_2
             setStatus('IDLE');
             await new Promise((resolve) => setTimeout(resolve, 2000));
             setCurrentPartIdx((i) => i + 1);
             setCurrentQuestionIdx(0);
           } else {
-            // Show "Section Complete" screen with Continue button
             setStatus('SECTION_COMPLETE');
           }
         } else {
-          // All parts completed - mark as FINISHED
           console.log('🎉 All parts completed!');
           setStatus('FINISHED');
         }
@@ -229,7 +203,6 @@ const ExamFlow: React.FC = () => {
     }
   };
 
-  // ---------------- WAVEFORM ANIMATION ----------------
   useEffect(() => {
     if (status !== 'RECORDING' || !waveformCanvasRef.current) return;
 

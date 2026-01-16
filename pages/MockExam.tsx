@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../i18n';
 import { ExamMode, User } from '../types';
 
 interface MockExamProps {
@@ -7,6 +8,7 @@ interface MockExamProps {
 }
 
 const MockExam: React.FC<MockExamProps> = ({ user }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleStartExam = (mode: ExamMode) => {
@@ -15,7 +17,7 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
       return;
     }
     if (!user.isSubscribed) {
-      alert('Active subscription required. Price: 15,000 UZS/month.');
+      alert(t('mockExam.subscriptionRequired'));
       return;
     }
 
@@ -48,17 +50,17 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            <span className="text-white">Back</span>
+            <span className="text-white">{t('common.back')}</span>
           </button>
         </div>
 
         {/* Header */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-orange-600 via-orange-300 to-orange-300 bg-clip-text text-transparent">
-            CEFR Mock Speaking
+            {t('mockExam.title')}
           </h1>
           <p className="text-white text-lg md:text-xl font-medium max-w-2xl mx-auto">
-            Select an exam mode to begin. Ensure your microphone is ready.
+            {t('mockExam.description')}
           </p>
           <div className="w-24 h-1.5 bg-gradient-to-r from-orange-500 via-yellow-400 to-orange-500 mx-auto rounded-full mt-6" />
         </div>
@@ -103,9 +105,9 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
                 🏆
               </div>
 
-              <h3 className="text-2xl font-black mt-6 text-white">Full Mock Test</h3>
+              <h3 className="text-2xl font-black mt-6 text-white">{t('mockExam.fullMockTest')}</h3>
               <p className="text-white/60 text-sm mt-4 mb-10">
-                Complete exam simulation with automated timing.
+                {t('mockExam.fullMockDescription')}
               </p>
 
               <button
@@ -115,7 +117,7 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
       bg-gradient-to-r from-orange-500 to-yellow-400
       hover:scale-105 transition
     ">
-                Start Full Test
+                {t('mockExam.startExam')}
               </button>
             </div>
           </div>
@@ -151,8 +153,10 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
                 🎲
               </div>
 
-              <h3 className="text-2xl font-black mt-6 text-white">Random Questions</h3>
-              <p className="text-white/60 text-sm mt-4 mb-10">Quick practice for short sessions.</p>
+              <h3 className="text-2xl font-black mt-6 text-white">{t('mockExam.practiceMode')}</h3>
+              <p className="text-white/60 text-sm mt-4 mb-10">
+                {t('mockExam.practiceDescription')}
+              </p>
 
               <button
                 onClick={() => handleStartExam(ExamMode.RANDOM)}
@@ -164,7 +168,7 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
     hover:scale-[1.05]
     transition-all duration-300
   ">
-                Take Random Test
+                {t('mockExam.startExam')}
               </button>
             </div>
           </div>
@@ -201,8 +205,8 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
                 ⚙️
               </div>
 
-              <h3 className="text-2xl font-black mt-6 text-white">Custom Practice</h3>
-              <p className="text-white/60 text-sm mt-4 mb-10">Focus on your weak points.</p>
+              <h3 className="text-2xl font-black mt-6 text-white">{t('mockExam.targetLevel')}</h3>
+              <p className="text-white/60 text-sm mt-4 mb-10">{t('mockExam.targetDescription')}</p>
 
               <button
                 onClick={() => navigate('/custom-exam')}
@@ -214,7 +218,7 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
     hover:scale-[1.05]
     transition-all duration-300
   ">
-                Configure Custom
+                {t('mockExam.startExam')}
               </button>
             </div>
           </div>
