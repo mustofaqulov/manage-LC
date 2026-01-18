@@ -149,7 +149,7 @@ const ExamFlow: React.FC = () => {
       }
 
       setStatus('RECORDING');
-      audioChunksRef.current = []; 
+      audioChunksRef.current = [];
 
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
         try {

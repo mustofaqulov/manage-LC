@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 import styles from './MicPermissionScreen.module.scss';
 
 interface MicPermissionScreenProps {
@@ -10,6 +11,7 @@ const MicPermissionScreen: React.FC<MicPermissionScreenProps> = ({
   onEnableMicrophone,
   onCancel,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
       {/* Dark immersive background */}
@@ -38,26 +40,26 @@ const MicPermissionScreen: React.FC<MicPermissionScreenProps> = ({
 
           {/* Title */}
           <h2 className="text-4xl font-black text-white mb-5 text-center tracking-tight">
-            Microphone Access Required
+            {t('examFlow.micAccessRequired')}
           </h2>
 
           {/* Short description */}
           <p className="text-white/60 text-lg mb-10 text-center font-medium leading-relaxed">
-            We need microphone access to simulate a real CEFR speaking exam.
+            {t('examFlow.micAccessDescription')}
           </p>
 
           {/* Primary button */}
           <button
             onClick={onEnableMicrophone}
             className="w-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white py-5 rounded-2xl font-black text-xl shadow-[0_8px_40px_rgba(255,140,0,0.5)] hover:shadow-[0_12px_50px_rgba(255,140,0,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 mb-4">
-            Enable Microphone
+            {t('examFlow.enableMicrophone')}
           </button>
 
           {/* Secondary cancel button */}
           <button
             onClick={onCancel}
             className="w-full text-white/40 hover:text-white/70 py-3 font-semibold text-base transition-colors duration-200">
-            Cancel
+            {t('common.cancel')}
           </button>
         </div>
       </div>

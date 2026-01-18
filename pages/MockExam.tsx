@@ -107,7 +107,9 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
                 🏆
               </div>
 
-              <h3 className="text-xl sm:text-2xl font-black mt-4 sm:mt-5 md:mt-6 text-white">{t('mockExam.fullMockTest')}</h3>
+              <h3 className="text-xl sm:text-2xl font-black mt-4 sm:mt-5 md:mt-6 text-white">
+                {t('mockExam.fullMockTest')}
+              </h3>
               <p className="text-white/60 text-xs sm:text-sm mt-3 sm:mt-4 mb-6 sm:mb-8 md:mb-10">
                 {t('mockExam.fullMockDescription')}
               </p>
@@ -157,7 +159,9 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
                 🎲
               </div>
 
-              <h3 className="text-xl sm:text-2xl font-black mt-4 sm:mt-5 md:mt-6 text-white">{t('mockExam.practiceMode')}</h3>
+              <h3 className="text-xl sm:text-2xl font-black mt-4 sm:mt-5 md:mt-6 text-white">
+                {t('mockExam.practiceMode')}
+              </h3>
               <p className="text-white/60 text-xs sm:text-sm mt-3 sm:mt-4 mb-6 sm:mb-8 md:mb-10">
                 {t('mockExam.practiceDescription')}
               </p>
@@ -213,8 +217,12 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
                 ⚙️
               </div>
 
-              <h3 className="text-xl sm:text-2xl font-black mt-4 sm:mt-5 md:mt-6 text-white">{t('mockExam.targetLevel')}</h3>
-              <p className="text-white/60 text-xs sm:text-sm mt-3 sm:mt-4 mb-6 sm:mb-8 md:mb-10">{t('mockExam.targetDescription')}</p>
+              <h3 className="text-xl sm:text-2xl font-black mt-4 sm:mt-5 md:mt-6 text-white">
+                {t('mockExam.targetLevel')}
+              </h3>
+              <p className="text-white/60 text-xs sm:text-sm mt-3 sm:mt-4 mb-6 sm:mb-8 md:mb-10">
+                {t('mockExam.targetDescription')}
+              </p>
 
               <button
                 onClick={() => navigate('/custom-exam')}
@@ -246,24 +254,22 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
               <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400 text-base sm:text-lg">
                 !
               </span>
-              <span className="text-base sm:text-lg md:text-xl">Technical Requirements</span>
+              <span className="text-base sm:text-lg md:text-xl">
+                {t('mockExam.technicalRequirements')}
+              </span>
             </h4>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5 text-xs sm:text-sm">
               <li className="flex items-center gap-2 sm:gap-3 text-gray-300">
                 <span className="w-1.5 h-1.5 bg-orange-400 rounded-full flex-shrink-0" />
-                <span>Stable internet connection</span>
+                <span>{t('mockExam.stableInternet')}</span>
               </li>
               <li className="flex items-center gap-2 sm:gap-3 text-gray-300">
                 <span className="w-1.5 h-1.5 bg-orange-400 rounded-full flex-shrink-0" />
-                <span>Working microphone with permission</span>
+                <span>{t('mockExam.workingMicrophone')}</span>
               </li>
               <li className="flex items-center gap-2 sm:gap-3 text-gray-300">
                 <span className="w-1.5 h-1.5 bg-orange-400 rounded-full flex-shrink-0" />
-                <span>Active subscription (15,000 UZS)</span>
-              </li>
-              <li className="flex items-center gap-2 sm:gap-3 text-gray-300">
-                <span className="w-1.5 h-1.5 bg-orange-400 rounded-full flex-shrink-0" />
-                <span>Quiet environment</span>
+                <span>{t('mockExam.quietEnvironment')}</span>
               </li>
             </ul>
           </div>

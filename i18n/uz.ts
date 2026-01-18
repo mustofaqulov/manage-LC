@@ -57,6 +57,11 @@ export default {
     startExam: 'Imtihonni boshlash',
     subscriptionRequired: 'Faol obuna talab qilinadi. Narx: 15,000 UZS/oy.',
     pleaseLogin: 'Iltimos, avval kirish',
+    technicalRequirements: 'Texnik Talablar',
+    stableInternet: 'Barqaror internet ulanishi',
+    workingMicrophone: 'Ruxsat bilan ishlayotgan mikrofon',
+    activeSubscription: 'Faol obuna (15,000 UZS)',
+    quietEnvironment: 'Tinch muhit',
   },
   examFlow: {
     micPermission: 'Mikrofon ruxsati',
@@ -72,6 +77,10 @@ export default {
     examFinished: 'Imtihon yakunlandi!',
     score: 'Natija',
     viewResults: "Natijalarni ko'rish",
+    micAccessRequired: 'Mikrofon kirish ruxsati talab qilinadi',
+    micAccessDescription:
+      'Haqiqiy CEFR imtihonini simulyatsiya qilish uchun mikrofoniga ruxsat kerak.',
+    enableMicrophone: 'Mikrofonni yoqish',
   },
   home: {
     title: 'Ingliz Tilini Oʻrganing',
@@ -116,6 +125,44 @@ export default {
     score: 'Natija',
     exams: 'Imtihonlar',
     noLeaderboard: 'Reyting maʻlumotlari hozircha mavjud emas',
+  },
+  courseDetail: {
+    breadcrumbHome: 'Bosh sahifa',
+    breadcrumbCourse: 'Ingliz tili kursi',
+    titleEnglish: 'Ingliz tili',
+    titleMastery: 'Mahorat',
+    subtitle:
+      'Natijaga yoʻnaltirilgan CEFR va IELTS dasturi, haqiqiy soʻzlash koʻnikmalarini oʻrgatishga yoʻnaltirilgan, membuat teori emas.',
+    joinCourse: 'Kursga Qoʻshilish',
+    freeConsultation: 'Bepul Maslahat',
+    targetLevel: 'Qoʻllanish Darajasi',
+    topIELTS: 'Eng Yaxshi IELTS',
+    activeStudents: 'Faol Oʻquvchilar',
+    successRate: 'Muvaffaqiyat Foizi',
+  },
+  homeExtended: {
+    titleEnglish: 'Ingliz Tili',
+    descriptionEnglish:
+      'Boshlangʻichdan IELTS va CEFR mahoratiga. Haqiqiy soʻzlash, ishonch va imtihon natijalari uchun yaratilgan.',
+    learnMore: 'Koʻproq oʻrganish',
+    mathematics: 'Matematika',
+    descriptionMath:
+      "Raqamlar san'atini oʻzlashtiring. Maktab tayyorgarligining va milliy imtihonlarning uchun yaratilgan.",
+    comingSoon: 'Tez kunda…',
+  },
+  aboutExtended: {
+    teachers: 'Oʻqituvchilar',
+    results: 'Natijalar',
+    branches: 'Filiallar',
+  },
+  leaderboardExtended: {
+    leaderboardTitle: 'Reyting Taxtasi',
+    leaderboardSubtitle:
+      'Global CEFR reytinglari tez kunda boʻladi. Raqobat qiling, progresni kuzating va tepaga chiqing.',
+    inDevelopment: '🚧 Ishlanmoqda',
+  },
+  loginExtended: {
+    termsOfService: 'Tizimga kirib, siz bizning Shartlar va Qoidalariga rozisiz',
   },
   footer: {
     about: 'Haqida',

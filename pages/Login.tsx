@@ -167,9 +167,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             )}
 
             <div className="mt-10 pt-8 border-t border-white/10 text-center">
-              <p className="text-xs text-white/35">
-                By logging in, you agree to our Terms of Service
-              </p>
+              <p className="text-xs text-white/35">{t('loginExtended.termsOfService')}</p>
             </div>
           </div>
         </div>

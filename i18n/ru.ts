@@ -57,6 +57,11 @@ export default {
     startExam: 'Начать экзамен',
     subscriptionRequired: 'Требуется активная подписка. Цена: 15 000 UZS/месяц.',
     pleaseLogin: 'Пожалуйста, сначала войдите',
+    technicalRequirements: 'Технические требования',
+    stableInternet: 'Стабильное интернет-соединение',
+    workingMicrophone: 'Рабочий микрофон с разрешением',
+    activeSubscription: 'Активная подписка (15 000 UZS)',
+    quietEnvironment: 'Тихая окружающая среда',
   },
   examFlow: {
     micPermission: 'Разрешение микрофона',
@@ -72,6 +77,9 @@ export default {
     examFinished: 'Экзамен завершен!',
     score: 'Оценка',
     viewResults: 'Просмотр результатов',
+    micAccessRequired: 'Требуется доступ к микрофону',
+    micAccessDescription: 'Нам нужен доступ к микрофону для имитации реального экзамена CEFR.',
+    enableMicrophone: 'Включить микрофон',
   },
   home: {
     title: 'Изучайте английский язык',
@@ -118,6 +126,44 @@ export default {
     score: 'Оценка',
     exams: 'Экзамены',
     noLeaderboard: 'Данные рейтинга еще недоступны',
+  },
+  courseDetail: {
+    breadcrumbHome: 'Главная',
+    breadcrumbCourse: 'Курс Английского',
+    titleEnglish: 'Английский',
+    titleMastery: 'Мастерство',
+    subtitle:
+      'Результативная программа CEFR и IELTS, ориентированная на развитие реальных навыков говорения, а не скучная теория.',
+    joinCourse: 'Присоединиться к Курсу',
+    freeConsultation: 'Бесплатная Консультация',
+    targetLevel: 'Целевой Уровень',
+    topIELTS: 'Лучший IELTS',
+    activeStudents: 'Активные Студенты',
+    successRate: 'Процент Успеха',
+  },
+  homeExtended: {
+    titleEnglish: 'Английский Язык',
+    descriptionEnglish:
+      'От начинающего до мастерства IELTS и CEFR. Разработано для реального говорения, уверенности и результатов экзаменов.',
+    learnMore: 'Узнать больше',
+    mathematics: 'Математика',
+    descriptionMath:
+      'Овладейте искусством чисел. Разработано для подготовки в школе и национальных экзаменов.',
+    comingSoon: 'Скоро…',
+  },
+  aboutExtended: {
+    teachers: 'Учителя',
+    results: 'Результаты',
+    branches: 'Филиалы',
+  },
+  leaderboardExtended: {
+    leaderboardTitle: 'Рейтинг',
+    leaderboardSubtitle:
+      'Глобальные рейтинги CEFR скоро появятся. Соревнуйтесь, отслеживайте прогресс и поднимайтесь на вершину.',
+    inDevelopment: '🚧 В разработке',
+  },
+  loginExtended: {
+    termsOfService: 'Входя в систему, вы согласны с нашими Условиями обслуживания',
   },
   footer: {
     about: 'О нас',

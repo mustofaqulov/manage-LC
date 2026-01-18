@@ -50,9 +50,9 @@ const About: React.FC = () => {
         {/* Stats */}
         <div className="flex flex-wrap items-center justify-center gap-10 lg:justify-start md:gap-14 lg:gap-20 xl:gap-24">
           {[
-            { value: '15+', label: 'Teachers' },
-            { value: '500+', label: 'Results' },
-            { value: '2', label: 'Branches' },
+            { value: '15+', label: t('aboutExtended.teachers') },
+            { value: '500+', label: t('aboutExtended.results') },
+            { value: '2', label: t('aboutExtended.branches') },
           ].map((stat, i) => (
             <div key={i} className="group relative">
               <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/30 to-amber-400/30 blur-xl rounded-2xl opacity-0 group-hover:opacity-100 transition" />

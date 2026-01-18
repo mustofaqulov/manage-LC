@@ -197,12 +197,11 @@ const Home: React.FC = () => {
                 </div>
 
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-3 sm:mb-4">
-                  English Language
+                  {t('homeExtended.titleEnglish')}
                 </h3>
 
                 <p className="text-white/65 text-sm sm:text-base md:text-lg leading-relaxed mb-5 sm:mb-6 md:mb-8 max-w-md">
-                  From beginner to IELTS & CEFR mastery. Built for real fluency, confidence, and
-                  exam results.
+                  {t('homeExtended.descriptionEnglish')}
                 </p>
 
                 <div
@@ -212,7 +211,7 @@ const Home: React.FC = () => {
             transition-all duration-300
             group-hover:gap-4 sm:group-hover:gap-6
           ">
-                  Learn more <span>→</span>
+                  {t('homeExtended.learnMore')} <span>→</span>
                 </div>
               </div>
             </div>
@@ -241,14 +240,16 @@ const Home: React.FC = () => {
               </div>
 
               <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-zinc-300 mb-3 sm:mb-4">
-                Mathematics
+                {t('homeExtended.mathematics')}
               </h3>
 
               <p className="text-zinc-400 text-sm sm:text-base md:text-lg leading-relaxed mb-5 sm:mb-6 md:mb-8 max-w-md">
-                Master the art of numbers. Designed for school preparation and national exams.
+                {t('homeExtended.descriptionMath')}
               </p>
 
-              <div className="text-zinc-400 text-sm sm:text-base font-bold">Coming soon…</div>
+              <div className="text-zinc-400 text-sm sm:text-base font-bold">
+                {t('homeExtended.comingSoon')}
+              </div>
             </div>
           </div>
         </div>

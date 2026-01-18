@@ -1,10 +1,10 @@
 import React from 'react';
-import {PhoneIcon} from "lucide-react";
+import { PhoneIcon } from 'lucide-react';
 
 const PhoneFloating: React.FC = () => {
   return (
     <a
-      href="tel:+998787777707"
+      href="tel:+998907333336"
       className="group fixed bottom-10 right-10 z-50 flex items-center gap-3
 
       text-white rounded-full
@@ -16,7 +16,7 @@ const PhoneFloating: React.FC = () => {
         <div
           className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center
         backdrop-blur-lg">
-            <PhoneIcon/>
+          <PhoneIcon />
         </div>
 
         <div className="max-w-0 group-hover:max-w-[260px] transition-all duration-500 overflow-hidden whitespace-nowrap">

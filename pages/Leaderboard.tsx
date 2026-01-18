@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from '../i18n/useTranslation';
 
 const Leaderboard: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <div className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden bg-[#050505]">
       {/* Dark cinematic background */}
@@ -24,11 +26,13 @@ const Leaderboard: React.FC = () => {
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl font-black mb-4 text-white">Leaderboard</h1>
+          <h1 className="text-4xl font-black mb-4 text-white">
+            {t('leaderboardExtended.leaderboardTitle')}
+          </h1>
 
           {/* Subtitle */}
           <p className="text-white/60 text-lg leading-relaxed mb-10">
-            Global CEFR rankings are coming soon. Compete, track progress, and rise to the top.
+            {t('leaderboardExtended.leaderboardSubtitle')}
           </p>
 
           {/* Accent line */}
@@ -38,7 +42,7 @@ const Leaderboard: React.FC = () => {
           <div
             className="mt-10 inline-flex items-center gap-2 px-6 py-2 rounded-full
             bg-white/10 border border-white/15 text-sm font-bold text-orange-400 uppercase tracking-wider">
-            🚧 In Development
+            {t('leaderboardExtended.inDevelopment')}
           </div>
         </div>
       </div>

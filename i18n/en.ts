@@ -57,6 +57,11 @@ export default {
     startExam: 'Start Exam',
     subscriptionRequired: 'Active subscription required. Price: 15,000 UZS/month.',
     pleaseLogin: 'Please login first',
+    technicalRequirements: 'Technical Requirements',
+    stableInternet: 'Stable internet connection',
+    workingMicrophone: 'Working microphone with permission',
+    activeSubscription: 'Active subscription (15,000 UZS)',
+    quietEnvironment: 'Quiet environment',
   },
   examFlow: {
     micPermission: 'Microphone Permission',
@@ -72,6 +77,9 @@ export default {
     examFinished: 'Exam Finished!',
     score: 'Score',
     viewResults: 'View Results',
+    micAccessRequired: 'Microphone Access Required',
+    micAccessDescription: 'We need microphone access to simulate a real CEFR speaking exam.',
+    enableMicrophone: 'Enable Microphone',
   },
   home: {
     title: 'Learn English',
@@ -118,6 +126,44 @@ export default {
     score: 'Score',
     exams: 'Exams',
     noLeaderboard: 'Leaderboard data not available yet',
+  },
+  courseDetail: {
+    breadcrumbHome: 'Home',
+    breadcrumbCourse: 'English Course',
+    titleEnglish: 'English',
+    titleMastery: 'Mastery',
+    subtitle:
+      'A results-driven CEFR & IELTS program focused on real speaking confidence, not boring theory.',
+    joinCourse: 'Join Course',
+    freeConsultation: 'Free Consultation',
+    targetLevel: 'Target Level',
+    topIELTS: 'Top IELTS',
+    activeStudents: 'Active Students',
+    successRate: 'Success Rate',
+  },
+  homeExtended: {
+    titleEnglish: 'English Language',
+    descriptionEnglish:
+      'From beginner to IELTS & CEFR mastery. Built for real fluency, confidence, and exam results.',
+    learnMore: 'Learn more',
+    mathematics: 'Mathematics',
+    descriptionMath:
+      'Master the art of numbers. Designed for school preparation and national exams.',
+    comingSoon: 'Coming soon…',
+  },
+  aboutExtended: {
+    teachers: 'Teachers',
+    results: 'Results',
+    branches: 'Branches',
+  },
+  leaderboardExtended: {
+    leaderboardTitle: 'Leaderboard',
+    leaderboardSubtitle:
+      'Global CEFR rankings are coming soon. Compete, track progress, and rise to the top.',
+    inDevelopment: '🚧 In Development',
+  },
+  loginExtended: {
+    termsOfService: 'By logging in, you agree to our Terms of Service',
   },
   footer: {
     about: 'About',

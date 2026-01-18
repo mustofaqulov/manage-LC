@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '../i18n/useTranslation';
 
 const CourseDetail: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <div className="relative bg-[#050505] text-white overflow-hidden">
       {/* Global background */}
@@ -17,24 +19,23 @@ const CourseDetail: React.FC = () => {
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm text-white/50 mb-8">
               <Link to="/" className="hover:text-orange-400 transition">
-                Home
+                {t('courseDetail.breadcrumbHome')}
               </Link>
               <span>/</span>
-              <span className="text-white">English Course</span>
+              <span className="text-white">{t('courseDetail.breadcrumbCourse')}</span>
             </nav>
 
             {/* Title */}
             <h1 className="text-5xl md:text-6xl xl:text-7xl font-black leading-tight mb-6">
-              English{' '}
+              {t('courseDetail.titleEnglish')}{' '}
               <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
-                Mastery
+                {t('courseDetail.titleMastery')}
               </span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-white/65 text-lg max-w-xl leading-relaxed mb-10">
-              A results-driven CEFR & IELTS program focused on real speaking confidence, not boring
-              theory.
+              {t('courseDetail.subtitle')}
             </p>
 
             {/* CTA */}
@@ -50,7 +51,7 @@ const CourseDetail: React.FC = () => {
                   hover:scale-[1.05]
                   transition-all duration-300
                 ">
-                  Join Course
+                  {t('courseDetail.joinCourse')}
                 </button>
               </a>
               <button
@@ -61,7 +62,7 @@ const CourseDetail: React.FC = () => {
                   hover:bg-white/10 hover:border-white/30
                   transition-all duration-300
                 ">
-                Free Consultation
+                {t('courseDetail.freeConsultation')}
               </button>
             </div>
           </div>
@@ -69,14 +70,26 @@ const CourseDetail: React.FC = () => {
           {/* RIGHT – STATS */}
           <div className="grid grid-cols-2 gap-6">
             {[
-              { value: 'C1+', label: 'Target Level', glow: 'from-orange-400/40 to-amber-400/30' },
-              { value: '8.0', label: 'Top IELTS', glow: 'from-blue-400/40 to-cyan-400/30' },
+              {
+                value: 'C1+',
+                label: t('courseDetail.targetLevel'),
+                glow: 'from-orange-400/40 to-amber-400/30',
+              },
+              {
+                value: '8.0',
+                label: t('courseDetail.topIELTS'),
+                glow: 'from-blue-400/40 to-cyan-400/30',
+              },
               {
                 value: '500+',
-                label: 'Active Students',
+                label: t('courseDetail.activeStudents'),
                 glow: 'from-green-400/40 to-emerald-400/30',
               },
-              { value: '98%', label: 'Success Rate', glow: 'from-purple-400/40 to-fuchsia-400/30' },
+              {
+                value: '98%',
+                label: t('courseDetail.successRate'),
+                glow: 'from-purple-400/40 to-fuchsia-400/30',
+              },
             ].map((item, i) => (
               <div key={i} className="group relative">
                 {/* Glow */}
