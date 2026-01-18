@@ -1,7 +1,7 @@
 export type Language = 'uz' | 'en' | 'ru';
 
 export const LANGUAGES = {
-  uz: { name: 'Ўзбек', label: 'UZ', code: 'uz' },
+  uz: { name: "O'zbekcha", label: 'UZ', code: 'uz' },
   en: { name: 'English', label: 'EN', code: 'en' },
   ru: { name: 'Русский', label: 'RU', code: 'ru' },
 } as const;

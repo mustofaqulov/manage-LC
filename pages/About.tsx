@@ -13,7 +13,6 @@ const About: React.FC = () => {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:90px_90px]" />
 
       <div className="relative z-10 max-w-6xl mx-auto text-white">
-        {/* Header */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl font-black mb-4">
             {t('about.title')}
@@ -22,11 +21,9 @@ const About: React.FC = () => {
           <div className="w-24 h-1.5 bg-gradient-to-r from-orange-500 to-amber-400 mx-auto rounded-full" />
         </div>
 
-        {/* Main Content Card */}
         <div className="relative mb-20">
           <div className="absolute -inset-2 bg-gradient-to-br from-orange-500/20 to-amber-400/20 blur-2xl rounded-3xl opacity-60" />
           <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-10 md:p-14 shadow-[0_30px_100px_rgba(0,0,0,0.8)]">
-            {/* Image */}
             <div className="relative mb-12 group">
               <div className="absolute -inset-2 bg-gradient-to-r from-orange-400/40 to-yellow-400/40 blur-2xl rounded-3xl opacity-0 group-hover:opacity-100 transition" />
               <div className="relative h-72 md:h-96 rounded-3xl overflow-hidden shadow-2xl">
@@ -38,7 +35,6 @@ const About: React.FC = () => {
               </div>
             </div>
 
-            {/* Mission */}
             <div className="mb-10">
               <h3 className="text-3xl font-black mb-4 flex items-center gap-3">
                 <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
@@ -52,12 +48,11 @@ const About: React.FC = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="flex flex-wrap items-center justify-center gap-10 lg:justify-start md:gap-14 lg:gap-20 xl:gap-24">
           {[
-            { value: '10+', label: 'Expert Teachers' },
-            { value: '300+', label: 'Exams Taken' },
-            { value: '10+', label: 'Campuses' },
-            { value: '92%', label: 'Pass Rate' },
+            { value: '15+', label: 'Teachers' },
+            { value: '500+', label: 'Results' },
+            { value: '2', label: 'Branches' },
           ].map((stat, i) => (
             <div key={i} className="group relative">
               <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/30 to-amber-400/30 blur-xl rounded-2xl opacity-0 group-hover:opacity-100 transition" />

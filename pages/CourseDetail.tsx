@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Teacher from '../assets/images/Jakhongir.jpg';
 
 const CourseDetail: React.FC = () => {
   return (
@@ -11,8 +10,8 @@ const CourseDetail: React.FC = () => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_70%,rgba(34,197,94,0.18),transparent_60%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:90px_90px]" />
 
-      <section className="relative min-h-[80vh] flex items-center px-6 md:px-12">
-        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+      <section className="relative min-h-[80vh] flex items-center px-6 p-10 md:px-12">
+        <div className="relative mt-[150px] z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           {/* LEFT */}
           <div>
             {/* Breadcrumb */}
