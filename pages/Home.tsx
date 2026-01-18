@@ -88,11 +88,7 @@ const Home: React.FC = () => {
                         rounded-[40px] p-16
                         shadow-[0_40px_140px_rgba(0,0,0,0.95)]">
               <div className="absolute -inset-3 bg-gradient-to-br from-orange-500/30 to-yellow-400/20 blur-3xl rounded-3xl" />
-              <div className="relative top-[60%] w-[max-content] text-center space-y-6">
-                <div className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white flex gap-2 items-center">
-                  <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-yellow-400 rounded-full animate-pulse" />
-                  AI-Powered Learning Platform
-                </div>
+              <div className="relative top-[90%] left-[-2%] w-[max-content] text-center space-y-6">
                 <div className="flex justify-center gap-4 mt-6">
                   <Link
                     to="/courses/english"
@@ -105,22 +101,6 @@ const Home: React.FC = () => {
                     className="px-10 py-4 bg-black/60 border border-white/20 rounded-2xl text-white hover:bg-black/80 transition">
                     {t('mockExam.startExam')}
                   </Link>
-                </div>
-
-                {/* Stats */}
-                <div className="mt-8 flex justify-center gap-12 text-white">
-                  <div>
-                    <div className="text-4xl font-black text-orange-400">1000+</div>
-                    <div className="text-white/60">Active Students</div>
-                  </div>
-                  <div>
-                    <div className="text-4xl font-black text-orange-400">98%</div>
-                    <div className="text-white/60">Success Rate</div>
-                  </div>
-                  <div>
-                    <div className="text-4xl font-black text-orange-400">4.9/5</div>
-                    <div className="text-white/60">Student Rating</div>
-                  </div>
                 </div>
               </div>
             </div>

@@ -31,12 +31,11 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   return (
     <div className="fixed top-4 left-0 right-0 z-50 px-4 md:px-8 pointer-events-none">
       <nav
-        className={`max-w-7xl mx-auto pointer-events-auto flex justify-between items-center py-3 px-6 md:px-10 rounded-3xl border transition-all duration-500 ${
+        className={`max-w-[1540px] mx-auto pointer-events-auto flex justify-between items-center py-3 px-6 md:px-10 rounded-3xl border transition-all duration-500 ${
           isExamContext
             ? 'bg-black/60 backdrop-blur-xl border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.6)]'
             : 'bg-black/40 backdrop-blur-xl border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)]'
         }`}>
-        {/* Logo */}
         <Link to="/" className="flex items-center group">
           <img
             src={Logo}
@@ -45,7 +44,6 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
           />
         </Link>
 
-        {/* Center Menu */}
         <div className="hidden lg:flex items-center gap-6 xl:gap-8">
           {navLinks
             .filter((link) => !isExamContext || link.essential)
