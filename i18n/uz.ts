@@ -51,7 +51,7 @@ export default {
     practiceMode: 'Aralash test',
     practiceDescription: 'Barcha testlardan aralsh tarzda imtihon topshirish!',
     practiceDuration: '15 daqiqa',
-    targetLevel: "Qismlar bo'yicha savollar",
+    targetLevel: "Qismlardan savollar",
     targetDescription: 'Har bir qism uchun alohida tayyorlanish!',
     targetDuration: '25 daqiqa',
     startExam: 'Imtihonni boshlash',

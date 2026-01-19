@@ -2,6 +2,7 @@ import React, { useState, Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
+import ScrollToTop from './components/ScrollToTop';
 import { I18nProvider } from './i18n';
 import { User } from './types';
 import { userService } from './services/userService';
@@ -60,6 +61,7 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <I18nProvider>
         <Router>
+          <ScrollToTop />
           <Layout user={user} onLogout={handleLogout}>
             <Suspense fallback={<div className={styles.suspenseFallback}>Loading...</div>}>
               <Routes>

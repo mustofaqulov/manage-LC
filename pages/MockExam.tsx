@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from '../i18n';
+import { useTranslation } from '@/i18n';
 import { ExamMode, User } from '../types';
 
 interface MockExamProps {
@@ -93,6 +93,7 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
     group-hover:shadow-[0_30px_100px_rgba(255,140,0,0.45)] md:group-hover:shadow-[0_40px_120px_rgba(255,140,0,0.45)]
     transition-all duration-500
     flex flex-col items-center text-center
+    min-h-[400px] sm:min-h-[420px] md:min-h-[370px]
   ">
               <div
                 className="
@@ -117,7 +118,7 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
               <button
                 onClick={() => handleStartExam(ExamMode.FULL)}
                 className="
-      w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl
+      mt-auto w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl
       font-bold text-sm sm:text-base text-white
       bg-gradient-to-r from-orange-500 to-yellow-400
       hover:scale-105 transition
@@ -140,12 +141,13 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
             <div
               className="
     relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px]
-    p-6 sm:p-8 md:p-10 lg:p-[50px]
+    p-6 sm:p-8 md:p-10
     bg-white/5 backdrop-blur-xl
     border border-white/10
     group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03]
     group-hover:shadow-[0_30px_100px_rgba(56,189,248,0.45)] md:group-hover:shadow-[0_40px_120px_rgba(56,189,248,0.45)]
     transition-all duration-500 flex flex-col items-center text-center
+    min-h-[400px] sm:min-h-[420px] md:min-h-[370px]
   ">
               <div
                 className="
@@ -169,7 +171,7 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
               <button
                 onClick={() => handleStartExam(ExamMode.RANDOM)}
                 className="
-    w-full px-4 sm:px-6 py-3 sm:py-3.5 md:py-4
+    mt-auto w-full px-4 sm:px-6 py-3 sm:py-3.5 md:py-4
     rounded-xl sm:rounded-2xl
     font-bold text-sm sm:text-base text-white
     bg-gradient-to-r from-sky-500 via-blue-500 to-cyan-500
@@ -197,13 +199,14 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
             <div
               className="
     relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px]
-    p-6 sm:p-8 md:p-10 lg:p-[50px]
+    p-6 sm:p-8 md:p-10
     bg-white/5 backdrop-blur-xl
     border border-white/10
     group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03]
     group-hover:shadow-[0_30px_100px_rgba(168,85,247,0.45)] md:group-hover:shadow-[0_40px_120px_rgba(168,85,247,0.45)]
-    transition-all duration-500 flex flex-col items-center justify-center
+    transition-all duration-500 flex flex-col items-center
     text-center
+    min-h-[400px] sm:min-h-[420px] md:min-h-[370px]
   ">
               <div
                 className="
@@ -227,7 +230,7 @@ const MockExam: React.FC<MockExamProps> = ({ user }) => {
               <button
                 onClick={() => navigate('/custom-exam')}
                 className="
-    w-full px-4 sm:px-6 py-3 sm:py-3.5 md:py-4
+    mt-auto w-full px-4 sm:px-6 py-3 sm:py-3.5 md:py-4
     rounded-xl sm:rounded-2xl
     font-bold text-sm sm:text-base text-white
     bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500

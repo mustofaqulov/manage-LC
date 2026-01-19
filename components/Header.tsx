@@ -16,9 +16,8 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isActive = (path: string) => location.pathname === path;
 
-  // Detect exam context for minimal mode
-  const isExamContext =
-    location.pathname.includes('/exam') || location.pathname.includes('/mock-exam');
+  // Detect exam context for minimal mode - only during actual exam flow
+  const isExamContext = location.pathname.includes('/exam-flow');
 
   const navLinks = [
     { key: 'home', path: '/', essential: false },
