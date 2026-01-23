@@ -1,139 +1,156 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n/useTranslation';
-import StudentImg from '../assets/images/manages-stdnts.jpg';
-import StudentsImg from '../assets/images/1k.jpg';
-import Bg from '../assets/images/background-1.jpg';
-import Course from '../assets/images/main.jpg';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay, EffectCoverflow } from 'swiper/modules';
+import type { Swiper as SwiperType } from 'swiper';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/effect-coverflow';
+import './home.css';
+
+import Result1 from '../assets/images/results/1.png';
+import Result2 from '../assets/images/results/2.png';
+import Result3 from '../assets/images/results/3.png';
+import Result4 from '../assets/images/results/4.png';
+import Result5 from '../assets/images/results/5.png';
+import Result6 from '../assets/images/results/6.png';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [swiperInstance, setSwiperInstance] = useState<SwiperType | null>(null);
 
-  const courses = [
-    {
-      level: 'CEFR A2',
-      title: t('home.elementaryLevel'),
-      description: t('home.elementaryDesc'),
-      overlayGradient: 'from-cyan-400/25 via-blue-500/20 to-indigo-600/20',
-      accentGlow: 'rgba(56,189,248,0.45)', // cyan
-      bg: Course,
-    },
-    {
-      level: 'CEFR B1',
-      title: t('home.intermediateLevel'),
-      description: t('home.intermediateDesc'),
-      overlayGradient: 'from-emerald-400/25 via-green-500/20 to-teal-600/20',
-      accentGlow: 'rgba(34,197,94,0.45)', // green
-      bg: Course,
-    },
-    {
-      level: 'CEFR B2',
-      title: t('home.upperIntermediateLevel'),
-      description: t('home.upperIntermediateDesc'),
-      overlayGradient: 'from-orange-400/30 via-amber-500/25 to-yellow-400/20',
-      accentGlow: 'rgba(251,146,60,0.5)', // orange
-      bg: Course,
-    },
-    {
-      level: 'CEFR C1',
-      title: t('home.advancedLevel'),
-      description: t('home.advancedDesc'),
-      overlayGradient: 'from-purple-500/30 via-fuchsia-500/25 to-pink-500/20',
-      accentGlow: 'rgba(168,85,247,0.55)', // violet
-      bg: Course,
-    },
-  ];
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % courses.length);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [courses.length]);
+  const slides = [Result1, Result2, Result3, Result4, Result5, Result6];
 
   return (
     <div className="bg-transparent">
-      <section className="relative w-full py-16 sm:py-24 md:py-28 overflow-hidden -mt-14 md:-mt-28">
-        <div className="absolute inset-0 z-0">
-          {courses.map((course, index) => (
-            <div
-              key={index}
-              className={`absolute inset-0 transition-all duration-1000 ${
-                index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
-              }`}>
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url(${Bg})` }}>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#050505]/90 via-[#0e0e0e]/90 to-black/90" />
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${course.overlayGradient}`}
-                  style={{ opacity: 0.55 }}
-                />
+      <section className="relative w-full py-32 sm:py-40 lg:py-52 overflow-hidden -mt-24">
+        {/* background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#050505] via-[#0e0e0e] to-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,115,0,0.35),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(255,215,0,0.25),transparent_60%)]" />
 
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,115,0,0.35),transparent_60%)]" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(255,215,0,0.25),transparent_60%)]" />
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:80px_80px]" />
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* SLIDER */}
+        <div
+          className="relative z-10 h-[80vh] sm:h-[85vh] lg:h-[90vh] flex items-center justify-center"
+          style={{ perspective: '1600px' }}>
+          <Swiper
+            modules={[Navigation, Pagination, Autoplay, EffectCoverflow]}
+            effect="coverflow"
+            grabCursor={true}
+            centeredSlides={true}
+            slidesPerView="auto"
+            loop={true}
+            loopAdditionalSlides={2}
+            speed={1200}
+            autoplay={{
+              delay: 3000,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }}
+            breakpoints={{
+              320: {
+                coverflowEffect: {
+                  rotate: 15,
+                  stretch: 0,
+                  depth: 150,
+                  modifier: 1,
+                  slideShadows: false,
+                },
+              },
+              640: {
+                coverflowEffect: {
+                  rotate: 18,
+                  stretch: 0,
+                  depth: 175,
+                  modifier: 1,
+                  slideShadows: false,
+                },
+              },
+              1024: {
+                coverflowEffect: {
+                  rotate: 20,
+                  stretch: 0,
+                  depth: 200,
+                  modifier: 1,
+                  slideShadows: false,
+                },
+              },
+            }}
+            coverflowEffect={{
+              rotate: 20,
+              stretch: 0,
+              depth: 200,
+              modifier: 1,
+              slideShadows: false,
+            }}
+            pagination={false}
+            watchSlidesProgress={true}
+            watchOverflow={true}
+            preventInteractionOnTransition={false}
+            resistance={true}
+            resistanceRatio={0.85}
+            onSwiper={setSwiperInstance}
+            onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
+            className="w-full h-full"
+            style={{ overflow: 'visible' }}>
+            {slides.map((img, i) => (
+              <SwiperSlide key={i} className="swiper-slide-custom">
+                <div className="relative w-full h-full overflow-hidden rounded-[24px] sm:rounded-[32px] lg:rounded-[40px]">
+                  <div
+                    style={{ backgroundImage: `url(${img})` }}
+                    className="absolute inset-0 bg-cover bg-center rounded-[24px] sm:rounded-[32px] lg:rounded-[40px]"
+                  />
 
-        <div className="relative z-20 h-full flex flex-col">
-          <div className="flex justify-center px-3 sm:px-4 md:px-6">
-            <div
-              className="relative mt-3 sm:mt-5 w-full h-[70vh] sm:h-[80vh] md:h-[90vh] md:min-h-[800px]
-                        bg-white/10 backdrop-blur-2xl border border-white/20
-                        rounded-[24px] sm:rounded-[32px] md:rounded-[40px]
-                        p-6 sm:p-10 md:p-16
-                        shadow-[0_20px_80px_rgba(0,0,0,0.95)] md:shadow-[0_40px_140px_rgba(0,0,0,0.95)]">
-              <div className="absolute -inset-2 sm:-inset-3 bg-gradient-to-br from-orange-500/30 to-yellow-400/20 blur-2xl sm:blur-3xl rounded-2xl sm:rounded-3xl" />
-              <div className="relative h-full flex items-end justify-center pb-4 sm:pb-8 md:pb-0 md:items-end">
-                <div className="w-full text-center space-y-4 sm:space-y-6">
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                    <Link
-                      to="/courses/english"
-                      className="px-6 sm:px-8 md:px-10 py-3 sm:py-3.5 md:py-4
-                               bg-gradient-to-r from-orange-500 to-yellow-400
-                               rounded-xl sm:rounded-2xl
-                               font-bold text-sm sm:text-base text-white
-                               shadow-xl hover:scale-105 transition-transform">
-                      {t('home.exploreCourses')}
-                    </Link>
+                  {/* glow - only on active slide */}
+                  <div className="slide-glow absolute -inset-2 sm:-inset-2.5 lg:-inset-3 bg-gradient-to-br from-orange-500/45 to-yellow-400/35 blur-2xl sm:blur-2xl lg:blur-3xl rounded-[28px] sm:rounded-[36px] lg:rounded-[48px] opacity-0" />
 
-                    <Link
-                      to="/mock-exam"
-                      className="px-6 sm:px-8 md:px-10 py-3 sm:py-3.5 md:py-4
-                               bg-black/60 border border-white/20
-                               rounded-xl sm:rounded-2xl
-                               text-sm sm:text-base text-white
-                               hover:bg-black/80 transition-colors">
-                      {t('mockExam.startExam')}
-                    </Link>
+                  {/* CTA - only on active slide */}
+                  <div className="slide-cta relative z-20 h-full flex items-end justify-center pb-8 sm:pb-12 lg:pb-16 opacity-0 pointer-events-none">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 px-4">
+                      <Link
+                        to="/courses/english"
+                        className="px-6 py-3 sm:px-8 sm:py-3.5 lg:px-10 lg:py-4 bg-gradient-to-r from-orange-500 to-yellow-400
+                                 rounded-xl sm:rounded-2xl font-bold text-white text-sm sm:text-base shadow-xl hover:scale-105 transition-transform duration-200 text-center"
+                        onClick={(e) => e.stopPropagation()}>
+                        {t('home.exploreCourses')}
+                      </Link>
+
+                      <Link
+                        to="/mock-exam"
+                        className="px-6 py-3 sm:px-8 sm:py-3.5 lg:px-10 lg:py-4 bg-black/60 border border-white/20
+                                 rounded-xl sm:rounded-2xl text-white text-sm sm:text-base hover:bg-black/80 transition-all duration-200 text-center"
+                        onClick={(e) => e.stopPropagation()}>
+                        {t('mockExam.startExam')}
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-          <div className="flex-grow" />
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </div>
 
-        <div className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-30">
-          {courses.map((_, i) => (
+        {/* Custom dots */}
+        <div className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-20">
+          {slides.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCurrentSlide(i)}
-              className={`h-1.5 sm:h-2 transition-all ${
-                i === currentSlide
-                  ? 'w-8 sm:w-10 bg-orange-500 shadow-[0_0_15px_orange]'
-                  : 'w-1.5 sm:w-2 bg-white/40'
-              } rounded-full`}
+              onClick={() => swiperInstance?.slideToLoop(i)}
+              className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
+                i === activeIndex
+                  ? 'w-8 sm:w-10 bg-orange-500 shadow-[0_0_10px_rgba(255,115,0,0.8)] sm:shadow-[0_0_15px_rgba(255,115,0,0.8)]'
+                  : 'w-1.5 sm:w-2 bg-white/40 hover:bg-white/60'
+              } cursor-pointer`}
             />
           ))}
         </div>
       </section>
-
       <section className="relative py-16 sm:py-24 md:py-32 px-4 sm:px-6 md:px-12 bg-[#050505] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#0b0b0b] via-[#120c06] to-black" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_35%,rgba(255,115,0,0.25),transparent_65%)]" />

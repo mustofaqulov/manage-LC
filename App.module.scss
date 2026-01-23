@@ -6,6 +6,11 @@
   @apply text-center;
 }
 
+body::-webkit-scrollbar {
+    width: 8px;
+    background: linear-gradient();
+}
+
 .spinner {
   width: 4rem;
   height: 4rem;

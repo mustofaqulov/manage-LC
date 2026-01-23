@@ -1,0 +1,198 @@
+/* Swiper container customization */
+.swiper {
+  width: 100%;
+  height: 100%;
+  overflow: visible !important;
+  padding: 0 20px;
+}
+
+.swiper-wrapper {
+  align-items: center;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+@media (min-width: 640px) {
+  .swiper {
+    padding: 0;
+  }
+}
+
+/* Prevent any flickering or jittering */
+.swiper,
+.swiper-wrapper,
+.swiper-slide {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Custom slide styling - Fixed dimensions to prevent jitter */
+.swiper-slide-custom {
+  width: 85vw !important;
+  min-width: 280px !important;
+  max-width: 350px !important;
+  height: 65vh !important;
+  min-height: 500px !important;
+  max-height: 65vh !important;
+  border-radius: 24px;
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  transform-origin: center center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  position: relative;
+  contain: layout style paint;
+}
+
+/* Tablet */
+@media (min-width: 640px) {
+  .swiper-slide-custom {
+    width: 480px !important;
+    min-width: 480px !important;
+    max-width: 480px !important;
+    height: 75vh !important;
+    min-height: 600px !important;
+    max-height: 75vh !important;
+    border-radius: 32px;
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.95);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .swiper-slide-custom {
+    width: 720px !important;
+    min-width: 720px !important;
+    max-width: 720px !important;
+    height: 85vh !important;
+    min-height: 700px !important;
+    max-height: 85vh !important;
+    border-radius: 40px;
+    box-shadow: 0 40px 140px rgba(0, 0, 0, 0.95);
+  }
+}
+
+/* GPU acceleration for smooth transitions */
+.swiper-slide-custom > div {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  width: 100% !important;
+  height: 100% !important;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Smooth slide content transitions */
+.slide-glow,
+.slide-cta {
+  transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Fixed image container to prevent layout shift */
+.swiper-slide-custom .absolute.inset-0 {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  contain: strict;
+  overflow: hidden;
+}
+
+/* Active slide effects */
+.swiper-slide-active .slide-glow {
+  opacity: 1 !important;
+}
+
+.swiper-slide-active .slide-cta {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Non-active slides */
+.swiper-slide:not(.swiper-slide-active) .slide-glow {
+  opacity: 0 !important;
+}
+
+.swiper-slide:not(.swiper-slide-active) .slide-cta {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hide default pagination */
+.swiper-pagination {
+  display: none !important;
+}
+
+/* Smooth scale and opacity transitions - FIXED */
+.swiper-slide {
+  opacity: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* No filter transitions to avoid jitter */
+.swiper-slide-active {
+  z-index: 10;
+}
+
+/* Prevent any layout shift */
+.swiper-slide * {
+  box-sizing: border-box;
+}
+
+/* Prevent subpixel rendering issues */
+.swiper-slide-custom {
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
+/* Ensure images are crisp and don't cause reflow */
+.swiper-slide-custom [style*="backgroundImage"] {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Responsive glow sizes */
+@media (max-width: 639px) {
+  .slide-glow {
+    filter: blur(40px) !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .slide-glow {
+    filter: blur(50px) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .slide-glow {
+    filter: blur(60px) !important;
+  }
+}
+
+/* Touch-friendly mobile optimizations */
+@media (max-width: 639px) {
+  .swiper {
+    touch-action: pan-y pinch-zoom;
+  }
+
+  /* Reduce blur/shadow intensity on mobile for performance */
+  .swiper-slide-custom {
+    box-shadow: 0 15px 60px rgba(0, 0, 0, 0.9) !important;
+  }
+}
