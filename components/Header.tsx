@@ -1,16 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../i18n';
-import { User } from '../types';
+import { useAuth } from '../src/hooks/useAuth';
 import Logo from '../assets/images/logo.svg';
 import LanguageSwitcher from './LanguageSwitcher';
 
-interface HeaderProps {
-  user: User | null;
-  onLogout: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+const Header: React.FC = memo(() => {
+  const { user, logout: onLogout } = useAuth();
   const { t } = useTranslation();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -206,6 +202,8 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
       )}
     </div>
   );
-};
+});
+
+Header.displayName = 'Header';
 
 export default Header;

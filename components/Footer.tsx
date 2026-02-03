@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../i18n/useTranslation';
 import { Instagram, Send } from 'lucide-react';
 import LogoLight from '../assets/images/logo-light.png';
 
-const Footer: React.FC = () => {
+const Footer: React.FC = memo(() => {
   const { t } = useTranslation();
   return (
     <footer className="relative overflow-hidden bg-[#040404] text-white pt-28 pb-16 px-6 md:px-12">
@@ -108,6 +108,8 @@ const Footer: React.FC = () => {
       {/* Social Icons */}
     </footer>
   );
-};
+});
+
+Footer.displayName = 'Footer';
 
 export default Footer;

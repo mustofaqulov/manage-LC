@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { I18nContext } from './index';
+import type { TranslationKey } from './types';
 
 export function useTranslation() {
   const context = useContext(I18nContext);
@@ -10,8 +11,8 @@ export function useTranslation() {
 
   const { translations, language, setLanguage } = context;
 
-  // Nested object value resolver
-  const t = (key: string): string => {
+  // Type-safe nested object value resolver
+  const t = (key: TranslationKey): string => {
     const keys = key.split('.');
     let value: any = translations;
 

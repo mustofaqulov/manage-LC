@@ -1,13 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/i18n';
-import { ExamMode, User } from '../types';
+import { useAuth } from '../src/hooks/useAuth';
+import { ExamMode } from '../types';
 
-interface MockExamProps {
-  user: User | null;
-}
-
-const MockExam: React.FC<MockExamProps> = ({ user }) => {
+const MockExam: React.FC = () => {
+  const { user } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
 

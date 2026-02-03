@@ -1,41 +1,101 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n';
+import { useLogin } from '../services/hooks';
+import { useAppDispatch } from '../src/store/hooks';
+import { setCredentials } from '../src/store/slices/authSlice';
 
-interface LoginProps {
-  onLogin: (phone: string) => void;
-}
+const TELEGRAM_BOT_USERNAME = 'managelcbot'; // Telegram bot username
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC = () => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const [step, setStep] = useState<'PHONE' | 'CODE'>('PHONE');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+
+  // React Query mutation
+  const { mutate: login, isPending } = useLogin();
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 9);
     setPhone(value);
+    setError(null); // Clear error on input change
   };
 
-  const fakeDelay = () => new Promise((r) => setTimeout(r, 900));
+  const handleSendCode = () => {
+    if (phone.length < 9) {
+      setError('Telefon raqam 9 ta raqamdan iborat bo\'lishi kerak');
+      return;
+    }
 
-  const handleSendCode = async () => {
-    if (phone.length < 9) return;
-    setIsLoading(true);
-    await fakeDelay();
-    setIsLoading(false);
+    // Open Telegram bot in new tab
+    const fullPhone = `+998${phone}`;
+    const telegramUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}?start=login_${fullPhone.replace('+', '')}`;
+
+    console.log('📱 Opening Telegram bot:', telegramUrl);
+
+    // Open Telegram bot
+    window.open(telegramUrl, '_blank');
+
+    // Move to code entry step
     setStep('CODE');
+    setError(null);
   };
 
-  const handleVerify = async () => {
-    if (code.length !== 4) return;
-    setIsLoading(true);
-    await fakeDelay();
-    onLogin(phone);
-    setIsLoading(false);
-    navigate('/mock-exam');
+  const handleVerify = () => {
+    if (code.length !== 5) {
+      setError('Kod 5 ta raqamdan iborat bo\'lishi kerak');
+      return;
+    }
+
+    setError(null);
+
+    // Send phone + pinCode to backend
+    const fullPhone = `+998${phone}`;
+    console.log('🔐 Logging in with:', { phone: fullPhone, pinCode: code });
+
+    login(
+      {
+        phone: fullPhone,
+        pinCode: code,
+      },
+      {
+        onSuccess: (result) => {
+          console.log('✅ Login successful:', result);
+
+          // Save to Redux store
+          dispatch(
+            setCredentials({
+              user: result,
+              token: result.token,
+            })
+          );
+
+          // Navigate to mock exam or user profile if missing info
+          if (result.missingInfo) {
+            navigate('/profile');
+          } else {
+            navigate('/mock-exam');
+          }
+        },
+        onError: (err: any) => {
+          console.error('❌ Login failed:', err);
+
+          // Handle different error types
+          if (err.response?.status === 401) {
+            setError('Noto\'g\'ri kod. Qaytadan urinib ko\'ring.');
+          } else if (err.response?.status === 404) {
+            setError('Foydalanuvchi topilmadi. Telegram botdan kodni oling.');
+          } else {
+            setError(err.response?.data?.message || 'Tizimga kirishda xatolik. Qaytadan urinib ko\'ring.');
+          }
+        },
+      }
+    );
   };
 
   return (
@@ -79,20 +139,29 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       value={phone}
                       onChange={handlePhoneChange}
                       placeholder={t('login.phonePlaceholder')}
-                      className="
+                      className={`
                         w-full pl-16 pr-4 py-4 rounded-2xl
                         bg-black/40 text-white font-bold
-                        border border-white/15
+                        border ${error ? 'border-red-500' : 'border-white/15'}
                         focus:border-orange-400 focus:ring-1 focus:ring-orange-400
                         outline-none transition-all
-                      "
+                      `}
                     />
                   </div>
+
+                  {error && (
+                    <p className="text-red-400 text-sm mt-2 flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {error}
+                    </p>
+                  )}
                 </div>
 
                 <button
                   onClick={handleSendCode}
-                  disabled={phone.length < 9 || isLoading}
+                  disabled={phone.length < 9 || isPending}
                   className="
                     w-full py-4 rounded-2xl font-black text-lg
                     bg-gradient-to-r from-orange-500 to-amber-400
@@ -104,11 +173,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     transition-all
                     flex items-center justify-center gap-3
                   ">
-                  {isLoading && (
+                  {isPending && (
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
-                  {t('login.sendCode')}
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                  </svg>
+                  Telegram botdan kod olish
                 </button>
+
+                <p className="text-xs text-white/40 text-center mt-4">
+                  @{TELEGRAM_BOT_USERNAME} botiga o'tib, tasdiqlash kodini oling
+                </p>
               </div>
             ) : (
               <div className="space-y-7">
@@ -119,50 +195,78 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
                   <input
                     type="text"
-                    maxLength={4}
+                    maxLength={5}
                     value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) => {
+                      setCode(e.target.value.replace(/\D/g, ''));
+                      setError(null);
+                    }}
                     placeholder={t('login.codePlaceholder')}
-                    className="
+                    className={`
                       w-full py-4 rounded-2xl text-center
                       bg-black/40 text-white text-4xl font-black
                       tracking-[0.5em]
-                      border border-white/15
+                      border ${error ? 'border-red-500' : 'border-white/15'}
                       focus:border-orange-400 focus:ring-1 focus:ring-orange-400
                       outline-none transition-all
-                    "
+                    `}
                   />
 
                   <p className="text-xs text-white/40 mt-4 text-center">
-                    {t('login.codeDescription')}
+                    @{TELEGRAM_BOT_USERNAME} botidan olingan 5 raqamli kodni kiriting
                   </p>
+
+                  {error && (
+                    <p className="text-red-400 text-sm mt-3 text-center flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {error}
+                    </p>
+                  )}
                 </div>
 
                 <button
                   onClick={handleVerify}
-                  disabled={code.length !== 4 || isLoading}
+                  disabled={code.length !== 5 || isPending}
                   className="
                     w-full py-4 rounded-2xl font-black text-lg
-                    bg-gradient-to-r from-zinc-800 to-zinc-900
+                    bg-gradient-to-r from-orange-500 to-amber-400
                     text-white
-                    border border-white/10
-                    hover:bg-zinc-800
+                    shadow-[0_15px_50px_rgba(255,115,0,0.45)]
+                    hover:shadow-[0_25px_80px_rgba(255,115,0,0.65)]
                     hover:scale-[1.04]
                     disabled:opacity-40 disabled:hover:scale-100
                     transition-all
                     flex items-center justify-center gap-3
                   ">
-                  {isLoading && (
+                  {isPending && (
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
-                  {t('login.verifyCode')}
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Tasdiqlash
                 </button>
 
-                <button
-                  onClick={() => setStep('PHONE')}
-                  className="w-full text-white/40 text-sm font-bold hover:text-white/70 transition">
-                  {t('login.resendCode')}
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setStep('PHONE');
+                      setCode('');
+                      setError(null);
+                    }}
+                    className="flex-1 py-3 rounded-xl text-white/40 text-sm font-bold hover:text-white/70 hover:bg-white/5 transition">
+                    ← Orqaga
+                  </button>
+
+                  <button
+                    onClick={handleSendCode}
+                    disabled={isPending}
+                    className="flex-1 py-3 rounded-xl text-white/40 text-sm font-bold hover:text-white/70 hover:bg-white/5 transition disabled:opacity-40">
+                    Kodni qayta olish
+                  </button>
+                </div>
               </div>
             )}
 

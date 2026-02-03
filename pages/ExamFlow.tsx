@@ -29,6 +29,7 @@ const ExamFlow: React.FC = () => {
   const micStreamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
+  const waveformAnimationRef = useRef<number | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
   const cleanupAll = () => {
@@ -56,6 +57,12 @@ const ExamFlow: React.FC = () => {
         console.log('  - Cancelled RAF timer');
       }
 
+      if (waveformAnimationRef.current !== null) {
+        cancelAnimationFrame(waveformAnimationRef.current);
+        waveformAnimationRef.current = null;
+        console.log('  - Cancelled waveform animation');
+      }
+
       runningRef.current = false;
 
       console.log('✅ All audio and resources cleaned up');
@@ -67,6 +74,28 @@ const ExamFlow: React.FC = () => {
   useEffect(() => {
     return () => {
       cleanupAll();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      console.log('🧹 Browser closing/navigating - cleaning up');
+      cleanupAll();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('🧹 Page hidden - pausing audio');
+        stopAllAudio();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -203,6 +232,7 @@ const ExamFlow: React.FC = () => {
     }
   };
 
+  // Optimized waveform animation with FPS throttling
   useEffect(() => {
     if (status !== 'RECORDING' || !waveformCanvasRef.current) return;
 
@@ -210,30 +240,42 @@ const ExamFlow: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animationId: number;
-    const bars = 60;
+    const bars = 30; // Reduced from 60 for better performance
     const barWidth = canvas.width / bars;
+    const targetFPS = 30; // Target 30 FPS instead of 60
+    const frameInterval = 1000 / targetFPS;
+    let lastFrameTime = performance.now();
 
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#ef4444';
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - lastFrameTime;
 
-      for (let i = 0; i < bars; i++) {
-        const height = Math.random() * canvas.height * 0.8;
-        const x = i * barWidth;
-        const y = (canvas.height - height) / 2;
+      // Throttle to target FPS
+      if (elapsed >= frameInterval) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ef4444';
 
-        ctx.fillRect(x, y, barWidth - 2, height);
+        for (let i = 0; i < bars; i++) {
+          const height = Math.random() * canvas.height * 0.8;
+          const x = i * barWidth;
+          const y = (canvas.height - height) / 2;
+
+          ctx.fillRect(x, y, barWidth - 2, height);
+        }
+
+        lastFrameTime = currentTime - (elapsed % frameInterval);
       }
 
-      animationId = requestAnimationFrame(animate);
+      waveformAnimationRef.current = requestAnimationFrame(animate);
     };
 
-    animate();
+    waveformAnimationRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (animationId) cancelAnimationFrame(animationId);
-      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (waveformAnimationRef.current !== null) {
+        cancelAnimationFrame(waveformAnimationRef.current);
+        waveformAnimationRef.current = null;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
   }, [status]);
 

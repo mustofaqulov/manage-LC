@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { ExamPart } from '../../types';
 
 interface ExamHeaderProps {
@@ -13,7 +13,7 @@ interface ExamHeaderProps {
   onExit: (e: React.MouseEvent) => void;
 }
 
-const ExamHeader: React.FC<ExamHeaderProps> = ({
+const ExamHeader: React.FC<ExamHeaderProps> = memo(({
   currentPartIdx,
   currentQuestionIdx,
   questionsCount,
@@ -147,6 +147,8 @@ const ExamHeader: React.FC<ExamHeaderProps> = ({
       </div>
     </div>
   );
-};
+});
+
+ExamHeader.displayName = 'ExamHeader';
 
 export default ExamHeader;

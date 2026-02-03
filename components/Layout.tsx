@@ -1,19 +1,16 @@
 import React from 'react';
-import { User } from '../types';
 import Header from './Header';
 import Footer from './Footer';
 import PhoneFloating from '@/components/PhoneFloating.tsx';
 
 interface LayoutProps {
   children: React.ReactNode;
-  user: User | null;
-  onLogout: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#f9fafb]">
-      <Header user={user} onLogout={onLogout} />
+      <Header />
       <main className="flex-grow">{children}</main>
       <Footer />
       <PhoneFloating></PhoneFloating>

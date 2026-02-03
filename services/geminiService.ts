@@ -1,16 +1,23 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Vite build time o'zgaruvchisini olish
+/**
+ * ⚠️ SECURITY WARNING: Client-side API key usage is NOT recommended for production
+ * See SECURITY.md for proper backend proxy implementation
+ */
 const getApiKey = (): string => {
   // Client-side: window dan olish (Vite define qilingan)
-  if (typeof window !== 'undefined' && (window as any).__VITE_GEMINI_API_KEY__) {
-    return (window as any).__VITE_GEMINI_API_KEY__;
+  if (typeof window !== 'undefined' && window.__VITE_GEMINI_API_KEY__) {
+    return window.__VITE_GEMINI_API_KEY__;
   }
   // Fallback: Environment variable
   if (import.meta.env.VITE_GEMINI_API_KEY) {
     return import.meta.env.VITE_GEMINI_API_KEY;
   }
-  console.warn('⚠️ VITE_GEMINI_API_KEY not configured');
+  console.error(
+    '⚠️ SECURITY: VITE_GEMINI_API_KEY not configured. ' +
+    'For production, use a backend proxy instead of client-side API keys. ' +
+    'See SECURITY.md for details.'
+  );
   return '';
 };
 
@@ -24,7 +31,11 @@ let beepTimeoutId: NodeJS.Timeout | null = null;
 
 const getAudioContext = (): AudioContext => {
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextConstructor) {
+      throw new Error('AudioContext is not supported in this browser');
+    }
+    audioCtx = new AudioContextConstructor();
   }
   return audioCtx;
 };
