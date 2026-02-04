@@ -1,29 +1,132 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ExamMode, ExamPart, Question, ExamStatus } from '../types';
-import { MOCK_QUESTIONS } from '../constants';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { ExamStatus } from '../types';
 import { playTTS, playBeep, stopAllAudio } from '../services/geminiService';
+import {
+  useGetTest,
+  useGetSection,
+  useStartAttempt,
+  useUpsertResponse,
+  useSubmitSection,
+  useSubmitAttempt,
+  usePresignUpload,
+  useUploadToS3,
+  useGetAttempt,
+  useGetDownloadUrl,
+} from '../services/hooks';
+import type {
+  TestDetailResponse,
+  SectionDetailResponse,
+  QuestionResponse,
+  AttemptDetailResponse,
+} from '../src/api/types';
+import * as queries from '../services/queries';
 import MicPermissionScreen from '../components/examflow/MicPermissionScreen';
 import StartExamScreen from '../components/examflow/StartExamScreen';
 import FinishedScreen from '../components/examflow/FinishedScreen';
 import ExamHeader from '../components/examflow/ExamHeader';
 import ExamBody from '../components/examflow/ExamBody';
 
+const DEFAULT_PREP_TIME = 30;
+const DEFAULT_RECORD_TIME = 60;
+
 const ExamFlow: React.FC = () => {
-  const { mode } = useParams<{ mode: ExamMode }>();
+  const { testId } = useParams<{ testId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [parts, setParts] = useState<ExamPart[]>([]);
-  const [currentPartIdx, setCurrentPartIdx] = useState(0);
+  // Custom mode support
+  const routeState = location.state as { selectedSectionIds?: string[]; mode?: string } | null;
+  const isCustomMode = routeState?.mode === 'custom';
+  const selectedSectionIds = routeState?.selectedSectionIds;
+
+  // ================= API DATA =================
+  const { data: testDetail, isLoading: isLoadingTest, isError: isTestError } = useGetTest(testId);
+
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [currentSectionIdx, setCurrentSectionIdx] = useState(0);
+  const [sectionDetail, setSectionDetail] = useState<SectionDetailResponse | null>(null);
+  const [attemptDetail, setAttemptDetail] = useState<AttemptDetailResponse | null>(null);
+
+  // Current section ID derived from test detail (filtered for custom mode)
+  const allSections = testDetail?.sections ?? [];
+  const sections = isCustomMode && selectedSectionIds
+    ? allSections.filter((s) => selectedSectionIds.includes(s.id))
+    : allSections;
+  const currentSectionInfo = sections[currentSectionIdx];
+  const currentSectionId = currentSectionInfo?.id;
+
+  // Fetch section detail
+  const {
+    data: fetchedSection,
+    isLoading: isLoadingSection,
+    refetch: refetchSection,
+  } = useGetSection(
+    { testId: testId!, sectionId: currentSectionId! },
+    { enabled: !!testId && !!currentSectionId }
+  );
+
+  // Update section detail when fetched
+  useEffect(() => {
+    if (fetchedSection) {
+      setSectionDetail(fetchedSection);
+    }
+  }, [fetchedSection]);
+
+  // Questions from current section
+  const questions: QuestionResponse[] = sectionDetail?.questions ?? [];
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
+  const currentQuestion = questions[currentQuestionIdx];
 
+  // ================= IMAGE URLS =================
+  const [sectionImageUrls, setSectionImageUrls] = useState<string[]>([]);
+
+  // Fetch section-level image asset URLs (e.g. Part 1.2 comparison images)
+  useEffect(() => {
+    if (!sectionDetail?.assets?.length) {
+      setSectionImageUrls([]);
+      return;
+    }
+    const imageAssets = sectionDetail.assets
+      .filter((a) => a.assetType === 'IMAGE')
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+
+    if (imageAssets.length === 0) {
+      setSectionImageUrls([]);
+      return;
+    }
+
+    let cancelled = false;
+    Promise.all(imageAssets.map((a) => queries.getDownloadUrl(a.id)))
+      .then((results) => {
+        if (!cancelled) {
+          setSectionImageUrls(results.map((r: any) => r.downloadUrl));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSectionImageUrls([]);
+      });
+
+    return () => { cancelled = true; };
+  }, [sectionDetail]);
+
+  // Fetch question-level image URL
+  const { data: questionImageData } = useGetDownloadUrl(
+    currentQuestion?.promptImageAssetId ?? null,
+    { enabled: !!currentQuestion?.promptImageAssetId }
+  );
+  const promptImageUrl = questionImageData?.downloadUrl ?? null;
+
+  // ================= UI STATE =================
   const [status, setStatus] = useState<ExamStatus>(ExamStatus.IDLE);
   const [displayTime, setDisplayTime] = useState(0);
   const [timeProgress, setTimeProgress] = useState(1);
-
   const [isMicAllowed, setIsMicAllowed] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSubmittingAttempt, setIsSubmittingAttempt] = useState(false);
 
+  // ================= REFS =================
   const rafRef = useRef<number | null>(null);
   const runningRef = useRef(false);
   const micStreamRef = useRef<MediaStream | null>(null);
@@ -31,63 +134,61 @@ const ExamFlow: React.FC = () => {
   const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
   const waveformAnimationRef = useRef<number | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const attemptIdRef = useRef<string | null>(null);
 
-  const cleanupAll = () => {
+  // Keep ref in sync with state
+  useEffect(() => {
+    attemptIdRef.current = attemptId;
+  }, [attemptId]);
+
+  // ================= MUTATIONS =================
+  const { mutateAsync: startAttemptMutation } = useStartAttempt();
+  const { mutateAsync: upsertResponseMutation } = useUpsertResponse();
+  const { mutateAsync: submitSectionMutation } = useSubmitSection();
+  const { mutateAsync: submitAttemptMutation } = useSubmitAttempt();
+  const { mutateAsync: presignUploadMutation } = usePresignUpload();
+  const { mutateAsync: uploadToS3Mutation } = useUploadToS3();
+
+  // ================= CLEANUP =================
+  const cleanupAll = useCallback(() => {
     try {
       console.log('🧹 Starting cleanup...');
-
       stopAllAudio();
 
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
-        console.log('  - Stopped MediaRecorder');
       }
 
       if (micStreamRef.current) {
-        micStreamRef.current.getTracks().forEach((track) => {
-          track.stop();
-        });
+        micStreamRef.current.getTracks().forEach((track) => track.stop());
         micStreamRef.current = null;
-        console.log('  - Stopped microphone stream');
       }
 
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
-        console.log('  - Cancelled RAF timer');
       }
 
       if (waveformAnimationRef.current !== null) {
         cancelAnimationFrame(waveformAnimationRef.current);
         waveformAnimationRef.current = null;
-        console.log('  - Cancelled waveform animation');
       }
 
       runningRef.current = false;
-
       console.log('✅ All audio and resources cleaned up');
     } catch (error) {
       console.warn('⚠️ Cleanup error:', error);
     }
-  };
-
-  useEffect(() => {
-    return () => {
-      cleanupAll();
-    };
   }, []);
 
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      console.log('🧹 Browser closing/navigating - cleaning up');
-      cleanupAll();
-    };
+    return () => cleanupAll();
+  }, [cleanupAll]);
 
+  useEffect(() => {
+    const handleBeforeUnload = () => cleanupAll();
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        console.log('🧹 Page hidden - pausing audio');
-        stopAllAudio();
-      }
+      if (document.hidden) stopAllAudio();
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -97,36 +198,9 @@ const ExamFlow: React.FC = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [cleanupAll]);
 
-  useEffect(() => {
-    if (mode === ExamMode.FULL) {
-      setParts([ExamPart.PART_1_1, ExamPart.PART_1_2, ExamPart.PART_2, ExamPart.PART_3]);
-    } else if (mode === ExamMode.RANDOM) {
-      const allParts = [ExamPart.PART_1_1, ExamPart.PART_1_2, ExamPart.PART_2, ExamPart.PART_3];
-      setParts(allParts);
-    } else {
-      setParts([ExamPart.PART_1_1, ExamPart.PART_1_2]);
-    }
-  }, [mode]);
-
-  const currentPart = parts[currentPartIdx];
-  const allQuestions = currentPart ? MOCK_QUESTIONS[currentPart] : [];
-
-  const [shuffledQuestions, setShuffledQuestions] = useState<Question[]>([]);
-
-  useEffect(() => {
-    if (mode === ExamMode.RANDOM && allQuestions.length > 0) {
-      const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
-      setShuffledQuestions(shuffled.slice(0, Math.min(3, shuffled.length))); // Max 3 savol
-    } else {
-      setShuffledQuestions(allQuestions);
-    }
-  }, [allQuestions, mode]);
-
-  const questions = mode === ExamMode.RANDOM ? shuffledQuestions : allQuestions;
-  const currentQuestion = questions[currentQuestionIdx];
-
+  // ================= TIMER =================
   const startTimer = (seconds: number) => {
     return new Promise<void>((resolve) => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -157,99 +231,189 @@ const ExamFlow: React.FC = () => {
     });
   };
 
-  const runQuestion = async (q: Question) => {
+  // ================= AUDIO UPLOAD =================
+  const uploadAudioAndSubmitResponse = async (
+    audioBlob: Blob,
+    aId: string,
+    questionId: string,
+  ) => {
+    try {
+      console.log('📤 Uploading audio response...', { attemptId: aId, questionId, size: audioBlob.size });
+
+      // 1. Get presigned upload URL
+      const presign = await presignUploadMutation({
+        assetType: 'AUDIO',
+        mimeType: 'audio/webm',
+        contextType: 'response',
+        attemptId: aId,
+        questionId,
+      });
+
+      console.log('📋 Got presigned URL, uploading to S3...');
+
+      // 2. Upload to S3
+      await uploadToS3Mutation({
+        uploadUrl: presign.uploadUrl,
+        file: audioBlob,
+        headers: presign.headers,
+      });
+
+      console.log('✅ Uploaded to S3, saving response...');
+
+      // 3. Save response
+      await upsertResponseMutation({
+        attemptId: aId,
+        questionId,
+        answer: { assetId: presign.assetId },
+      });
+
+      console.log('✅ Response saved successfully');
+    } catch (error) {
+      console.error('❌ Failed to upload/save response:', error);
+      // Don't block exam flow on upload failure
+    }
+  };
+
+  // ================= QUESTION FLOW =================
+  const runQuestion = async (q: QuestionResponse) => {
     if (runningRef.current) return;
     runningRef.current = true;
 
+    const prepTime = q.settings?.prepTime ?? DEFAULT_PREP_TIME;
+    const recordTime = q.settings?.recordTime ?? DEFAULT_RECORD_TIME;
+
     try {
-      setStatus('READING');
+      // READING - TTS reads the prompt
+      setStatus(ExamStatus.READING);
       try {
-        await playTTS(`${q.topic}. ${q.text || ''}`);
+        await playTTS(q.prompt);
       } catch (error) {
         console.error('TTS Error:', error);
-        alert('Failed to play audio. Please check your audio settings.');
       }
       await playBeep();
 
-      if (q.prepTime > 0) {
-        setStatus('PREPARING');
-        await startTimer(q.prepTime);
+      // PREPARING
+      if (prepTime > 0) {
+        setStatus(ExamStatus.PREPARING);
+        await startTimer(prepTime);
         await playBeep();
       }
 
-      setStatus('RECORDING');
+      // RECORDING
+      setStatus(ExamStatus.RECORDING);
       audioChunksRef.current = [];
 
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
-        try {
-          mediaRecorderRef.current.start();
-          console.log('🎙️ Recording started');
-        } catch (error) {
-          console.error('Failed to start recording:', error);
-        }
-      }
+      // Create a fresh MediaRecorder for this question
+      if (micStreamRef.current) {
+        const recorder = new MediaRecorder(micStreamRef.current);
+        mediaRecorderRef.current = recorder;
 
-      await startTimer(q.recordTime);
-      await playBeep();
+        const recordingPromise = new Promise<Blob>((resolve) => {
+          const chunks: Blob[] = [];
 
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-        try {
-          mediaRecorderRef.current.stop();
+          recorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              chunks.push(event.data);
+            }
+          };
+
+          recorder.onstop = () => {
+            const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+            console.log('🔊 Recording completed:', { size: audioBlob.size, chunks: chunks.length });
+            resolve(audioBlob);
+          };
+        });
+
+        recorder.start();
+        console.log('🎙️ Recording started');
+
+        await startTimer(recordTime);
+        await playBeep();
+
+        if (recorder.state === 'recording') {
+          recorder.stop();
           console.log('🎙️ Recording stopped');
-        } catch (error) {
-          console.error('Failed to stop recording:', error);
         }
+
+        // Wait for the blob and upload
+        const audioBlob = await recordingPromise;
+
+        if (audioBlob.size > 0 && attemptIdRef.current) {
+          setIsSaving(true);
+          setStatus(ExamStatus.IDLE);
+          await uploadAudioAndSubmitResponse(audioBlob, attemptIdRef.current, q.id);
+          setIsSaving(false);
+        }
+      } else {
+        // No mic stream - just run timer
+        await startTimer(recordTime);
+        await playBeep();
       }
 
+      // Advance to next question or section
       if (currentQuestionIdx < questions.length - 1) {
         setCurrentQuestionIdx((i) => i + 1);
-        setStatus('IDLE');
+        setStatus(ExamStatus.IDLE);
       } else {
-        const nextPart = parts[currentPartIdx + 1];
-
-        if (currentPartIdx < parts.length - 1) {
-          console.log(`✅ Part ${currentPart} completed, next part: ${nextPart}`);
-
-          if (currentPart === ExamPart.PART_1_1 && nextPart === ExamPart.PART_1_2) {
-            setStatus('IDLE');
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            setCurrentPartIdx((i) => i + 1);
-            setCurrentQuestionIdx(0);
-          } else {
-            setStatus('SECTION_COMPLETE');
+        // Section complete - submit section
+        if (attemptIdRef.current && currentSectionId) {
+          try {
+            await submitSectionMutation({
+              attemptId: attemptIdRef.current,
+              sectionId: currentSectionId,
+            });
+            console.log('✅ Section submitted');
+          } catch (error) {
+            console.error('❌ Section submit failed:', error);
           }
+        }
+
+        if (currentSectionIdx < sections.length - 1) {
+          // More sections to go
+          console.log(`✅ Section ${currentSectionIdx + 1} completed, moving to next`);
+          setStatus(ExamStatus.SECTION_COMPLETE);
         } else {
-          console.log('🎉 All parts completed!');
-          setStatus('FINISHED');
+          // All sections done - submit attempt
+          console.log('🎉 All sections completed!');
+          setIsSubmittingAttempt(true);
+          setStatus(ExamStatus.FINISHED);
+
+          if (attemptIdRef.current) {
+            try {
+              await submitAttemptMutation(attemptIdRef.current);
+              console.log('✅ Attempt submitted');
+            } catch (error) {
+              console.error('❌ Attempt submit failed:', error);
+            }
+          }
+          setIsSubmittingAttempt(false);
         }
       }
     } catch (error) {
       console.error('Question flow error:', error);
-      alert('An error occurred during the exam. Please try again.');
-      setStatus('IDLE');
+      setStatus(ExamStatus.IDLE);
     } finally {
       runningRef.current = false;
     }
   };
 
-  // Optimized waveform animation with FPS throttling
+  // ================= WAVEFORM ANIMATION =================
   useEffect(() => {
-    if (status !== 'RECORDING' || !waveformCanvasRef.current) return;
+    if (status !== ExamStatus.RECORDING || !waveformCanvasRef.current) return;
 
     const canvas = waveformCanvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const bars = 30; // Reduced from 60 for better performance
+    const bars = 30;
     const barWidth = canvas.width / bars;
-    const targetFPS = 30; // Target 30 FPS instead of 60
+    const targetFPS = 30;
     const frameInterval = 1000 / targetFPS;
     let lastFrameTime = performance.now();
 
     const animate = (currentTime: number) => {
       const elapsed = currentTime - lastFrameTime;
 
-      // Throttle to target FPS
       if (elapsed >= frameInterval) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#ef4444';
@@ -258,7 +422,6 @@ const ExamFlow: React.FC = () => {
           const height = Math.random() * canvas.height * 0.8;
           const x = i * barWidth;
           const y = (canvas.height - height) / 2;
-
           ctx.fillRect(x, y, barWidth - 2, height);
         }
 
@@ -279,80 +442,84 @@ const ExamFlow: React.FC = () => {
     };
   }, [status]);
 
-  // ---------------- NEXT PART HANDLER ----------------
-  const handleNextPart = () => {
-    if (currentPartIdx < parts.length - 1) {
-      setCurrentPartIdx((i) => i + 1);
+  // ================= NEXT SECTION HANDLER =================
+  const handleNextSection = useCallback(() => {
+    if (currentSectionIdx < sections.length - 1) {
+      setCurrentSectionIdx((i) => i + 1);
       setCurrentQuestionIdx(0);
-      setStatus('IDLE');
+      setSectionDetail(null);
+      setStatus(ExamStatus.IDLE);
       runningRef.current = false;
     } else {
-      setStatus('FINISHED');
+      setStatus(ExamStatus.FINISHED);
     }
-  };
+  }, [currentSectionIdx, sections.length]);
 
-  // ---------------- TRIGGER ----------------
+  // ================= FINISH (CUSTOM MODE) =================
+  const handleFinishExam = useCallback(async () => {
+    cleanupAll();
+    if (attemptIdRef.current) {
+      try {
+        // Submit current section if in progress
+        if (currentSectionId) {
+          await submitSectionMutation({
+            attemptId: attemptIdRef.current,
+            sectionId: currentSectionId,
+          }).catch(() => {});
+        }
+        await submitAttemptMutation(attemptIdRef.current);
+      } catch (error) {
+        console.error('Finish attempt error:', error);
+      }
+    }
+    navigate('/mock-exam');
+  }, [cleanupAll, currentSectionId, submitSectionMutation, submitAttemptMutation, navigate]);
+
+  // ================= START EXAM =================
+  const handleStartExam = useCallback(async () => {
+    if (!testId) return;
+
+    try {
+      const result = await startAttemptMutation({ testId, sectionId: undefined });
+      setAttemptId(result.attemptId);
+      attemptIdRef.current = result.attemptId;
+      setIsStarted(true);
+      console.log('✅ Attempt started:', result.attemptId);
+    } catch (error) {
+      console.error('❌ Failed to start attempt:', error);
+      alert('Imtihonni boshlashda xatolik yuz berdi. Qaytadan urinib ko\'ring.');
+    }
+  }, [testId, startAttemptMutation]);
+
+  // ================= TRIGGER QUESTION =================
   useEffect(() => {
     if (!isStarted) return;
     if (!currentQuestion) return;
-    if (status !== 'IDLE') return;
+    if (status !== ExamStatus.IDLE) return;
     if (runningRef.current) return;
+    if (isSaving) return;
+    if (isLoadingSection) return;
 
     runQuestion(currentQuestion);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isStarted, currentQuestionIdx, currentPartIdx, status]);
+  }, [isStarted, currentQuestionIdx, currentSectionIdx, status, isSaving, isLoadingSection, sectionDetail]);
 
-  // ---------------- MIC ----------------
+  // ================= MIC PERMISSION =================
   const requestMic = async () => {
     try {
       console.log('🎤 Requesting microphone permission...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       console.log('✅ Microphone access granted');
-      console.log('📊 Stream info:', {
-        tracks: stream.getTracks().length,
-        track: stream.getAudioTracks()[0]?.getSettings(),
-        enabled: stream.getAudioTracks()[0]?.enabled,
-      });
 
-      // Stream'ni ref'da saqlash
       micStreamRef.current = stream;
       setIsMicAllowed(true);
 
-      // Recordingni boshlash uchun
-      const mediaRecorder = new MediaRecorder(stream);
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-          console.log('🎙️ Recording data chunk:', event.data.size, 'bytes');
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        console.log('🔊 Recording completed:', {
-          size: audioBlob.size,
-          type: audioBlob.type,
-          chunks: audioChunksRef.current.length,
-        });
-
-        const audioUrl = URL.createObjectURL(audioBlob);
-        console.log('🔗 Audio URL:', audioUrl);
-
-        // TODO: Send audioBlob to scoring service
-      };
-
-      mediaRecorderRef.current = mediaRecorder;
-      (window as any).mediaRecorder = mediaRecorder;
+      // Expose for debugging
       (window as any).audioChunks = audioChunksRef.current;
-
-      console.log('🎬 MediaRecorder initialized:', mediaRecorder.state);
     } catch (error) {
       console.error('❌ Microphone access denied:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(
-        `Microphone access failed: ${errorMessage}. Microphone access is required for the speaking exam.`,
-      );
+      alert(`Microphone access failed: ${errorMessage}. Microphone access is required for the speaking exam.`);
     }
   };
 
@@ -362,23 +529,85 @@ const ExamFlow: React.FC = () => {
     return '#ef4444';
   };
 
-  if (!isMicAllowed)
+  // ================= LOADING / ERROR STATES =================
+  if (isLoadingTest) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          <div className="w-14 h-14 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+          <p className="text-white/50 text-base">Test yuklanmoqda...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isTestError || !testDetail) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
+        <div className="relative z-10 flex flex-col items-center gap-6 text-center px-6">
+          <div className="w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+            <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <p className="text-white/60 text-lg">Test topilmadi yoki yuklanmadi</p>
+          <button
+            onClick={() => navigate('/mock-exam')}
+            className="px-6 py-3 rounded-xl bg-white/10 text-white/70 hover:bg-white/20 transition">
+            Testlar ro'yxatiga qaytish
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ================= RENDER =================
+  if (!isMicAllowed) {
     return (
       <MicPermissionScreen
         onEnableMicrophone={requestMic}
         onCancel={() => navigate('/mock-exam')}
       />
     );
-  if (!isStarted)
+  }
+
+  if (!isStarted) {
     return (
       <StartExamScreen
-        mode={mode}
-        partsCount={parts.length}
-        onStart={() => setIsStarted(true)}
+        testTitle={testDetail.title}
+        cefrLevel={testDetail.cefrLevel}
+        sectionCount={sections.length}
+        instructions={testDetail.instructions}
+        onStart={handleStartExam}
         onBack={() => navigate('/mock-exam')}
       />
     );
-  if (status === 'FINISHED') return <FinishedScreen onGoToResults={() => navigate('/history')} />;
+  }
+
+  if (status === ExamStatus.FINISHED) {
+    return (
+      <FinishedScreen
+        onGoToResults={() => navigate('/history')}
+        attempt={attemptDetail}
+        isSubmitting={isSubmittingAttempt}
+      />
+    );
+  }
+
+  // Section loading state
+  if (isLoadingSection || !sectionDetail) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          <div className="w-14 h-14 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+          <p className="text-white/50 text-base">Bo'lim yuklanmoqda...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen p-4 md:p-10 flex items-center justify-center overflow-hidden">
@@ -391,14 +620,17 @@ const ExamFlow: React.FC = () => {
 
       <div className="relative z-10 max-w-5xl w-full flex flex-col gap-8">
         <ExamHeader
-          currentPartIdx={currentPartIdx}
+          sectionTitle={sectionDetail.title}
+          currentSectionIdx={currentSectionIdx}
+          totalSections={sections.length}
           currentQuestionIdx={currentQuestionIdx}
           questionsCount={questions.length}
-          currentPart={currentPart}
           status={status}
           displayTime={displayTime}
           timeProgress={timeProgress}
           getTimerColor={getTimerColor}
+          isCustomMode={isCustomMode}
+          onFinish={handleFinishExam}
           onExit={() => {
             cleanupAll();
             navigate('/mock-exam');
@@ -408,9 +640,11 @@ const ExamFlow: React.FC = () => {
         <ExamBody
           status={status}
           currentQuestion={currentQuestion}
-          currentPart={currentPart}
+          sectionImageUrls={sectionImageUrls}
+          promptImageUrl={promptImageUrl}
           waveformCanvasRef={waveformCanvasRef}
-          onNextPart={handleNextPart}
+          onNextPart={handleNextSection}
+          isSaving={isSaving}
         />
       </div>
     </div>

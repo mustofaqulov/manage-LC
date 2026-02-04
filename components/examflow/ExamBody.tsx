@@ -1,25 +1,30 @@
 import React from 'react';
-import { ExamPart, Question, ExamStatus } from '../../types';
+import { ExamStatus } from '../../types';
+import type { QuestionResponse } from '../../src/api/types';
 
 interface ExamBodyProps {
   status: ExamStatus;
-  currentQuestion?: Question;
-  currentPart?: ExamPart;
+  currentQuestion?: QuestionResponse;
+  sectionImageUrls?: string[];
+  promptImageUrl?: string | null;
   waveformCanvasRef: React.RefObject<HTMLCanvasElement>;
   onNextPart: () => void;
-  displayTime?: number;
-  timeProgress?: number;
+  isSaving?: boolean;
 }
 
 const ExamBody: React.FC<ExamBodyProps> = ({
   status,
   currentQuestion,
-  currentPart,
+  sectionImageUrls = [],
+  promptImageUrl,
   waveformCanvasRef,
   onNextPart,
-  displayTime = 0,
-  timeProgress = 1,
+  isSaving = false,
 }) => {
+  const benefits: string[] = currentQuestion?.settings?.benefits ?? [];
+  const drawbacks: string[] = currentQuestion?.settings?.drawbacks ?? [];
+  const hasBenefitsDrawbacks = benefits.length > 0 || drawbacks.length > 0;
+
   return (
     <div className="relative group">
       <div className="absolute -inset-2 bg-gradient-to-br from-orange-500/5 via-red-500/5 to-amber-500/5 rounded-[40px] blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
@@ -29,7 +34,6 @@ const ExamBody: React.FC<ExamBodyProps> = ({
         {/* READING state - Listening prompt */}
         {status === ExamStatus.READING && (
           <div className="space-y-8 animate-in fade-in duration-700">
-            {/* Icon with pulsing glow */}
             <div className="relative inline-flex items-center justify-center w-24 h-24">
               <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-amber-500/30 blur-2xl rounded-full animate-pulse" />
               <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-white/10 flex items-center justify-center">
@@ -40,7 +44,6 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               </div>
             </div>
 
-            {/* Text */}
             <div className="space-y-3">
               <h3 className="text-3xl md:text-4xl font-black text-white tracking-tight">
                 Listen to the prompt
@@ -75,29 +78,85 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               </div>
             </div>
 
-
-            {/* Question text */}
-            {currentQuestion?.text && (
+            {/* Question prompt */}
+            {currentQuestion?.prompt && (
               <p className="text-lg md:text-xl text-white/60 font-medium max-w-3xl mx-auto leading-relaxed">
-                {currentQuestion?.text}
+                {currentQuestion.prompt}
               </p>
             )}
 
-            {/* Images for PART_1_2 */}
-            {currentPart === ExamPart.PART_1_2 && currentQuestion?.images && (
-              <div className="grid grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto pt-6">
-                {currentQuestion.images.map((img, i) => (
-                  <div
-                    key={i}
-                    className="relative group/img overflow-hidden rounded-2xl border border-white/10 aspect-[4/3] shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+            {/* Section images (Part 1.2 — side by side, don't change between questions) */}
+            {sectionImageUrls.length > 0 && (
+              <div className={`grid gap-4 pt-4 ${sectionImageUrls.length >= 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 max-w-lg mx-auto'}`}>
+                {sectionImageUrls.map((url, i) => (
+                  <div key={i} className="relative group/img overflow-hidden rounded-2xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
                     <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/20 to-amber-500/20 blur-xl opacity-0 group-hover/img:opacity-100 transition-opacity duration-500" />
                     <img
-                      src={img}
-                      className="relative w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105"
-                      alt="Prompt"
+                      src={url}
+                      className="relative w-full h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
+                      alt={`Image ${i + 1}`}
                     />
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Question-level image (per-question) */}
+            {promptImageUrl && sectionImageUrls.length === 0 && (
+              <div className="flex justify-center pt-6">
+                <div className="relative group/img overflow-hidden rounded-2xl border border-white/10 max-w-lg shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+                  <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/20 to-amber-500/20 blur-xl opacity-0 group-hover/img:opacity-100 transition-opacity duration-500" />
+                  <img
+                    src={promptImageUrl}
+                    className="relative w-full h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
+                    alt="Prompt"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Benefits / Drawbacks cards (Part 3) */}
+            {hasBenefitsDrawbacks && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 w-full max-w-3xl mx-auto text-left">
+                {/* Benefits */}
+                {benefits.length > 0 && (
+                  <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-5 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <h4 className="text-sm font-bold text-green-400 uppercase tracking-wider">Benefits</h4>
+                    </div>
+                    <ul className="space-y-2">
+                      {benefits.map((item, i) => (
+                        <li key={i} className="flex items-start gap-2 text-white/70 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400/60 mt-1.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Drawbacks */}
+                {drawbacks.length > 0 && (
+                  <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-5 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      <h4 className="text-sm font-bold text-red-400 uppercase tracking-wider">Drawbacks</h4>
+                    </div>
+                    <ul className="space-y-2">
+                      {drawbacks.map((item, i) => (
+                        <li key={i} className="flex items-start gap-2 text-white/70 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-400/60 mt-1.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 
@@ -127,18 +186,22 @@ const ExamBody: React.FC<ExamBodyProps> = ({
         {/* IDLE state - Loading next question */}
         {status === ExamStatus.IDLE && (
           <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Loading indicator */}
             <div className="relative inline-flex items-center justify-center w-20 h-20">
               <div className="absolute inset-0 bg-gradient-to-br from-orange-500/30 to-amber-500/30 blur-2xl rounded-full animate-pulse" />
               <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-white/10 flex items-center justify-center">
-                <div className="w-8 h-8 border-3 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                {isSaving ? (
+                  <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                ) : (
+                  <div className="w-8 h-8 border-3 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                )}
               </div>
             </div>
 
-            {/* Text */}
             <div className="space-y-2">
               <h3 className="text-2xl md:text-3xl font-black text-white">
-                Preparing next question...
+                {isSaving ? 'Saving your response...' : 'Preparing next question...'}
               </h3>
               <p className="text-white/40 text-sm font-medium">
                 The exam will continue automatically
@@ -150,7 +213,6 @@ const ExamBody: React.FC<ExamBodyProps> = ({
         {/* SECTION_COMPLETE state - Show Continue button */}
         {status === ExamStatus.SECTION_COMPLETE && (
           <div className="space-y-10 animate-in zoom-in duration-700">
-            {/* Icon */}
             <div className="relative inline-flex items-center justify-center w-24 h-24">
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-emerald-500/30 blur-2xl rounded-full" />
               <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-white/10 flex items-center justify-center">
@@ -169,7 +231,6 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               </div>
             </div>
 
-            {/* Text */}
             <div className="space-y-3">
               <h3 className="text-4xl md:text-5xl font-black text-white">Section Complete</h3>
               <p className="text-white/50 text-lg font-medium">
@@ -177,7 +238,6 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               </p>
             </div>
 
-            {/* Continue button */}
             <button
               onClick={onNextPart}
               className="group/btn inline-flex items-center gap-4 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white px-12 py-5 rounded-2xl font-black text-xl uppercase shadow-[0_10px_40px_rgba(255,140,0,0.4)] hover:shadow-[0_15px_50px_rgba(255,140,0,0.6)] hover:scale-105 active:scale-95 transition-all duration-300">

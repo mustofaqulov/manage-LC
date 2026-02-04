@@ -9,7 +9,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#f9fafb]">
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#050505]">
       <Header />
       <main className="flex-grow">{children}</main>
       <Footer />

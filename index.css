@@ -1,19 +1,26 @@
-/* Base styles for the application */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #f9fafb;
-  color: #222222;
+  background-color: #050505;
+  color: #e5e5e5;
   overflow-x: hidden;
   margin: 0;
   padding: 0;
 }
 
 #root::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Brand colors */
 .primary-orange {
   color: #ff7300;
 }
@@ -26,17 +33,16 @@ body {
   border-color: #ff7300;
 }
 
+/* Recording pulse */
 @keyframes pulse-red {
   0% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
   }
-
   70% {
     transform: scale(1);
     box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
   }
-
   100% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
@@ -47,93 +53,46 @@ body {
   animation: pulse-red 2s infinite;
 }
 
-@keyframes float {
-  0% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-
-  33% {
-    transform: translate(10vw, 10vh) rotate(120deg);
-  }
-
-  66% {
-    transform: translate(-5vw, 15vh) rotate(240deg);
-  }
-
-  100% {
-    transform: translate(0, 0) rotate(360deg);
-  }
-}
-
-@keyframes float-reverse {
-  0% {
-    transform: translate(0, 0) rotate(360deg);
-  }
-
-  33% {
-    transform: translate(-10vw, -10vh) rotate(240deg);
-  }
-
-  66% {
-    transform: translate(5vw, -15vh) rotate(120deg);
-  }
-
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-}
-
+/* Background blobs - GPU optimized */
 .bg-blob {
   position: fixed;
-  width: 50vw;
-  height: 50vw;
   border-radius: 50%;
-  filter: blur(100px);
   z-index: -1;
-  opacity: 0.15;
   pointer-events: none;
+  will-change: transform;
+  opacity: 0.08;
 }
 
 .blob-1 {
-  background: #ff7300;
-  top: -10%;
-  left: -10%;
-  animation: float 25s infinite linear;
+  background: radial-gradient(circle, #ff7300 0%, transparent 70%);
+  width: 60vw;
+  height: 60vw;
+  top: -20%;
+  left: -15%;
+  animation: blob-drift 40s infinite linear;
 }
 
 .blob-2 {
-  background: #3b82f6;
-  bottom: -10%;
-  right: -10%;
-  animation: float-reverse 30s infinite linear;
+  background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+  width: 50vw;
+  height: 50vw;
+  bottom: -20%;
+  right: -15%;
+  animation: blob-drift 45s infinite linear reverse;
+}
+
+@keyframes blob-drift {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(5vw, 5vh); }
+  100% { transform: translate(0, 0); }
 }
 
 .mt {
-    margin-top: 60px;
-}
-
-.blob-3 {
-  background: #8b5cf6;
-  top: 40%;
-  left: 30%;
-  width: 30vw;
-  height: 30vw;
-  animation: float 20s infinite ease-in-out;
-  opacity: 0.1;
-}
-
-/* Ensure content stays above */
-#root {
-  position: relative;
-  z-index: 1;
+  margin-top: 60px;
 }
 
 /* Hero grid animation */
 @keyframes grid {
-  0% {
-    transform: translate(0, 0);
-  }
-  100% {
-    transform: translate(60px, 60px);
-  }
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(60px, 60px); }
 }

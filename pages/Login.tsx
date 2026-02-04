@@ -20,43 +20,50 @@ const Login: React.FC = () => {
   // React Query mutation
   const { mutate: login, isPending } = useLogin();
 
+  const formatPhone = (digits: string) => {
+    if (!digits) return '+998 ';
+    const d = digits.slice(0, 9);
+    if (d.length <= 2) return `+998 ${d}`;
+    if (d.length <= 5) return `+998 ${d.slice(0, 2)} ${d.slice(2)}`;
+    if (d.length <= 7) return `+998 ${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5)}`;
+    return `+998 ${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 7)} ${d.slice(7)}`;
+  };
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+    const raw = e.target.value;
+    // Extract only digits after the +998 prefix
+    const allDigits = raw.replace(/\D/g, '');
+    // Remove leading 998 if user typed it (we always prepend it)
+    const digits = allDigits.startsWith('998') ? allDigits.slice(3) : allDigits;
+    const value = digits.slice(0, 9);
     setPhone(value);
-    setError(null); // Clear error on input change
+    setError(null);
   };
 
   const handleSendCode = () => {
     if (phone.length < 9) {
-      setError('Telefon raqam 9 ta raqamdan iborat bo\'lishi kerak');
+      setError("Telefon raqam 9 ta raqamdan iborat bo'lishi kerak");
       return;
     }
 
-    // Open Telegram bot in new tab
     const fullPhone = `+998${phone}`;
     const telegramUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}?start=login_${fullPhone.replace('+', '')}`;
 
-    console.log('📱 Opening Telegram bot:', telegramUrl);
-
-    // Open Telegram bot
     window.open(telegramUrl, '_blank');
 
-    // Move to code entry step
     setStep('CODE');
     setError(null);
   };
 
   const handleVerify = () => {
     if (code.length !== 5) {
-      setError('Kod 5 ta raqamdan iborat bo\'lishi kerak');
+      setError("Kod 5 ta raqamdan iborat bo'lishi kerak");
       return;
     }
 
     setError(null);
 
-    // Send phone + pinCode to backend
-    const fullPhone = `+998${phone}`;
-    console.log('🔐 Logging in with:', { phone: fullPhone, pinCode: code });
+    const fullPhone = `998${phone}`;
 
     login(
       {
@@ -65,36 +72,31 @@ const Login: React.FC = () => {
       },
       {
         onSuccess: (result) => {
-          console.log('✅ Login successful:', result);
-
-          // Save to Redux store
           dispatch(
             setCredentials({
               user: result,
               token: result.token,
-            })
+            }),
           );
 
-          // Navigate to mock exam or user profile if missing info
           if (result.missingInfo) {
-            navigate('/profile');
+            navigate('/');
           } else {
             navigate('/mock-exam');
           }
         },
         onError: (err: any) => {
-          console.error('❌ Login failed:', err);
-
-          // Handle different error types
           if (err.response?.status === 401) {
-            setError('Noto\'g\'ri kod. Qaytadan urinib ko\'ring.');
+            setError("Noto'g'ri kod. Qaytadan urinib ko'ring.");
           } else if (err.response?.status === 404) {
             setError('Foydalanuvchi topilmadi. Telegram botdan kodni oling.');
           } else {
-            setError(err.response?.data?.message || 'Tizimga kirishda xatolik. Qaytadan urinib ko\'ring.');
+            setError(
+              err.response?.data?.message || "Tizimga kirishda xatolik. Qaytadan urinib ko'ring.",
+            );
           }
         },
-      }
+      },
     );
   };
 
@@ -130,29 +132,28 @@ const Login: React.FC = () => {
                     {t('login.phoneLabel')}
                   </label>
 
-                  <div className="relative">
-                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-white/60 font-bold">
-                      {t('login.phoneCountryCode')}
-                    </span>
-                    <input
-                      type="text"
-                      value={phone}
-                      onChange={handlePhoneChange}
-                      placeholder={t('login.phonePlaceholder')}
-                      className={`
-                        w-full pl-16 pr-4 py-4 rounded-2xl
-                        bg-black/40 text-white font-bold
-                        border ${error ? 'border-red-500' : 'border-white/15'}
-                        focus:border-orange-400 focus:ring-1 focus:ring-orange-400
-                        outline-none transition-all
-                      `}
-                    />
-                  </div>
+                  <input
+                    type="tel"
+                    value={formatPhone(phone)}
+                    onChange={handlePhoneChange}
+                    placeholder="+998 "
+                    className={`
+                      w-full px-5 py-4 rounded-2xl
+                      bg-black/40 text-white font-bold text-lg tracking-wide
+                      border ${error ? 'border-red-500' : 'border-white/15'}
+                      focus:border-orange-400 focus:ring-1 focus:ring-orange-400
+                      outline-none transition-all
+                    `}
+                  />
 
                   {error && (
                     <p className="text-red-400 text-sm mt-2 flex items-center gap-2">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       {error}
                     </p>
@@ -177,7 +178,7 @@ const Login: React.FC = () => {
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                   </svg>
                   Telegram botdan kod olish
                 </button>
@@ -219,7 +220,11 @@ const Login: React.FC = () => {
                   {error && (
                     <p className="text-red-400 text-sm mt-3 text-center flex items-center justify-center gap-2">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       {error}
                     </p>
@@ -244,7 +249,11 @@ const Login: React.FC = () => {
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Tasdiqlash
                 </button>

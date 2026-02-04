@@ -35,6 +35,8 @@ const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const Login = lazy(() => import('./pages/Login'));
 const CourseDetail = lazy(() => import('./pages/CourseDetail'));
 const ApiTest = lazy(() => import('./pages/ApiTest'));
+const Subscribe = lazy(() => import('./pages/Subscribe'));
+const CustomExam = lazy(() => import('./pages/CustomExam'));
 
 // Protected route wrapper component
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -63,35 +65,21 @@ const App: React.FC = () => {
                 <Route path="/about" element={<About />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/mock-exam" element={<MockExam />} />
-                <Route path="/exam-flow/:mode" element={<ProtectedRoute><ExamFlow /></ProtectedRoute>} />
+                <Route path="/exam-flow/:testId" element={<ProtectedRoute><ExamFlow /></ProtectedRoute>} />
                 <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/courses/english" element={<CourseDetail />} />
+                <Route path="/subscribe" element={<Subscribe />} />
                 <Route path="/api-test" element={<ApiTest />} />
-                <Route
-                  path="/custom-exam"
-                  element={
-                    <div className={styles.customExamBox}>
-                      <h1 className={styles.customExamTitle}>Custom Exam Config</h1>
-                      <p className={styles.customExamText}>
-                        Module coming soon. Use Full or Random test for now.
-                      </p>
-                      <button
-                        onClick={() => window.history.back()}
-                        className={styles.customExamBack}>
-                        Go Back
-                      </button>
-                    </div>
-                  }
-                />
+                <Route path="/custom-exam" element={<CustomExam />} />
               </Routes>
               </Suspense>
             </Layout>
           </Router>
         </I18nProvider>
       </ErrorBoundary>
-      <ToastContainer {...toastConfig} />
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ToastContainer {...toastConfig} aria-label="Notifications" />
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </Provider>
   );

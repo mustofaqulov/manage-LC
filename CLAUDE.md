@@ -4,31 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Manage LC is a React/TypeScript web application for language learning mock exams with AI-powered scoring. Built for IELTS/CEFR-style speaking practice with audio recording and Google Gemini AI evaluation.
+Manage LC is a React/TypeScript web application for language learning mock exams with AI-powered scoring. Built for IELTS/CEFR-style speaking practice with audio recording and Google Gemini AI evaluation. Backend API at `https://api.managelc.uz`.
 
 ## Tech Stack
 
 - React 19.2.3 + TypeScript + Vite 6.2.0
+- Redux Toolkit 2.11.2 + RTK Query (auth & API state)
+- TanStack React Query 5.90.20 (server state)
 - React Router DOM 7.12.0
 - Google Generative AI (Gemini) 0.21.0
-- Tailwind CSS
+- Tailwind CSS 3 (PostCSS plugin) + SCSS modules
+- i18n: 3 languages (uz, en, ru) via custom context
 
 ## Development Commands
 
 ```bash
-# Install dependencies
-npm install
-
-# Development server (http://localhost:5173)
-npm run dev
-
-# Production build
-npm run build
-
-
-# Preview production build
-npm preview
+npm install           # Install dependencies
+npm run dev           # Dev server at http://localhost:5173
+npm run build         # Production build (vite build)
+npm run preview       # Preview production build
 ```
+
+No test runner or linter is configured.
 
 ## Environment Configuration
 
@@ -37,62 +34,77 @@ Create `.env.local` file with:
 VITE_GEMINI_API_KEY=your_api_key_here
 ```
 
-Note: Vite config injects `VITE_GEMINI_API_KEY` as `__VITE_GEMINI_API_KEY__` at build time via `define` plugin.
+Vite config injects `VITE_GEMINI_API_KEY` as `__VITE_GEMINI_API_KEY__` at build time via `define` plugin. The geminiService reads it from `window.__VITE_GEMINI_API_KEY__` with fallback to `import.meta.env.VITE_GEMINI_API_KEY`.
 
 ## Architecture
 
-### Application Flow
+### Path Aliases
 
-1. **App.tsx**: Root component managing user state, lazy-loaded routes, and authentication checks
-2. **Layout.tsx**: Wraps all pages with Header/Footer
-3. **Protected Routes**: `/exam-flow/*` and `/history` require authenticated user
+`@/*` resolves to the project root (configured in both `tsconfig.json` and `vite.config.ts`).
 
-### State Management
+### Entry Point & App Structure
 
-- **User State**: Managed in App.tsx, persisted via localStorage (userService)
-- **Exam State**: Local state in ExamFlow.tsx with complex timer/audio orchestration
-- No global state library - uses React context via props
+- **index.tsx**: Mounts app, wraps with `I18nProvider`, disables `console.log` in production
+- **App.tsx**: Redux Provider + QueryClientProvider + React Router with lazy-loaded routes + ErrorBoundary
+- **Layout.tsx**: Wraps all pages with Header, Footer, and PhoneFloating widget
+
+### State Management (Dual System)
+
+The app uses two parallel state management systems:
+
+1. **Redux Toolkit + RTK Query** (`src/store/`):
+   - `authSlice.ts`: Auth state (user, token, isAuthenticated, legacyUser for backward compat)
+   - `api.ts`: RTK Query endpoints for all backend API calls (base URL: `https://api.managelc.uz`)
+   - localStorage keys: `auth_token`, `user_data`, `manage_lc_user`
+
+2. **TanStack React Query** (`services/hooks.js`, `queries.js`, `mutations.js`):
+   - Query hooks for tests, attempts, sections, assets with configured stale times
+   - Upload hooks for S3 presigned URLs
+
+3. **Local state**: ExamFlow.tsx uses React state + refs for timer/audio orchestration
+
+### Authentication Flow
+
+1. User enters phone number (9 digits)
+2. App opens Telegram bot (`@managelcbot`) with `?start=login_+998{phone}`
+3. User receives 5-digit code from Telegram
+4. Code submitted → API login → Redux stores JWT token
+5. Protected routes (`/exam-flow/*`, `/history`) check `isAuthenticated || legacyUser`
 
 ### Audio System Architecture
 
-ExamFlow.tsx orchestrates a complex audio workflow:
+ExamFlow.tsx orchestrates the audio workflow:
 
-1. **Microphone Access**: Requests getUserMedia on mount, stores stream in ref
-2. **Timer Engine**: Custom RAF-based timer (startTimer) for precise countdown
-3. **Question Flow** (runQuestion async):
-   - READING status → TTS reads question → beep
-   - PREPARING status → countdown timer (prepTime) → beep
-   - RECORDING status → countdown timer (recordTime) → beep
+1. **Microphone Access**: Requests `getUserMedia` on mount, stores stream in ref
+2. **Timer Engine**: Custom RAF-based timer (`startTimer`) for precise countdown
+3. **Question Flow** (`runQuestion` async):
+   - READING → TTS reads question → beep
+   - PREPARING → countdown timer (prepTime) → beep
+   - RECORDING → MediaRecorder captures → countdown timer (recordTime) → beep
    - Auto-advances to next question or ends exam
-4. **Cleanup**: Critical cleanup function (cleanupAll) stops all audio, MediaRecorder, and RAF timers
-5. **Audio Services**:
-   - geminiService.ts: TTS (uses native Speech Synthesis API), beep generation (Web Audio API)
-   - scoringService.ts: Transcription (placeholder) + AI scoring via Gemini
+4. **Cleanup**: `cleanupAll()` stops all audio, MediaRecorder, microphone stream, and RAF timers. Called on unmount, `beforeunload`, and `visibilitychange`.
 
-**Important**: Audio/timer resources MUST be cleaned up properly. cleanupAll() is called on unmount and navigation.
+**Critical**: Audio/timer resources MUST be cleaned up properly. Any new audio feature must integrate with `cleanupAll()`.
+
+### Audio Services
+
+- **geminiService.ts**: Native browser TTS (`SpeechSynthesis` API, rate 0.9), beep via Web Audio API `OscillatorNode` (440Hz, 300ms). `stopAllAudio()` cancels speech, stops oscillator, closes AudioContext.
+- **scoringService.ts**: `transcribeAudio` is a placeholder (returns mock text). `scoreAnswer` uses Gemini Pro with prompt engineering for IELTS scoring (fluency, pronunciation, vocabulary, grammar 0-100). Falls back to 65% on failure.
 
 ### Exam Modes
 
 - **FULL**: All parts sequentially (PART_1_1, PART_1_2, PART_2, PART_3)
 - **RANDOM**: Shuffles questions from all parts, limits to 3 per part
-- **CUSTOM**: Not implemented (placeholder route shows "coming soon")
+- **CUSTOM**: Not implemented (placeholder route)
 
-### Services Layer
+### API Layer (`src/store/api.ts`)
 
-**userService.ts**:
-- localStorage wrapper with fallback for SSR/disabled storage
-- Key: `manage_lc_user`
-- Subscription validation logic (date-based expiry check)
-
-**geminiService.ts**:
-- Native browser TTS (SpeechSynthesis API) - Gemini TTS removed due to quota
-- Beep generation via Web Audio API OscillatorNode
-- Critical: stopAllAudio() and stopBeep() for cleanup
-
-**scoringService.ts**:
-- transcribeAudio: Placeholder (returns mock text)
-- scoreAnswer: Uses Gemini Pro model with prompt engineering for IELTS-style scoring
-- Returns ExamScore with 4 metrics + feedback
+RTK Query endpoints with auto-injected Bearer token:
+- **Auth**: `login(phone, pinCode)`
+- **Users**: `getMe()`, `updateMe()`
+- **Tests**: `getTests()`, `getTest(id)`, `getSection(testId, sectionId)`
+- **Attempts**: `startAttempt()`, `getAttemptHistory()`, `upsertResponse()`, `submitSection()`, `submitAttempt()`
+- **Assets**: `presignUpload()`, `presignDownload()`, `getDownloadUrl()` (S3 presigned URL flow)
 
 ### Data Structure
 
@@ -102,34 +114,69 @@ ExamFlow.tsx orchestrates a complex audio workflow:
 - PART_2: Long description (60s prep, 120s record)
 - PART_3: Benefits/drawbacks discussion (60s prep, 120s record)
 
-### Known Limitations
+**Generated API types** in `src/api/types.ts` (enums: Role, CefrLevel, SkillType, QuestionType, AttemptStatus, etc.)
 
-- Custom exam mode not implemented
-- Audio transcription is placeholder (not real STT)
-- Scoring fallback returns fixed 65% if Gemini fails
-- No backend - all data in localStorage
-- Subscription validation is client-side only
+### Internationalization
+
+- Context-based i18n in `i18n/` directory
+- Languages: uz (default), en, ru — each with translation file
+- `useTranslation()` hook returns `{ t, language }`
+- Language preference stored in localStorage key `manage_lc_language`
+
+### Utilities
+
+- **crypto.ts**: AES-GCM encryption via Web Crypto API for localStorage obfuscation (PBKDF2 key derivation)
+- **axiosConfig.js**: Axios instance with base URL `https://api.managelc.uz` and auth interceptors
+- **toastConfig.js**: react-toastify configuration
 
 ## Codebase Conventions
 
 - Uzbek comments throughout codebase (mixed with English)
-- Primary color: `#ff7300` (orange brand color)
-- Lazy-loaded routes via React.lazy
+- Primary color: `#ff7300` (orange brand color), secondary: `#222222`
+- Lazy-loaded routes via `React.lazy` with `Suspense` + `LoadingSpinner` fallback
 - ErrorBoundary wraps entire app
-- MediaRecorder stores to window for debugging: `window.mediaRecorder`
+- MediaRecorder exposed on `window.mediaRecorder` for debugging
+- Verbose console logs with emoji prefixes in exam flow
+- Services mix `.ts` and `.js` files (hooks.js, queries.js, mutations.js are plain JS)
+- Styling: Tailwind CSS via PostCSS (`tailwind.config.js` + `postcss.config.js`), SCSS modules for component styles, global CSS in `index.css`
 
 ## Common Tasks
 
 **Adding New Question Part**:
-1. Add enum to ExamPart in types.ts
-2. Add questions array to MOCK_QUESTIONS in constants.tsx
-3. Update parts logic in ExamFlow.tsx
+1. Add enum to `ExamPart` in `types.ts`
+2. Add questions array to `MOCK_QUESTIONS` in `constants.tsx`
+3. Update parts logic in `pages/ExamFlow.tsx`
+
+**Adding a New API Endpoint**:
+1. Add endpoint in `src/store/api.ts` using `builder.query` or `builder.mutation`
+2. Add corresponding React Query hook in `services/hooks.js` if needed
+3. Add types in `src/api/types.ts`
 
 **Modifying Gemini Scoring**:
-- Edit prompt in scoringService.ts scoreAnswer function
+- Edit prompt in `services/scoringService.ts` `scoreAnswer` function
 - Scoring criteria: fluency, pronunciation, vocabulary, grammar (0-100 each)
 
 **Testing Audio Flow**:
 - Open browser DevTools console (verbose logging)
 - Check MediaRecorder state: `window.mediaRecorder.state`
 - Inspect audio chunks: `window.audioChunks`
+
+### Routing
+
+**Protected routes** (require `isAuthenticated || legacyUser`):
+- `/exam-flow/:testId`, `/history`
+
+**Public routes**:
+- `/`, `/login`, `/mock-exam`, `/about`, `/leaderboard`, `/courses/english`, `/subscribe`
+- `/custom-exam` — placeholder, not implemented
+
+All routes are lazy-loaded via `React.lazy` with `Suspense` + `LoadingSpinner` fallback.
+
+## Known Limitations
+
+- Custom exam mode not implemented
+- Audio transcription is placeholder (not real STT)
+- Scoring fallback returns fixed 65% if Gemini fails
+- Subscription validation is client-side only
+- Gemini API key is exposed client-side (should use backend proxy in production)
+- No TypeScript type-checking in the build script (only `vite build`, no `tsc`)

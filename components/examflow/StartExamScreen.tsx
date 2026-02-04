@@ -1,15 +1,23 @@
 import React from 'react';
-import { ExamMode } from '../../types';
-import styles from './StartExamScreen.module.scss';
+import type { CefrLevel } from '../../src/api/types';
 
 interface StartExamScreenProps {
-  mode?: ExamMode;
-  partsCount: number;
+  testTitle: string;
+  cefrLevel: CefrLevel;
+  sectionCount: number;
+  instructions?: string | null;
   onStart: () => void;
   onBack: () => void;
 }
 
-const StartExamScreen: React.FC<StartExamScreenProps> = ({ mode, partsCount, onStart, onBack }) => {
+const StartExamScreen: React.FC<StartExamScreenProps> = ({
+  testTitle,
+  cefrLevel,
+  sectionCount,
+  instructions,
+  onStart,
+  onBack,
+}) => {
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
       {/* Dark immersive background */}
@@ -32,9 +40,16 @@ const StartExamScreen: React.FC<StartExamScreenProps> = ({ mode, partsCount, onS
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent rounded-full" />
 
           {/* Title */}
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-10 text-center tracking-tight uppercase">
-            CEFR Speaking Simulation
+          <h1 className="text-3xl md:text-4xl font-black text-white mb-4 text-center tracking-tight">
+            {testTitle}
           </h1>
+
+          {/* CEFR Badge */}
+          <div className="flex justify-center mb-10">
+            <span className="px-5 py-2 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-sm font-bold uppercase tracking-wider">
+              CEFR {cefrLevel}
+            </span>
+          </div>
 
           {/* Parameters section */}
           <div className="bg-black/30 backdrop-blur-sm border border-white/5 rounded-[32px] p-8 md:p-10 mb-10">
@@ -49,16 +64,16 @@ const StartExamScreen: React.FC<StartExamScreenProps> = ({ mode, partsCount, onS
                   Exam Type
                 </span>
                 <span className="font-black text-transparent bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-lg tracking-tight">
-                  CEFR MULTILEVEL
+                  CEFR SPEAKING
                 </span>
               </div>
 
-              {/* Mode */}
+              {/* Level */}
               <div className="flex justify-between items-center pb-5 border-b border-white/5">
                 <span className="text-white/50 font-semibold text-sm uppercase tracking-wider">
-                  Mode
+                  Level
                 </span>
-                <span className="font-bold text-white text-lg uppercase">{mode} MODULE</span>
+                <span className="font-bold text-white text-lg uppercase">{cefrLevel}</span>
               </div>
 
               {/* Sections */}
@@ -66,10 +81,18 @@ const StartExamScreen: React.FC<StartExamScreenProps> = ({ mode, partsCount, onS
                 <span className="text-white/50 font-semibold text-sm uppercase tracking-wider">
                   Sections
                 </span>
-                <span className="font-bold text-white text-lg">{partsCount} Parts</span>
+                <span className="font-bold text-white text-lg">{sectionCount} Parts</span>
               </div>
             </div>
           </div>
+
+          {/* Instructions */}
+          {instructions && (
+            <div className="bg-white/5 border border-white/5 rounded-2xl p-6 mb-10">
+              <p className="text-white/40 text-xs font-bold uppercase tracking-wider mb-3">Instructions</p>
+              <p className="text-white/60 text-sm leading-relaxed">{instructions}</p>
+            </div>
+          )}
 
           {/* Action buttons */}
           <div className="space-y-4">
@@ -84,7 +107,7 @@ const StartExamScreen: React.FC<StartExamScreenProps> = ({ mode, partsCount, onS
             <button
               onClick={onBack}
               className="w-full text-white/30 hover:text-white/60 py-4 font-semibold text-base transition-colors duration-200">
-              Back to Dashboard
+              Back to Tests
             </button>
           </div>
         </div>

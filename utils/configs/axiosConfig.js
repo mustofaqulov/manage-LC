@@ -1,9 +1,8 @@
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { showToast } from './toastConfig';
 
 const BASE_URL = 'https://api.managelc.uz';
 
-// Axios client yaratish
 const axiosClient = axios.create({
   baseURL: BASE_URL,
   timeout: 30000,
@@ -22,38 +21,28 @@ axiosClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    toast.error('Request xatolik yuz berdi');
+    showToast.error('Request xatolik yuz berdi');
     return Promise.reject(error);
   }
 );
 
 // Response interceptor - xatoliklarni handle qilish
 axiosClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // 401 - token muddati tugagan
-    if (error.response && error.response.status === 401) {
-      toast.error('Sessiya tugadi. Qaytadan kiring.');
+    const status = error.response?.status;
+
+    if (status === 401) {
+      showToast.error('Sessiya tugadi. Qaytadan kiring.');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_data');
       window.location.href = '/login';
-    }
-
-    // 403 - ruxsat yo'q
-    if (error.response && error.response.status === 403) {
-      toast.error('Ruxsat yo\'q');
-    }
-
-    // 404 - topilmadi
-    if (error.response && error.response.status === 404) {
-      toast.error('Ma\'lumot topilmadi');
-    }
-
-    // 500 - server xatolik
-    if (error.response && error.response.status >= 500) {
-      toast.error('Server xatolik. Qaytadan urinib ko\'ring.');
+    } else if (status === 403) {
+      showToast.error('Ruxsat yo\'q');
+    } else if (status === 404) {
+      showToast.error('Ma\'lumot topilmadi');
+    } else if (status >= 500) {
+      showToast.error('Server xatolik. Qaytadan urinib ko\'ring.');
     }
 
     return Promise.reject(error);

@@ -1,27 +1,32 @@
 import React, { memo } from 'react';
-import { ExamPart } from '../../types';
 
 interface ExamHeaderProps {
-  currentPartIdx: number;
+  sectionTitle: string;
+  currentSectionIdx: number;
+  totalSections: number;
   currentQuestionIdx: number;
   questionsCount: number;
-  currentPart?: ExamPart;
   status: 'IDLE' | 'READING' | 'PREPARING' | 'RECORDING' | 'SECTION_COMPLETE' | 'FINISHED';
   displayTime: number;
   timeProgress: number;
   getTimerColor: (p: number) => string;
+  isCustomMode?: boolean;
+  onFinish?: () => void;
   onExit: (e: React.MouseEvent) => void;
 }
 
 const ExamHeader: React.FC<ExamHeaderProps> = memo(({
-  currentPartIdx,
+  sectionTitle,
+  currentSectionIdx,
+  totalSections,
   currentQuestionIdx,
   questionsCount,
-  currentPart,
   status,
   displayTime,
   timeProgress,
   getTimerColor,
+  isCustomMode = false,
+  onFinish,
   onExit,
 }) => {
   const circumference = 263.9;
@@ -55,17 +60,27 @@ const ExamHeader: React.FC<ExamHeaderProps> = memo(({
             </svg>
           </button>
 
+          {/* Finish button (custom mode) */}
+          {isCustomMode && onFinish && (
+            <button
+              type="button"
+              onClick={onFinish}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold uppercase tracking-wider shadow-lg hover:shadow-[0_4px_20px_rgba(255,140,0,0.4)] hover:scale-105 active:scale-95 transition-all">
+              Tugatish
+            </button>
+          )}
+
           {/* Section info */}
           <div className="flex items-center gap-3">
             <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
-              SEC {currentPartIdx + 1}
+              {currentSectionIdx + 1}/{totalSections}
             </span>
             <div className="hidden sm:flex flex-col gap-0.5">
               <span className="text-white text-sm font-bold tracking-tight">
                 Q{currentQuestionIdx + 1}/{questionsCount}
               </span>
-              <span className="text-white/40 text-[10px] font-semibold uppercase tracking-wider">
-                {currentPart?.replace(/_/g, ' ').slice(0, 8)}
+              <span className="text-white/40 text-[10px] font-semibold uppercase tracking-wider truncate max-w-[120px]">
+                {sectionTitle}
               </span>
             </div>
           </div>

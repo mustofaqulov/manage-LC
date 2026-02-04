@@ -12,12 +12,12 @@ import 'swiper/css/pagination';
 import 'swiper/css/effect-coverflow';
 import './home.css';
 
-import Result1 from '../assets/images/results/1.png';
-import Result2 from '../assets/images/results/2.png';
-import Result3 from '../assets/images/results/3.png';
-import Result4 from '../assets/images/results/4.png';
-import Result5 from '../assets/images/results/5.png';
-import Result6 from '../assets/images/results/6.png';
+import Result1 from '../assets/images/results/1.webp';
+import Result2 from '../assets/images/results/2.webp';
+import Result3 from '../assets/images/results/3.webp';
+import Result4 from '../assets/images/results/4.webp';
+import Result5 from '../assets/images/results/5.webp';
+import Result6 from '../assets/images/results/6.webp';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -46,8 +46,8 @@ const Home: React.FC = () => {
             centeredSlides={true}
             slidesPerView="auto"
             loop={true}
-            loopAdditionalSlides={2}
-            speed={1200}
+            loopAdditionalSlides={1}
+            speed={600}
             autoplay={{
               delay: 3000,
               disableOnInteraction: false,
@@ -102,9 +102,12 @@ const Home: React.FC = () => {
             {slides.map((img, i) => (
               <SwiperSlide key={i} className="swiper-slide-custom">
                 <div className="relative w-full h-full overflow-hidden rounded-[24px] sm:rounded-[32px] lg:rounded-[40px]">
-                  <div
-                    style={{ backgroundImage: `url(${img})` }}
-                    className="absolute inset-0 bg-cover bg-center rounded-[24px] sm:rounded-[32px] lg:rounded-[40px]"
+                  <img
+                    src={img}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 w-full h-full object-cover rounded-[24px] sm:rounded-[32px] lg:rounded-[40px]"
                   />
 
                   {/* glow - only on active slide */}

@@ -8,6 +8,7 @@ export default {
     courses: 'Курсы',
     exams: 'Экзамены',
     history: 'История',
+    subscription: 'Подписка',
     leaderboard: 'Рейтинг',
     loading: 'Загрузка...',
     error: 'Ошибка',

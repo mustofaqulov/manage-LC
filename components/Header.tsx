@@ -21,6 +21,7 @@ const Header: React.FC = memo(() => {
     { key: 'courses', path: '/courses/english', essential: false },
     { key: 'exams', path: '/mock-exam', essential: true },
     { key: 'history', path: '/history', essential: true },
+    { key: 'subscription', path: '/subscribe', essential: false },
     { key: 'leaderboard', path: '/leaderboard', essential: true },
   ];
 
@@ -113,17 +114,11 @@ const Header: React.FC = memo(() => {
                     <p className="text-xs font-semibold text-white leading-none">{user.phone}</p>
                     <div className="flex items-center gap-1 mt-0.5">
                       <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          user.isSubscribed
-                            ? 'bg-green-400 shadow-[0_0_6px_rgba(34,197,94,0.6)]'
-                            : 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]'
-                        }`}
+                        className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_6px_rgba(34,197,94,0.6)]"
                       />
                       <span
-                        className={`text-[9px] font-bold uppercase tracking-wider ${
-                          user.isSubscribed ? 'text-green-400/90' : 'text-amber-400/90'
-                        }`}>
-                        {t(`common.${user.isSubscribed ? 'pro' : 'free'}`)}
+                        className="text-[9px] font-bold uppercase tracking-wider text-green-400/90">
+                        {'firstName' in user && user.firstName ? `${user.firstName}` : t('common.pro')}
                       </span>
                     </div>
                   </div>
