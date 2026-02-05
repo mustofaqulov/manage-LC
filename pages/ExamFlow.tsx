@@ -433,7 +433,7 @@ const ExamFlow: React.FC = () => {
 
       if (elapsed >= frameInterval) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#ef4444';
+        ctx.fillStyle = '#f97316';
 
         for (let i = 0; i < bars; i++) {
           const height = Math.random() * canvas.height * 0.8;

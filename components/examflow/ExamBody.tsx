@@ -61,17 +61,17 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               <div
                 className={`inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full border backdrop-blur-sm transition-all duration-300 ${
                   status === ExamStatus.RECORDING
-                    ? 'bg-red-500/10 border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.3)]'
+                    ? 'bg-orange-500/10 border-orange-500/30 shadow-[0_0_20px_rgba(255,140,0,0.3)]'
                     : 'bg-orange-500/10 border-orange-500/30 shadow-[0_0_15px_rgba(251,146,60,0.2)]'
                 }`}>
                 <div
                   className={`w-2 h-2 rounded-full ${
-                    status === ExamStatus.RECORDING ? 'bg-red-500 animate-pulse' : 'bg-orange-400'
+                    status === ExamStatus.RECORDING ? 'bg-orange-500 animate-pulse' : 'bg-orange-400'
                   }`}
                 />
                 <span
                   className={`text-xs font-bold uppercase tracking-wider ${
-                    status === ExamStatus.RECORDING ? 'text-red-400' : 'text-orange-300'
+                    status === ExamStatus.RECORDING ? 'text-orange-400' : 'text-orange-300'
                   }`}>
                   {status === ExamStatus.RECORDING ? 'Recording' : 'Prepare'}
                 </span>
@@ -164,7 +164,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
             {status === ExamStatus.RECORDING && (
               <div className="space-y-5 pt-8">
                 <div className="relative w-full max-w-2xl mx-auto h-20">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent blur-xl" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/10 to-transparent blur-xl" />
                   <canvas
                     ref={waveformCanvasRef}
                     width={800}
@@ -173,8 +173,8 @@ const ExamBody: React.FC<ExamBodyProps> = ({
                   />
                 </div>
                 <div className="flex items-center justify-center gap-2.5">
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-                  <span className="text-red-400 font-bold uppercase tracking-widest text-xs">
+                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_10px_rgba(255,140,0,0.8)]" />
+                  <span className="text-orange-400 font-bold uppercase tracking-widest text-xs">
                     Recording
                   </span>
                 </div>
