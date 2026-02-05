@@ -15,6 +15,15 @@ interface ExamHeaderProps {
   onExit: (e: React.MouseEvent) => void;
 }
 
+const formatTime = (seconds: number): string => {
+  if (seconds >= 60) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+  return String(seconds);
+};
+
 const ExamHeader: React.FC<ExamHeaderProps> = memo(({
   sectionTitle,
   currentSectionIdx,
@@ -31,36 +40,48 @@ const ExamHeader: React.FC<ExamHeaderProps> = memo(({
 }) => {
   const circumference = 263.9;
   const offset = circumference * (1 - timeProgress);
+  const isActive = status === 'PREPARING' || status === 'RECORDING';
+
+  const statusLabel =
+    status === 'RECORDING' ? 'REC'
+    : status === 'PREPARING' ? 'PREP'
+    : status === 'READING' ? 'LISTEN'
+    : status === 'SECTION_COMPLETE' ? 'DONE'
+    : 'IDLE';
+
+  const statusDotClass =
+    status === 'RECORDING'
+      ? 'bg-orange-500 shadow-[0_0_8px_rgba(255,140,0,0.7)] animate-pulse'
+      : status === 'PREPARING'
+        ? 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.5)]'
+        : status === 'SECTION_COMPLETE'
+          ? 'bg-green-400 shadow-[0_0_6px_rgba(34,197,94,0.5)]'
+          : 'bg-white/20';
+
+  const statusTextClass =
+    status === 'RECORDING' ? 'text-orange-400'
+    : status === 'PREPARING' ? 'text-amber-300'
+    : status === 'SECTION_COMPLETE' ? 'text-green-400'
+    : 'text-white/40';
 
   return (
     <div className="relative group">
-      {/* Subtle glow underneath */}
       <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-orange-500/10 rounded-[32px] blur-xl opacity-40 group-hover:opacity-60 transition-opacity duration-500" />
 
-      {/* Glassmorphic header */}
-      <div className="relative bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[28px] px-6 md:px-8 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.8)] flex items-center justify-between">
-        {/* Left section */}
-        <div className="flex items-center gap-4 md:gap-6">
-          {/* Exit button */}
+      <div className="relative bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[28px] px-5 md:px-8 py-4 shadow-[0_20px_60px_rgba(0,0,0,0.8)] flex items-center justify-between">
+        {/* Left — nav */}
+        <div className="flex items-center gap-3 md:gap-5">
+          {/* Exit */}
           <button
             type="button"
             onClick={onExit}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 transition-all cursor-pointer group/exit">
-            <svg
-              className="w-4 h-4 text-white/60 group-hover/exit:text-red-400 transition-colors"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M6 18L18 6M6 6l12 12"
-              />
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 transition-all cursor-pointer group/exit">
+            <svg className="w-4 h-4 text-white/60 group-hover/exit:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
-          {/* Finish button (custom mode) */}
+          {/* Finish (custom) */}
           {isCustomMode && onFinish && (
             <button
               type="button"
@@ -70,9 +91,9 @@ const ExamHeader: React.FC<ExamHeaderProps> = memo(({
             </button>
           )}
 
-          {/* Section info */}
-          <div className="flex items-center gap-3">
-            <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+          {/* Section & question info */}
+          <div className="flex items-center gap-2.5">
+            <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-lg">
               {currentSectionIdx + 1}/{totalSections}
             </span>
             <div className="hidden sm:flex flex-col gap-0.5">
@@ -86,76 +107,65 @@ const ExamHeader: React.FC<ExamHeaderProps> = memo(({
           </div>
         </div>
 
-        {/* Right section */}
-        <div className="flex items-center gap-4 md:gap-6">
-          {/* Status indicator */}
-          <div className="hidden md:flex items-center gap-2.5 px-4 py-2 bg-black/30 backdrop-blur-sm rounded-full border border-white/5">
-            <div
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                status === 'RECORDING'
-                  ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-pulse'
-                  : status === 'PREPARING'
-                    ? 'bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.6)]'
-                    : status === 'SECTION_COMPLETE'
-                      ? 'bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.6)]'
-                      : 'bg-white/20'
-              }`}
-            />
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                status === 'RECORDING'
-                  ? 'text-red-400'
-                  : status === 'PREPARING'
-                    ? 'text-orange-300'
-                    : status === 'SECTION_COMPLETE'
-                      ? 'text-green-400'
-                      : 'text-white/40'
-              }`}>
-              {status === 'RECORDING'
-                ? 'REC'
-                : status === 'PREPARING'
-                  ? 'PREP'
-                  : status === 'READING'
-                    ? 'LISTEN'
-                    : status === 'SECTION_COMPLETE'
-                      ? 'DONE'
-                      : 'IDLE'}
+        {/* Right — status + timer */}
+        <div className="flex items-center gap-3 md:gap-5">
+          {/* Status pill */}
+          <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 bg-black/30 backdrop-blur-sm rounded-full border border-white/5">
+            <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${statusDotClass}`} />
+            <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${statusTextClass}`}>
+              {statusLabel}
             </span>
           </div>
 
-          {/* Circular timer */}
-          <div className="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
+          {/* Timer */}
+          <div className="relative w-[60px] h-[60px] md:w-[72px] md:h-[72px] flex items-center justify-center">
+            {/* Glow behind timer when active */}
+            {isActive && (
+              <div
+                className="absolute inset-0 rounded-full blur-lg opacity-30 transition-opacity duration-500"
+                style={{ background: getTimerColor(timeProgress) }}
+              />
+            )}
+
+            {/* Background ring */}
             <svg className="absolute inset-0 w-full h-full -rotate-90">
               <circle
                 cx="50%"
                 cy="50%"
-                r="38%"
+                r="42%"
                 fill="transparent"
-                stroke="rgba(255,255,255,0.05)"
-                strokeWidth="4"
+                stroke="rgba(255,255,255,0.06)"
+                strokeWidth="3.5"
               />
               <circle
                 cx="50%"
                 cy="50%"
-                r="38%"
+                r="42%"
                 fill="transparent"
                 stroke={getTimerColor(timeProgress)}
-                strokeWidth="4"
+                strokeWidth="3.5"
                 strokeDasharray={circumference}
                 style={{
                   strokeDashoffset: offset,
-                  transition: 'stroke-dashoffset 0.1s linear, stroke 0.3s ease',
+                  transition: 'stroke-dashoffset 0.15s linear, stroke 0.3s ease',
                 }}
                 strokeLinecap="round"
               />
             </svg>
-            <div className="flex flex-col items-center leading-none">
-              <span className="font-black text-2xl md:text-3xl tabular-nums text-white">
-                {displayTime}
+
+            {/* Time text */}
+            <div className="relative flex flex-col items-center leading-none select-none">
+              <span
+                className="font-black tabular-nums text-white"
+                style={{ fontSize: displayTime >= 60 ? '1.1rem' : '1.5rem' }}
+              >
+                {formatTime(displayTime)}
               </span>
-              <span className="text-[8px] font-bold text-white/40 uppercase tracking-wider mt-0.5">
-                sec
-              </span>
+              {displayTime < 60 && (
+                <span className="text-[7px] font-bold text-white/30 uppercase tracking-widest mt-0.5">
+                  sec
+                </span>
+              )}
             </div>
           </div>
         </div>
