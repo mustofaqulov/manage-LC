@@ -1,6 +1,5 @@
 // Main API exports
 export * from './types';
-export { default as apiClient, setAuthToken, removeAuthToken, getAuthToken } from './client';
 
 // Redux exports
 export * from '../store/api';

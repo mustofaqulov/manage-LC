@@ -1,5 +1,4 @@
 import axiosClient from '../utils/configs/axiosConfig';
-import { showToast } from '../utils/configs/toastConfig';
 
 // ==================== USER QUERIES ====================
 
@@ -8,10 +7,6 @@ export const getMe = () => {
     .get('/users/me')
     .then((response) => {
       return response.data;
-    })
-    .catch((error) => {
-      showToast.error('Foydalanuvchi ma\'lumotlari yuklanmadi');
-      throw error;
     });
 };
 
@@ -24,10 +19,6 @@ export const getTests = ({ level, page = 0, size = 20 }) => {
     })
     .then((response) => {
       return response.data;
-    })
-    .catch((error) => {
-      showToast.error('Testlar yuklanmadi');
-      throw error;
     });
 };
 
@@ -36,10 +27,6 @@ export const getTest = (testId) => {
     .get(`/tests/${testId}`)
     .then((response) => {
       return response.data;
-    })
-    .catch((error) => {
-      showToast.error('Test yuklanmadi');
-      throw error;
     });
 };
 
@@ -48,10 +35,6 @@ export const getSection = ({ testId, sectionId }) => {
     .get(`/tests/${testId}/sections/${sectionId}`)
     .then((response) => {
       return response.data;
-    })
-    .catch((error) => {
-      showToast.error('Bo\'lim yuklanmadi');
-      throw error;
     });
 };
 
@@ -64,10 +47,6 @@ export const getAttemptHistory = ({ page = 0, size = 20 }) => {
     })
     .then((response) => {
       return response.data;
-    })
-    .catch((error) => {
-      showToast.error('Tarix yuklanmadi');
-      throw error;
     });
 };
 
@@ -76,10 +55,6 @@ export const getAttempt = (attemptId) => {
     .get(`/attempts/${attemptId}`)
     .then((response) => {
       return response.data;
-    })
-    .catch((error) => {
-      showToast.error('Urinish ma\'lumotlari yuklanmadi');
-      throw error;
     });
 };
 
@@ -90,9 +65,5 @@ export const getDownloadUrl = (assetId) => {
     .get(`/assets/${assetId}/download-url`)
     .then((response) => {
       return response.data;
-    })
-    .catch((error) => {
-      showToast.error('Fayl yuklab olish havolasi olinmadi');
-      throw error;
     });
 };

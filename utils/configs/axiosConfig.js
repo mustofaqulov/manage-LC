@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { showToast } from './toastConfig';
 
 const BASE_URL = 'https://api.managelc.uz';
 
@@ -21,7 +20,6 @@ axiosClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    showToast.error('Request xatolik yuz berdi');
     return Promise.reject(error);
   }
 );
@@ -33,17 +31,11 @@ axiosClient.interceptors.response.use(
     const status = error.response?.status;
 
     if (status === 401) {
-      showToast.error('Sessiya tugadi. Qaytadan kiring.');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_data');
       window.location.href = '/login';
-    } else if (status === 403) {
-      showToast.error('Ruxsat yo\'q');
-    } else if (status === 404) {
-      showToast.error('Ma\'lumot topilmadi');
-    } else if (status >= 500) {
-      showToast.error('Server xatolik. Qaytadan urinib ko\'ring.');
     }
+    // 403, 404, 500+ — toast'lar hooks.js'da i18n orqali ko'rsatiladi
 
     return Promise.reject(error);
   }

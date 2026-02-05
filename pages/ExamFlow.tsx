@@ -35,9 +35,10 @@ const ExamFlow: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Custom mode support
+  // Mode support
   const routeState = location.state as { selectedSectionIds?: string[]; mode?: string } | null;
   const isCustomMode = routeState?.mode === 'custom';
+  const isRandomMode = routeState?.mode === 'random';
   const selectedSectionIds = routeState?.selectedSectionIds;
 
   // ================= API DATA =================
@@ -73,8 +74,24 @@ const ExamFlow: React.FC = () => {
     }
   }, [fetchedSection]);
 
-  // Questions from current section
-  const questions: QuestionResponse[] = sectionDetail?.questions ?? [];
+  // Questions from current section (shuffled + limited in random mode)
+  const [shuffledQuestions, setShuffledQuestions] = useState<QuestionResponse[]>([]);
+
+  useEffect(() => {
+    const raw = sectionDetail?.questions ?? [];
+    if (raw.length === 0) {
+      setShuffledQuestions([]);
+      return;
+    }
+    if (isRandomMode) {
+      const shuffled = [...raw].sort(() => Math.random() - 0.5);
+      setShuffledQuestions(shuffled.slice(0, 3));
+    } else {
+      setShuffledQuestions(raw);
+    }
+  }, [sectionDetail, isRandomMode]);
+
+  const questions = shuffledQuestions;
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const currentQuestion = questions[currentQuestionIdx];
 

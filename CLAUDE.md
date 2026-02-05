@@ -172,6 +172,13 @@ RTK Query endpoints with auto-injected Bearer token:
 
 All routes are lazy-loaded via `React.lazy` with `Suspense` + `LoadingSpinner` fallback.
 
+### Data Fetching Strategy
+- **Primary**: TanStack React Query via `services/hooks.js` — ALL production pages use this
+- **Secondary**: RTK Query via `src/store/api.ts` — ONLY used in `pages/ApiTest.tsx` (dev tool)
+- **Auth state**: Redux Toolkit `authSlice` — used across the app
+- New features MUST use TanStack React Query hooks from `services/hooks.js`
+- Do NOT mix RTK Query and TanStack React Query in the same page
+
 ## Known Limitations
 
 - Custom exam mode not implemented
