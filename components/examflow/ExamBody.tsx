@@ -160,24 +160,36 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               </div>
             )}
 
-            {/* Recording waveform */}
+            {/* Recording indicator */}
             {status === ExamStatus.RECORDING && (
-              <div className="space-y-5 pt-8">
-                <div className="relative w-full max-w-2xl mx-auto h-20">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/10 to-transparent blur-xl" />
-                  <canvas
-                    ref={waveformCanvasRef}
-                    width={800}
-                    height={160}
-                    className="relative w-full h-full"
-                  />
+              <div className="flex flex-col items-center gap-4 pt-6">
+                {/* Mic icon with pulsing rings */}
+                <div className="relative flex items-center justify-center w-16 h-16">
+                  <span className="absolute inset-0 rounded-full bg-orange-500/20 animate-ping" />
+                  <span className="absolute inset-1 rounded-full bg-orange-500/10 animate-[ping_1.5s_ease-in-out_infinite_0.3s]" />
+                  <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-[0_0_20px_rgba(255,140,0,0.4)]">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                    </svg>
+                  </div>
                 </div>
-                <div className="flex items-center justify-center gap-2.5">
-                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_10px_rgba(255,140,0,0.8)]" />
-                  <span className="text-orange-400 font-bold uppercase tracking-widest text-xs">
-                    Recording
-                  </span>
+                {/* Mini equalizer bars */}
+                <div className="flex items-end gap-[3px] h-5">
+                  {[0, 0.15, 0.3, 0.15, 0.25, 0.1, 0.2].map((delay, i) => (
+                    <span
+                      key={i}
+                      className="w-[3px] rounded-full bg-gradient-to-t from-orange-500 to-amber-400 opacity-80"
+                      style={{
+                        animation: `eqBar 0.8s ease-in-out ${delay}s infinite alternate`,
+                        height: '6px',
+                      }}
+                    />
+                  ))}
                 </div>
+                <span className="text-orange-400/70 font-semibold uppercase tracking-widest text-[10px]">
+                  Recording
+                </span>
               </div>
             )}
           </div>
