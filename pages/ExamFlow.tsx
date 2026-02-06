@@ -258,10 +258,12 @@ const ExamFlow: React.FC = () => {
       console.log('📤 Uploading audio response...', { attemptId: aId, questionId, size: audioBlob.size });
 
       // 1. Get presigned upload URL
+      // TODO: Backend should add 'response' or 'attempt_response' contextType
+      // Using 'question_prompt' temporarily until backend is updated
       const presign = await presignUploadMutation({
         assetType: 'AUDIO',
         mimeType: 'audio/webm',
-        contextType: 'response',
+        contextType: 'question_prompt',
         attemptId: aId,
         questionId,
       });
