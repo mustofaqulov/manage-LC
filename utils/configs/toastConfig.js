@@ -5,7 +5,7 @@ export const toastConfig = {
   autoClose: 3000,
   hideProgressBar: true,
   closeOnClick: true,
-  pauseOnHover: true,
+  pauseOnHover: false,
   draggable: false,
   transition: Slide,
   theme: 'dark',
