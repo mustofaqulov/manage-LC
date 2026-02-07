@@ -127,12 +127,17 @@ const ExamFlow: React.FC = () => {
     return () => { cancelled = true; };
   }, [sectionDetail]);
 
-  // Fetch question-level image URL
+  // Fetch question-level image URLs (Part 1.2 has 2 images)
   const { data: questionImageData } = useGetDownloadUrl(
     currentQuestion?.promptImageAssetId ?? null,
     { enabled: !!currentQuestion?.promptImageAssetId }
   );
+  const { data: questionImage2Data } = useGetDownloadUrl(
+    currentQuestion?.settings?.image2AssetId ?? null,
+    { enabled: !!currentQuestion?.settings?.image2AssetId }
+  );
   const promptImageUrl = questionImageData?.downloadUrl ?? null;
+  const promptImage2Url = questionImage2Data?.downloadUrl ?? null;
 
   // ================= UI STATE =================
   const [status, setStatus] = useState<ExamStatus>(ExamStatus.IDLE);
@@ -659,6 +664,7 @@ const ExamFlow: React.FC = () => {
           currentQuestion={currentQuestion}
           sectionImageUrls={sectionImageUrls}
           promptImageUrl={promptImageUrl}
+          promptImage2Url={promptImage2Url}
           waveformCanvasRef={waveformCanvasRef}
           onNextPart={handleNextSection}
           isSaving={isSaving}

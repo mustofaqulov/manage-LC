@@ -7,6 +7,7 @@ interface ExamBodyProps {
   currentQuestion?: QuestionResponse;
   sectionImageUrls?: string[];
   promptImageUrl?: string | null;
+  promptImage2Url?: string | null;
   waveformCanvasRef: React.RefObject<HTMLCanvasElement>;
   onNextPart: () => void;
   isSaving?: boolean;
@@ -17,6 +18,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
   currentQuestion,
   sectionImageUrls = [],
   promptImageUrl,
+  promptImage2Url,
   waveformCanvasRef,
   onNextPart,
   isSaving = false,
@@ -101,17 +103,29 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               </div>
             )}
 
-            {/* Question-level image (per-question) */}
-            {promptImageUrl && sectionImageUrls.length === 0 && (
-              <div className="flex justify-center pt-6">
-                <div className="relative group/img overflow-hidden rounded-2xl border border-white/10 max-w-lg shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
-                  <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/20 to-amber-500/20 blur-xl opacity-0 group-hover/img:opacity-100 transition-opacity duration-500" />
-                  <img
-                    src={promptImageUrl}
-                    className="relative w-full h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
-                    alt="Prompt"
-                  />
-                </div>
+            {/* Question-level images (Part 1.2 has 2 images side by side) */}
+            {(promptImageUrl || promptImage2Url) && sectionImageUrls.length === 0 && (
+              <div className={`grid gap-4 pt-4 ${promptImageUrl && promptImage2Url ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 max-w-lg mx-auto'}`}>
+                {promptImageUrl && (
+                  <div className="relative group/img overflow-hidden rounded-2xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+                    <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/20 to-amber-500/20 blur-xl opacity-0 group-hover/img:opacity-100 transition-opacity duration-500" />
+                    <img
+                      src={promptImageUrl}
+                      className="relative w-full h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
+                      alt="Image 1"
+                    />
+                  </div>
+                )}
+                {promptImage2Url && (
+                  <div className="relative group/img overflow-hidden rounded-2xl border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+                    <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/20 to-amber-500/20 blur-xl opacity-0 group-hover/img:opacity-100 transition-opacity duration-500" />
+                    <img
+                      src={promptImage2Url}
+                      className="relative w-full h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
+                      alt="Image 2"
+                    />
+                  </div>
+                )}
               </div>
             )}
 
