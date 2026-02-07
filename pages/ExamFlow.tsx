@@ -258,12 +258,10 @@ const ExamFlow: React.FC = () => {
       console.log('📤 Uploading audio response...', { attemptId: aId, questionId, size: audioBlob.size });
 
       // 1. Get presigned upload URL
-      // FIXME: Backend rejects all contextType values we've tried ('response', 'question_prompt')
-      // Backend developer needs to confirm valid contextType values or add 'response' support
       const presign = await presignUploadMutation({
         assetType: 'AUDIO',
         mimeType: 'audio/webm',
-        contextType: 'response',
+        contextType: 'speaking_response',
         attemptId: aId,
         questionId,
       });
