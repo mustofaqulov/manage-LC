@@ -1,31 +1,26 @@
-/* ===== Toast System ===== */
+/* ===== Minimal Toast System ===== */
 
-/* Container */
+/* Container - top right */
 .Toastify__toast-container {
   z-index: 99999;
-  padding: 12px;
+  padding: 0;
 }
 
-.Toastify__toast-container--top-center {
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+.Toastify__toast-container--top-right {
+  top: 16px;
+  right: 16px;
   width: auto;
-  max-width: 440px;
-  min-width: 280px;
+  max-width: 320px;
+  min-width: 200px;
 }
 
-/* Base toast */
+/* Base toast - minimal style */
 .Toastify__toast {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: rgba(18, 18, 18, 0.92);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.03);
+  background: #18181b;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 12px 16px;
   min-height: unset;
   margin-bottom: 8px;
@@ -38,126 +33,105 @@
 .Toastify__toast-body {
   padding: 0;
   margin: 0;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+  color: #fafafa;
 }
 
 /* Icon */
 .Toastify__toast-icon {
-  width: 18px;
-  min-width: 18px;
+  width: 16px;
+  min-width: 16px;
   margin-right: 0;
 }
 
-/* Progress bar */
+/* Hide progress bar */
 .Toastify__progress-bar {
-  height: 3px;
-  border-radius: 0 0 12px 12px;
-  opacity: 0.7;
-}
-
-.Toastify__progress-bar--bg {
-  background: rgba(255, 255, 255, 0.05);
+  display: none;
 }
 
 /* ===== Type variants ===== */
 
 /* Success */
 .Toastify__toast--success {
-  border-left: 3px solid #22c55e;
+  background: #18181b;
 }
 
 .Toastify__toast--success .Toastify__toast-icon svg {
   fill: #22c55e;
 }
 
-.Toastify__toast--success .Toastify__progress-bar {
-  background: linear-gradient(90deg, #22c55e, #16a34a);
-}
-
 /* Error */
 .Toastify__toast--error {
-  border-left: 3px solid #ef4444;
+  background: #18181b;
 }
 
 .Toastify__toast--error .Toastify__toast-icon svg {
   fill: #ef4444;
 }
 
-.Toastify__toast--error .Toastify__progress-bar {
-  background: linear-gradient(90deg, #ef4444, #dc2626);
-}
-
 /* Warning */
 .Toastify__toast--warning {
-  border-left: 3px solid #f59e0b;
+  background: #18181b;
 }
 
 .Toastify__toast--warning .Toastify__toast-icon svg {
   fill: #f59e0b;
 }
 
-.Toastify__toast--warning .Toastify__progress-bar {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
-}
-
 /* Info */
 .Toastify__toast--info {
-  border-left: 3px solid #ff7300;
+  background: #18181b;
 }
 
 .Toastify__toast--info .Toastify__toast-icon svg {
   fill: #ff7300;
 }
 
-.Toastify__toast--info .Toastify__progress-bar {
-  background: linear-gradient(90deg, #ff7300, #e66600);
-}
-
 /* ===== Animation ===== */
-.Toastify__slide-enter--top-center {
-  animation: toast-slide-in 0.3s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+.Toastify__slide-enter--top-right {
+  animation: toast-in 0.2s ease-out forwards;
 }
 
-.Toastify__slide-exit--top-center {
-  animation: toast-slide-out 0.25s cubic-bezier(0.06, 0.71, 0.55, 1) forwards;
+.Toastify__slide-exit--top-right {
+  animation: toast-out 0.15s ease-in forwards;
 }
 
-@keyframes toast-slide-in {
+@keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(-12px) scale(0.96);
+    transform: translateX(16px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(0);
   }
 }
 
-@keyframes toast-slide-out {
+@keyframes toast-out {
   from {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(0);
   }
   to {
     opacity: 0;
-    transform: translateY(-8px) scale(0.96);
+    transform: translateX(16px);
   }
 }
 
 /* ===== Mobile ===== */
 @media only screen and (max-width: 480px) {
-  .Toastify__toast-container--top-center {
-    left: 0;
-    transform: none;
-    max-width: 100%;
+  .Toastify__toast-container--top-right {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    max-width: none;
     min-width: unset;
-    padding: 8px;
   }
 
   .Toastify__toast {
-    border-radius: 10px;
+    border-radius: 6px;
+    padding: 10px 14px;
   }
 }

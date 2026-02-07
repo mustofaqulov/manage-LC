@@ -1,9 +1,9 @@
 import { toast, Slide } from 'react-toastify';
 
 export const toastConfig = {
-  position: 'top-center',
+  position: 'top-right',
   autoClose: 3000,
-  hideProgressBar: false,
+  hideProgressBar: true,
   closeOnClick: true,
   pauseOnHover: true,
   draggable: false,
