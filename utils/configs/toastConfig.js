@@ -16,7 +16,7 @@ export const toastConfig = {
 
 export const showToast = {
   success: (message) => toast.success(message),
-  error: (message) => toast.error(message, { autoClose: 4000 }),
+  error: (message) => toast.error(message),
   warning: (message) => toast.warning(message),
   info: (message) => toast.info(message),
 };
