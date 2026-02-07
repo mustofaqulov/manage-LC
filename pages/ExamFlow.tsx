@@ -549,10 +549,11 @@ const ExamFlow: React.FC = () => {
   // ================= LOADING / ERROR STATES =================
   if (isLoadingTest) {
     return (
-      <div className="flex items-center justify-center py-16 px-4">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
-          <p className="text-white/50 text-sm">Test yuklanmoqda...</p>
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          <div className="w-14 h-14 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+          <p className="text-white/50 text-base">Test yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -560,18 +561,19 @@ const ExamFlow: React.FC = () => {
 
   if (isTestError || !testDetail) {
     return (
-      <div className="flex items-center justify-center py-16 px-4">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-            <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
+        <div className="relative z-10 flex flex-col items-center gap-6 text-center px-6">
+          <div className="w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+            <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <p className="text-white/50 text-sm">Test topilmadi</p>
+          <p className="text-white/60 text-lg">Test topilmadi yoki yuklanmadi</p>
           <button
             onClick={() => navigate('/mock-exam')}
-            className="px-4 py-2 rounded-lg bg-white/10 text-white/60 text-sm hover:bg-white/20 transition">
-            Orqaga
+            className="px-6 py-3 rounded-xl bg-white/10 text-white/70 hover:bg-white/20 transition">
+            Testlar ro'yxatiga qaytish
           </button>
         </div>
       </div>
@@ -614,18 +616,26 @@ const ExamFlow: React.FC = () => {
   // Section loading state
   if (isLoadingSection || !sectionDetail) {
     return (
-      <div className="flex items-center justify-center py-16 px-4">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
-          <p className="text-white/50 text-sm">Bo'lim yuklanmoqda...</p>
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          <div className="w-14 h-14 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
+          <p className="text-white/50 text-base">Bo'lim yuklanmoqda...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="py-8 px-4">
-      <div className="max-w-4xl mx-auto flex flex-col gap-6">
+    <div className="relative min-h-screen p-4 md:p-10 flex items-center justify-center overflow-hidden">
+      {/* Dark immersive background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,140,0,0.10),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(239,68,68,0.08),transparent_55%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(34,197,94,0.06),transparent_55%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:80px_80px] opacity-20" />
+
+      <div className="relative z-10 max-w-5xl w-full flex flex-col gap-8">
         <ExamHeader
           sectionTitle={sectionDetail.title}
           currentSectionIdx={currentSectionIdx}
