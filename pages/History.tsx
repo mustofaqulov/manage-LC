@@ -77,7 +77,7 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {sections.map((sec) => {
               const pct =
-                sec.sectionScore != null && sec.maxSectionScore
+                sec.sectionScore != null && sec.maxSectionScore && sec.maxSectionScore > 0
                   ? Math.round((sec.sectionScore / sec.maxSectionScore) * 100)
                   : null;
               return (

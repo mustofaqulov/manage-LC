@@ -305,18 +305,16 @@ const ExamFlow: React.FC = () => {
     const recordTime = q.settings?.recordTime ?? DEFAULT_RECORD_TIME;
 
     try {
-      // READING - TTS reads the prompt
-      setStatus(ExamStatus.READING);
-      try {
-        await playTTS(q.prompt);
-      } catch (error) {
-        console.error('TTS Error:', error);
-      }
-      await playBeep();
-
-      // PREPARING
+      // PREPARING - First play TTS, then start prep timer
       if (prepTime > 0) {
         setStatus(ExamStatus.PREPARING);
+        // Wait for TTS to finish first
+        try {
+          await playTTS(q.prompt);
+        } catch (error) {
+          console.error('TTS Error:', error);
+        }
+        // Then start prep timer
         await startTimer(prepTime);
         await playBeep();
       }
@@ -391,9 +389,12 @@ const ExamFlow: React.FC = () => {
         }
 
         if (currentSectionIdx < sections.length - 1) {
-          // More sections to go
+          // More sections to go - automatically move to next section
           console.log(`✅ Section ${currentSectionIdx + 1} completed, moving to next`);
-          setStatus(ExamStatus.SECTION_COMPLETE);
+          setCurrentSectionIdx((i) => i + 1);
+          setCurrentQuestionIdx(0);
+          setSectionDetail(null);
+          setStatus(ExamStatus.IDLE);
         } else {
           // All sections done - submit attempt
           console.log('🎉 All sections completed!');

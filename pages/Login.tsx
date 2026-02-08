@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n';
-import { useLogin } from '../services/hooks';
+import { useLogin, useUpdateMe } from '../services/hooks';
 import { useAppDispatch } from '../src/store/hooks';
 import { setCredentials } from '../src/store/slices/authSlice';
 
@@ -12,13 +12,19 @@ const Login: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState<'PHONE' | 'CODE'>('PHONE');
+  const [step, setStep] = useState<'PROFILE' | 'CODE'>('PROFILE');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // React Query mutation
+  // Profile info
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+
+  // React Query mutations
   const { mutate: login, isPending } = useLogin();
+  const { mutate: updateMe, isPending: isUpdating } = useUpdateMe();
 
   const formatPhone = (digits: string) => {
     if (!digits) return '+998 ';
@@ -41,6 +47,15 @@ const Login: React.FC = () => {
   };
 
   const handleSendCode = () => {
+    // Validation
+    if (!firstName.trim()) {
+      setError('Ism kiritish majburiy');
+      return;
+    }
+    if (!lastName.trim()) {
+      setError('Familiya kiritish majburiy');
+      return;
+    }
     if (phone.length < 9) {
       setError("Telefon raqam 9 ta raqamdan iborat bo'lishi kerak");
       return;
@@ -79,11 +94,24 @@ const Login: React.FC = () => {
             }),
           );
 
-          if (result.missingInfo) {
-            navigate('/');
-          } else {
-            navigate('/mock-exam');
-          }
+          // Login bo'lgandan keyin darhol profil ma'lumotlarini saqlash
+          updateMe(
+            {
+              firstName: firstName.trim(),
+              lastName: lastName.trim(),
+              email: email.trim() || undefined,
+            },
+            {
+              onSuccess: () => {
+                navigate('/mock-exam');
+              },
+              onError: (err: any) => {
+                // Profil ma'lumotlarini saqlab bo'lmasa ham mock-exam'ga o'tish
+                console.error('Profile update error:', err);
+                navigate('/mock-exam');
+              },
+            },
+          );
         },
         onError: (err: any) => {
           if (err.response?.status === 401) {
@@ -100,8 +128,9 @@ const Login: React.FC = () => {
     );
   };
 
+
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden bg-[#050505]">
+    <div className="relative min-h-screen flex items-start justify-center px-6 pt-32 pb-20 overflow-hidden bg-[#050505]">
       <div className="absolute inset-0 bg-gradient-to-br from-[#070707] via-[#120c06] to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,115,0,0.25),transparent_60%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(124,58,237,0.18),transparent_60%)]" />
@@ -125,55 +154,99 @@ const Login: React.FC = () => {
               <p className="text-white/55 text-sm">{t('login.subtitle')}</p>
             </div>
 
-            {step === 'PHONE' ? (
-              <div className="space-y-7">
-                <div>
-                  <label className="block text-xs font-bold text-white/60 mb-3 uppercase tracking-[0.25em]">
-                    {t('login.phoneLabel')}
-                  </label>
+            {step === 'PROFILE' ? (
+              /* PROFILE STEP - Ma'lumotlarni to'ldirish */
+              <div className="space-y-5">
+                <div className="text-center mb-2">
+                  <p className="text-white/40 text-xs">
+                    Ro'yxatdan o'tish uchun ma'lumotlaringizni kiriting
+                  </p>
+                </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  {/* First Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-white/60 mb-2">
+                      Ism *
+                    </label>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                        setError(null);
+                      }}
+                      placeholder="Ism"
+                      className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Last Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-white/60 mb-2">
+                      Familiya *
+                    </label>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                        setError(null);
+                      }}
+                      placeholder="Familiya"
+                      className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="block text-xs font-bold text-white/60 mb-2">
+                    Telefon raqam *
+                  </label>
                   <input
                     type="tel"
                     value={formatPhone(phone)}
                     onChange={handlePhoneChange}
                     placeholder="+998 "
-                    className={`
-                      w-full px-5 py-4 rounded-2xl
-                      bg-black/40 text-white font-bold text-lg tracking-wide
-                      border ${error ? 'border-red-500' : 'border-white/15'}
-                      focus:border-orange-400 focus:ring-1 focus:ring-orange-400
-                      outline-none transition-all
-                    `}
+                    className="w-full px-4 py-3 rounded-xl bg-black/40 text-white font-bold text-sm tracking-wide border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
                   />
-
-                  {error && (
-                    <p className="text-red-400 text-sm mt-2 flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {error}
-                    </p>
-                  )}
                 </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-xs font-bold text-white/60 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError(null);
+                    }}
+                    placeholder="example@gmail.com"
+                    className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-red-400 text-sm flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {error}
+                  </p>
+                )}
 
                 <button
                   onClick={handleSendCode}
-                  disabled={phone.length < 9 || isPending}
-                  className="
-                    w-full py-4 rounded-2xl font-black text-lg
-                    bg-gradient-to-r from-orange-500 to-amber-400
-                    text-white
-                    shadow-[0_15px_50px_rgba(255,115,0,0.45)]
-                    hover:shadow-[0_25px_80px_rgba(255,115,0,0.65)]
-                    hover:scale-[1.04]
-                    disabled:opacity-40 disabled:hover:scale-100
-                    transition-all
-                    flex items-center justify-center gap-3
-                  ">
+                  disabled={!firstName.trim() || !lastName.trim() || phone.length < 9 || isPending}
+                  className="w-full py-4 rounded-2xl font-black text-lg bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-[0_15px_50px_rgba(255,115,0,0.45)] hover:shadow-[0_25px_80px_rgba(255,115,0,0.65)] hover:scale-[1.04] disabled:opacity-40 disabled:hover:scale-100 transition-all flex items-center justify-center gap-3">
                   {isPending && (
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
@@ -183,11 +256,12 @@ const Login: React.FC = () => {
                   Telegram botdan kod olish
                 </button>
 
-                <p className="text-xs text-white/40 text-center mt-4">
-                  @{TELEGRAM_BOT_USERNAME} botiga o'tib, tasdiqlash kodini oling
+                <p className="text-xs text-white/40 text-center">
+                  * - Majburiy maydonlar
                 </p>
               </div>
             ) : (
+              /* CODE STEP */
               <div className="space-y-7">
                 <div>
                   <label className="block text-xs font-bold text-white/60 mb-3 uppercase tracking-[0.25em]">
@@ -261,7 +335,7 @@ const Login: React.FC = () => {
                 <div className="flex gap-3">
                   <button
                     onClick={() => {
-                      setStep('PHONE');
+                      setStep('PROFILE');
                       setCode('');
                       setError(null);
                     }}

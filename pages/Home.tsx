@@ -37,7 +37,7 @@ const Home: React.FC = () => {
 
         {/* SLIDER */}
         <div
-          className="relative z-10 h-[80vh] sm:h-[85vh] lg:h-[90vh] flex items-center justify-center"
+          className="relative h-[80vh] sm:h-[85vh] lg:h-[90vh] flex items-center justify-center"
           style={{ perspective: '1600px' }}>
           <Swiper
             modules={[Navigation, Pagination, Autoplay, EffectCoverflow]}
@@ -140,7 +140,7 @@ const Home: React.FC = () => {
         </div>
 
         {/* Custom dots */}
-        <div className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-20">
+        <div className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-10">
           {slides.map((_, i) => (
             <button
               key={i}

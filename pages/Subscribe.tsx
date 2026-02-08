@@ -24,11 +24,11 @@ const Subscribe: React.FC = () => {
 
   const plans: Plan[] = [
     {
-      id: '1month',
-      title: '1 oylik',
-      duration: '1 oy',
-      price: '15,000',
-      pricePerMonth: '15,000',
+      id: '3month',
+      title: '3 oylik',
+      duration: '3 oy',
+      price: '39,900',
+      pricePerMonth: '13,300',
       saving: null,
       popular: false,
       gradient: 'from-blue-500/20 to-cyan-500/10',
@@ -43,9 +43,9 @@ const Subscribe: React.FC = () => {
       id: '6month',
       title: '6 oylik',
       duration: '6 oy',
-      price: '69,000',
-      pricePerMonth: '11,500',
-      saving: '23%',
+      price: '59,900',
+      pricePerMonth: '9,983',
+      saving: '25%',
       popular: true,
       gradient: 'from-orange-500/20 to-amber-500/10',
       glow: 'rgba(255,140,0,0.45)',
@@ -56,12 +56,12 @@ const Subscribe: React.FC = () => {
       ),
     },
     {
-      id: 'lifetime',
-      title: 'Umrbod',
-      duration: 'Cheksiz',
-      price: '199,000',
-      pricePerMonth: null,
-      saving: null,
+      id: '1year',
+      title: '1 yillik',
+      duration: '12 oy',
+      price: '79,900',
+      pricePerMonth: '6,658',
+      saving: '50%',
       popular: false,
       gradient: 'from-purple-500/20 to-violet-500/10',
       glow: 'rgba(139,92,246,0.4)',
@@ -73,21 +73,15 @@ const Subscribe: React.FC = () => {
     },
   ];
 
-  const features = [
-    'Barcha CEFR darajadagi testlar',
-    'Cheksiz imtihon topshirish',
-    'AI bilan baholash',
-    'Batafsil natijalar va tahlil',
-    'Tarix va statistika',
-  ];
 
   const handleSubscribe = (planId: string) => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    // API tayyor bo'lganda bu yerga subscribe logikasi qo'shiladi
-    setSelectedPlan(planId);
+    // Telegram bot ga yo'naltirish
+    const telegramUsername = 'ManageLC_admin';
+    window.open(`https://t.me/${telegramUsername}`, '_blank');
   };
 
   return (
@@ -131,7 +125,7 @@ const Subscribe: React.FC = () => {
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`group relative cursor-pointer ${plan.popular ? 'md:-mt-4 md:mb-4' : ''}`}
+              className="group relative cursor-pointer"
               onClick={() => setSelectedPlan(plan.id)}>
               {/* Glow */}
               <div
@@ -174,7 +168,7 @@ const Subscribe: React.FC = () => {
                     <span className="text-3xl sm:text-4xl font-black text-white">{plan.price}</span>
                     <span className="text-white/40 text-sm font-medium">UZS</span>
                   </div>
-                  {plan.pricePerMonth && plan.id !== '1month' && (
+                  {plan.pricePerMonth && plan.id !== '3month' && (
                     <p className="text-white/30 text-xs mt-1">{plan.pricePerMonth} UZS / oy</p>
                   )}
                   {plan.saving && (
@@ -183,16 +177,6 @@ const Subscribe: React.FC = () => {
                     </span>
                   )}
                 </div>
-
-                {/* Features */}
-                <ul className="w-full space-y-2.5 mb-8 text-left">
-                  {features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2.5 text-white/50 text-xs sm:text-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
 
                 {/* Subscribe button */}
                 <button
