@@ -22,38 +22,13 @@ export const toastConfig = {
   limit: 3,
 };
 
-const buildToastOptions = (overrides = {}) => ({
-  ...BASE_TOAST_OPTIONS,
-  ...overrides,
-});
-
-const resolveAutoClose = (options = {}) => {
-  if (Object.prototype.hasOwnProperty.call(options, 'autoClose')) {
-    return options.autoClose;
-  }
-  return BASE_TOAST_OPTIONS.autoClose;
-};
-
-const scheduleDismiss = (toastId, options) => {
-  const autoClose = resolveAutoClose(options);
-  if (autoClose === false || autoClose === 0) {
-    return;
-  }
-  const delayMs = Number.isFinite(autoClose) ? autoClose : TOAST_AUTO_CLOSE_MS;
-  setTimeout(() => {
-    toast.dismiss(toastId);
-  }, delayMs + 100);
-};
-
 const notify = (type, message, options) => {
   if (message === null || message === undefined) {
     return undefined;
   }
-  const toastOptions = buildToastOptions(options);
+  const toastOptions = { ...BASE_TOAST_OPTIONS, ...options };
   const toastFn = type === 'default' ? toast : toast[type];
-  const toastId = toastFn(message, toastOptions);
-  scheduleDismiss(toastId, options);
-  return toastId;
+  return toastFn(message, toastOptions);
 };
 
 // Toast ko'rsatish funksiyalari

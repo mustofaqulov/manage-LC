@@ -29,7 +29,7 @@ const Home: React.FC = () => {
 
   return (
     <div className="bg-transparent">
-      <section className="relative w-full py-32 sm:py-40 lg:py-52 overflow-hidden -mt-24">
+      <section className="relative w-full pt-28 pb-16 sm:pt-40 sm:pb-24 lg:pt-52 lg:pb-32 overflow-hidden -mt-24">
         {/* background */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#050505] via-[#0e0e0e] to-black" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,115,0,0.35),transparent_60%)]" />
@@ -37,7 +37,7 @@ const Home: React.FC = () => {
 
         {/* SLIDER */}
         <div
-          className="relative h-[80vh] sm:h-[85vh] lg:h-[90vh] flex items-center justify-center"
+          className="relative h-[65vh] sm:h-[80vh] lg:h-[90vh] flex items-center justify-center"
           style={{ perspective: '1600px' }}>
           <Swiper
             modules={[Navigation, Pagination, Autoplay, EffectCoverflow]}
