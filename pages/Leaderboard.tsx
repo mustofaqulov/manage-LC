@@ -4,7 +4,7 @@ import { useTranslation } from '../i18n/useTranslation';
 const Leaderboard: React.FC = () => {
   const { t } = useTranslation();
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden bg-[#050505]">
+    <div className="relative min-h-screen pt-24 sm:pt-28 md:pt-36 flex items-center justify-center px-6 overflow-hidden bg-[#050505]">
       {/* Dark cinematic background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#120e08] to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,115,0,0.25),transparent_60%)]" />
