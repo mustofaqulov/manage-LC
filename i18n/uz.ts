@@ -185,6 +185,12 @@ export default {
     profileUpdated: 'Ma\'lumotlar yangilandi',
     fileUploaded: 'Fayl yuklandi',
   },
+  premium: {
+    title: 'Premium obuna talab qilinadi',
+    description: 'Imtihon topshirish uchun obuna sotib oling',
+    subscribeButton: 'Obuna sotib olish',
+    backHome: 'Bosh sahifaga qaytish',
+  },
   footer: {
     about: 'Haqida',
     contact: 'Aloqa',

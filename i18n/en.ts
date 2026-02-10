@@ -186,6 +186,12 @@ export default {
     profileUpdated: 'Profile updated',
     fileUploaded: 'File uploaded',
   },
+  premium: {
+    title: 'Premium subscription required',
+    description: 'Purchase a subscription to take exams',
+    subscribeButton: 'Get subscription',
+    backHome: 'Back to home',
+  },
   footer: {
     about: 'About',
     contact: 'Contact',
