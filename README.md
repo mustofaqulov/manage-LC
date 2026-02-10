@@ -63,20 +63,21 @@ The app will be available on port 80.
 ## Project Structure
 
 ```
-├── components/        # Reusable UI components
-│   └── examflow/      # Exam flow components (ExamBody, ExamHeader, etc.)
-├── i18n/              # Translation files (uz, en, ru)
-├── pages/             # Route pages (Home, Login, ExamFlow, History, etc.)
-├── services/          # React Query hooks, queries, mutations
-├── src/
-│   ├── api/           # Generated API types
-│   ├── hooks/         # Custom hooks (useAuth)
-│   └── store/         # Redux store, RTK Query API, auth slice
-├── utils/
-│   └── configs/       # Axios, toast, and other configs
-├── assets/            # Images, icons
-├── App.tsx            # Root component with routing
-└── index.tsx          # Entry point
+src/
+  App.tsx              # Root component with routing
+  index.tsx            # Entry point
+  assets/              # Images, icons used by the app
+  components/          # Reusable UI components (examflow/*)
+  i18n/                # Translation files (uz, en, ru)
+  pages/               # Route pages (Home, Login, ExamFlow, History, etc.)
+  services/            # React Query hooks, queries, mutations
+  utils/               # Axios/toast configs and helpers
+  api/                 # Generated API types
+  hooks/               # Custom hooks (useAuth)
+  store/               # Redux store, RTK Query API, auth slice
+public/
+  assets/images/main.jpg  # Social share image + favicon
+types/                 # Global type declarations
 ```
 
 ## API
@@ -84,3 +85,4 @@ The app will be available on port 80.
 Backend API: `https://api.managelc.uz`
 
 Authentication uses JWT tokens obtained via Telegram bot verification.
+

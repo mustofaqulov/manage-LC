@@ -40,13 +40,13 @@ Vite config injects `VITE_GEMINI_API_KEY` as `__VITE_GEMINI_API_KEY__` at build 
 
 ### Path Aliases
 
-`@/*` resolves to the project root (configured in both `tsconfig.json` and `vite.config.ts`).
+`@/*` resolves to `src/` (configured in both `tsconfig.json` and `vite.config.ts`).
 
 ### Entry Point & App Structure
 
-- **index.tsx**: Mounts app, wraps with `I18nProvider`, disables `console.log` in production
-- **App.tsx**: Redux Provider + QueryClientProvider + React Router with lazy-loaded routes + ErrorBoundary
-- **Layout.tsx**: Wraps all pages with Header, Footer, and PhoneFloating widget
+- **src/index.tsx**: Mounts app, wraps with `I18nProvider`, disables `console.log` in production
+- **src/App.tsx**: Redux Provider + QueryClientProvider + React Router with lazy-loaded routes + ErrorBoundary
+- **src/components/Layout.tsx**: Wraps all pages with Header, Footer, and PhoneFloating widget
 
 ### State Management (Dual System)
 
@@ -57,11 +57,11 @@ The app uses two parallel state management systems:
    - `api.ts`: RTK Query endpoints for all backend API calls (base URL: `https://api.managelc.uz`)
    - localStorage keys: `auth_token`, `user_data`, `manage_lc_user`
 
-2. **TanStack React Query** (`services/hooks.js`, `queries.js`, `mutations.js`):
+2. **TanStack React Query** (`src/services/hooks.js`, `src/services/queries.js`, `src/services/mutations.js`):
    - Query hooks for tests, attempts, sections, assets with configured stale times
    - Upload hooks for S3 presigned URLs
 
-3. **Local state**: ExamFlow.tsx uses React state + refs for timer/audio orchestration
+3. **Local state**: `src/pages/ExamFlow.tsx` uses React state + refs for timer/audio orchestration
 
 ### Authentication Flow
 
@@ -73,7 +73,7 @@ The app uses two parallel state management systems:
 
 ### Audio System Architecture
 
-ExamFlow.tsx orchestrates the audio workflow:
+`src/pages/ExamFlow.tsx` orchestrates the audio workflow:
 
 1. **Microphone Access**: Requests `getUserMedia` on mount, stores stream in ref
 2. **Timer Engine**: Custom RAF-based timer (`startTimer`) for precise countdown
@@ -88,8 +88,7 @@ ExamFlow.tsx orchestrates the audio workflow:
 
 ### Audio Services
 
-- **geminiService.ts**: Native browser TTS (`SpeechSynthesis` API, rate 0.9), beep via Web Audio API `OscillatorNode` (440Hz, 300ms). `stopAllAudio()` cancels speech, stops oscillator, closes AudioContext.
-- **scoringService.ts**: `transcribeAudio` is a placeholder (returns mock text). `scoreAnswer` uses Gemini Pro with prompt engineering for IELTS scoring (fluency, pronunciation, vocabulary, grammar 0-100). Falls back to 65% on failure.
+- **src/services/geminiService.ts**: Native browser TTS (`SpeechSynthesis` API, rate 0.9), beep via Web Audio API `OscillatorNode` (440Hz, 300ms). `stopAllAudio()` cancels speech, stops oscillator, closes AudioContext.
 
 ### Exam Modes
 
@@ -108,53 +107,37 @@ RTK Query endpoints with auto-injected Bearer token:
 
 ### Data Structure
 
-**Question Types** (constants.tsx):
-- PART_1_1: Short questions (5s prep, 30s record)
-- PART_1_2: Image comparison (5s prep, 45s record)
-- PART_2: Long description (60s prep, 120s record)
-- PART_3: Benefits/drawbacks discussion (60s prep, 120s record)
-
 **Generated API types** in `src/api/types.ts` (enums: Role, CefrLevel, SkillType, QuestionType, AttemptStatus, etc.)
 
 ### Internationalization
 
-- Context-based i18n in `i18n/` directory
+- Context-based i18n in `src/i18n/` directory
 - Languages: uz (default), en, ru — each with translation file
 - `useTranslation()` hook returns `{ t, language }`
 - Language preference stored in localStorage key `manage_lc_language`
 
 ### Utilities
 
-- **crypto.ts**: AES-GCM encryption via Web Crypto API for localStorage obfuscation (PBKDF2 key derivation)
-- **axiosConfig.js**: Axios instance with base URL `https://api.managelc.uz` and auth interceptors
-- **toastConfig.js**: react-toastify configuration
+- **src/utils/configs/axiosConfig.js**: Axios instance with base URL `https://api.managelc.uz` and auth interceptors
+- **src/utils/configs/toastConfig.js**: react-toastify configuration
 
 ## Codebase Conventions
 
 - Uzbek comments throughout codebase (mixed with English)
 - Primary color: `#ff7300` (orange brand color), secondary: `#222222`
-- Lazy-loaded routes via `React.lazy` with `Suspense` + `LoadingSpinner` fallback
+- Lazy-loaded routes via `React.lazy` with `Suspense` + simple loading div fallback
 - ErrorBoundary wraps entire app
 - MediaRecorder exposed on `window.mediaRecorder` for debugging
 - Verbose console logs with emoji prefixes in exam flow
 - Services mix `.ts` and `.js` files (hooks.js, queries.js, mutations.js are plain JS)
-- Styling: Tailwind CSS via PostCSS (`tailwind.config.js` + `postcss.config.js`), SCSS modules for component styles, global CSS in `index.css`
+- Styling: Tailwind CSS via PostCSS (`tailwind.config.js` + `postcss.config.js`), SCSS modules for component styles, global CSS in `src/index.css`
 
 ## Common Tasks
 
-**Adding New Question Part**:
-1. Add enum to `ExamPart` in `types.ts`
-2. Add questions array to `MOCK_QUESTIONS` in `constants.tsx`
-3. Update parts logic in `pages/ExamFlow.tsx`
-
 **Adding a New API Endpoint**:
 1. Add endpoint in `src/store/api.ts` using `builder.query` or `builder.mutation`
-2. Add corresponding React Query hook in `services/hooks.js` if needed
+2. Add corresponding React Query hook in `src/services/hooks.js` if needed
 3. Add types in `src/api/types.ts`
-
-**Modifying Gemini Scoring**:
-- Edit prompt in `services/scoringService.ts` `scoreAnswer` function
-- Scoring criteria: fluency, pronunciation, vocabulary, grammar (0-100 each)
 
 **Testing Audio Flow**:
 - Open browser DevTools console (verbose logging)
@@ -170,20 +153,21 @@ RTK Query endpoints with auto-injected Bearer token:
 - `/`, `/login`, `/mock-exam`, `/about`, `/leaderboard`, `/courses/english`, `/subscribe`
 - `/custom-exam` — placeholder, not implemented
 
-All routes are lazy-loaded via `React.lazy` with `Suspense` + `LoadingSpinner` fallback.
+All routes are lazy-loaded via `React.lazy` with `Suspense` + simple loading div fallback.
 
 ### Data Fetching Strategy
-- **Primary**: TanStack React Query via `services/hooks.js` — ALL production pages use this
-- **Secondary**: RTK Query via `src/store/api.ts` — ONLY used in `pages/ApiTest.tsx` (dev tool)
+- **Primary**: TanStack React Query via `src/services/hooks.js` — ALL production pages use this
+- **Secondary**: RTK Query via `src/store/api.ts` — ONLY used in `src/pages/ApiTest.tsx` (dev tool)
 - **Auth state**: Redux Toolkit `authSlice` — used across the app
-- New features MUST use TanStack React Query hooks from `services/hooks.js`
+- New features MUST use TanStack React Query hooks from `src/services/hooks.js`
 - Do NOT mix RTK Query and TanStack React Query in the same page
 
 ## Known Limitations
 
 - Custom exam mode not implemented
-- Audio transcription is placeholder (not real STT)
-- Scoring fallback returns fixed 65% if Gemini fails
 - Subscription validation is client-side only
 - Gemini API key is exposed client-side (should use backend proxy in production)
 - No TypeScript type-checking in the build script (only `vite build`, no `tsc`)
+
+
+

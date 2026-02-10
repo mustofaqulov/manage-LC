@@ -7,7 +7,7 @@ declare global {
   interface Window {
     /**
      * Gemini API key injected at build time via vite.config.ts
-     * Used by geminiService and scoringService
+     * Used by geminiService
      */
     __VITE_GEMINI_API_KEY__?: string;
 

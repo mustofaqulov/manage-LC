@@ -1,0 +1,91 @@
+import React from 'react';
+import type { CefrLevel } from '../../api/types';
+
+interface StartExamScreenProps {
+  testTitle: string;
+  cefrLevel: CefrLevel;
+  sectionCount: number;
+  instructions?: string | null;
+  onStart: () => void;
+  onBack: () => void;
+}
+
+const StartExamScreen: React.FC<StartExamScreenProps> = ({
+  testTitle,
+  cefrLevel,
+  sectionCount,
+  instructions,
+  onStart,
+  onBack,
+}) => {
+  return (
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#111] to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,140,0,0.08),transparent_60%)]" />
+
+      {/* Card */}
+      <div className="relative max-w-md w-full animate-[fadeIn_0.4s_ease-out]">
+        <div className="absolute -inset-4 bg-gradient-to-br from-orange-500/10 to-amber-500/5 rounded-3xl blur-2xl opacity-60" />
+
+        <div className="relative bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h1 className="text-xl font-bold text-white mb-2">{testTitle}</h1>
+            <span className="inline-block px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-semibold">
+              CEFR {cefrLevel}
+            </span>
+          </div>
+
+          {/* Config */}
+          <div className="bg-black/20 rounded-xl p-4 mb-5 space-y-3">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-white/40">Exam Type</span>
+              <span className="font-semibold text-orange-400">CEFR Speaking</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-white/40">Level</span>
+              <span className="font-semibold text-white">{cefrLevel}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-white/40">Sections</span>
+              <span className="font-semibold text-white">{sectionCount} Parts</span>
+            </div>
+          </div>
+
+          {/* Instructions */}
+          {instructions && (
+            <div className="bg-white/5 rounded-xl p-4 mb-5">
+              <p className="text-white/40 text-xs font-medium mb-1">Instructions</p>
+              <p className="text-white/60 text-sm leading-relaxed">{instructions}</p>
+            </div>
+          )}
+
+          {/* Buttons */}
+          <button
+            onClick={onStart}
+            className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3.5 rounded-xl font-bold text-base shadow-lg hover:shadow-[0_8px_30px_rgba(255,140,0,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+          >
+            Begin Test
+          </button>
+          <button
+            onClick={onBack}
+            className="w-full text-white/30 hover:text-white/50 py-3 text-sm font-medium transition-colors"
+          >
+            Back
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default StartExamScreen;
+
