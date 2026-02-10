@@ -105,8 +105,6 @@ export interface UserResponse {
   address: string | null;
   roles: Role[];
   lastLoginAt: Instant | null;
-  isSubscribed?: boolean;
-  subscriptionEndDate?: string | null;
 }
 
 // Test

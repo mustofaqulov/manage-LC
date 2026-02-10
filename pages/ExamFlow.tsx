@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import SubscriptionPaywall from '../components/SubscriptionPaywall';
 import { ExamStatus } from '../types';
 import { playTTS, playBeep, stopAllAudio } from '../services/geminiService';
 import {
@@ -147,6 +148,7 @@ const ExamFlow: React.FC = () => {
   const [isStarted, setIsStarted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmittingAttempt, setIsSubmittingAttempt] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // ================= REFS =================
   const rafRef = useRef<number | null>(null);
@@ -508,8 +510,13 @@ const ExamFlow: React.FC = () => {
       attemptIdRef.current = result.attemptId;
       setIsStarted(true);
       console.log('✅ Attempt started:', result.attemptId);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to start attempt:', error);
+      // Backend 403 qaytarsa — obuna yo'q
+      if (error?.response?.status === 403) {
+        setShowPaywall(true);
+        return;
+      }
       alert('Imtihonni boshlashda xatolik yuz berdi. Qaytadan urinib ko\'ring.');
     }
   }, [testId, startAttemptMutation]);
@@ -584,6 +591,11 @@ const ExamFlow: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  // ================= SUBSCRIPTION PAYWALL =================
+  if (showPaywall) {
+    return <SubscriptionPaywall />;
   }
 
   // ================= RENDER =================

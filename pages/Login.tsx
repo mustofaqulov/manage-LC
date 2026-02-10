@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n';
 import { useLogin, useUpdateMe } from '../services/hooks';
 import { useAppDispatch } from '../src/store/hooks';
-import { setCredentials } from '../src/store/slices/authSlice';
+import { setCredentials, setUser } from '../src/store/slices/authSlice';
+import type { UserResponse } from '../src/api/types';
 
 const TELEGRAM_BOT_USERNAME = 'managelcbot'; // Telegram bot username
 
@@ -87,9 +88,24 @@ const Login: React.FC = () => {
       },
       {
         onSuccess: (result) => {
+          // LoginResponse'da `role` (singular), UserResponse'da `roles` (array)
+          // Shuning uchun to'g'ri format qilish kerak
+          const mappedUser: UserResponse = {
+            id: result.id,
+            phone: result.phone,
+            firstName: result.firstName,
+            lastName: result.lastName,
+            email: null,
+            region: null,
+            city: null,
+            address: null,
+            roles: result.role ? [result.role] : [],
+            lastLoginAt: null,
+          };
+
           dispatch(
             setCredentials({
-              user: result,
+              user: mappedUser,
               token: result.token,
             }),
           );
@@ -102,7 +118,9 @@ const Login: React.FC = () => {
               email: email.trim() || undefined,
             },
             {
-              onSuccess: () => {
+              onSuccess: (updatedUser: UserResponse) => {
+                // Redux'ni haqiqiy UserResponse bilan yangilash
+                dispatch(setUser(updatedUser));
                 navigate('/mock-exam');
               },
               onError: (err: any) => {
