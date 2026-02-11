@@ -55,6 +55,7 @@ const ExamFlow: React.FC = () => {
   const [sectionDetail, setSectionDetail] = useState<SectionDetailResponse | null>(null);
   const [attemptDetail, setAttemptDetail] = useState<AttemptDetailResponse | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [localRecordings, setLocalRecordings] = useState<{ id: string; blob: Blob; index: number }[]>([]);
 
   // Current section ID derived from test detail (filtered for custom mode)
   const allSections = testDetail?.sections ?? [];
@@ -121,13 +122,21 @@ const ExamFlow: React.FC = () => {
       .sort((a, b) => new Date(a.answeredAt).getTime() - new Date(b.answeredAt).getTime());
   }, [attemptDetail]);
 
-  const recordingItems = useMemo(
-    () => audioRecordings.map((recording, index) => ({
-      assetId: recording.assetId,
+  const recordingItems = useMemo(() => {
+    if (localRecordings.length > 0) {
+      return localRecordings.map((recording) => ({
+        id: recording.id,
+        label: `Recording ${recording.index}`,
+        blob: recording.blob,
+      }));
+    }
+
+    return audioRecordings.map((recording, index) => ({
+      id: recording.assetId,
       label: `Recording ${index + 1}`,
-    })),
-    [audioRecordings]
-  );
+      assetId: recording.assetId,
+    }));
+  }, [audioRecordings, localRecordings]);
 
   // ================= IMAGE URLS =================
   const [sectionImageUrls, setSectionImageUrls] = useState<string[]>([]);
@@ -193,6 +202,7 @@ const ExamFlow: React.FC = () => {
   const waveformAnimationRef = useRef<number | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const attemptIdRef = useRef<string | null>(null);
+  const recordingIndexRef = useRef(0);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -351,39 +361,62 @@ const ExamFlow: React.FC = () => {
     return data.downloadUrl as string;
   }, []);
 
-  const handleDownloadRecording = useCallback(async (assetId: string, index: number) => {
-    if (isDownloading) return;
-    setIsDownloading(true);
-    const popup = window.open('', '_blank');
-    try {
-      const safeAttemptId = attemptIdRef.current ?? 'attempt';
-      const downloadUrl = await fetchDownloadUrl(assetId);
+  const downloadLocalBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    triggerDownload(url, filename);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const downloadRecordingItem = useCallback(async (
+    recording: { assetId?: string; blob?: Blob },
+    index: number,
+    usePopup: boolean,
+  ) => {
+    const safeAttemptId = attemptIdRef.current ?? 'attempt';
+    const filename = `recording-${safeAttemptId}-${index + 1}.webm`;
+
+    if (recording.blob) {
+      downloadLocalBlob(recording.blob, filename);
+      return;
+    }
+
+    if (!recording.assetId) {
+      throw new Error('Recording data missing');
+    }
+
+    const downloadUrl = await fetchDownloadUrl(recording.assetId);
+    if (usePopup) {
+      const popup = window.open('', '_blank');
       if (popup) {
         popup.location.href = downloadUrl;
-      } else {
-        triggerDownload(downloadUrl, `recording-${safeAttemptId}-${index + 1}.webm`);
+        return;
       }
+    }
+    triggerDownload(downloadUrl, filename);
+  }, [fetchDownloadUrl]);
+
+  const handleDownloadRecording = useCallback(async (
+    recording: { assetId?: string; blob?: Blob },
+    index: number,
+  ) => {
+    if (isDownloading) return;
+    setIsDownloading(true);
+    try {
+      await downloadRecordingItem(recording, index, true);
     } catch (error) {
-      if (popup) {
-        popup.close();
-      }
       console.error('Download failed:', error);
       showToast.error('Yozuvni yuklab olishda xatolik yuz berdi');
     } finally {
       setIsDownloading(false);
     }
-  }, [fetchDownloadUrl, isDownloading]);
+  }, [downloadRecordingItem, isDownloading]);
 
   const handleDownloadAll = useCallback(async () => {
-    if (isDownloading || audioRecordings.length === 0) return;
+    if (isDownloading || recordingItems.length === 0) return;
     setIsDownloading(true);
     try {
-      const safeAttemptId = attemptIdRef.current ?? 'attempt';
-      let index = 0;
-      for (const recording of audioRecordings) {
-        index += 1;
-        const downloadUrl = await fetchDownloadUrl(recording.assetId);
-        triggerDownload(downloadUrl, `recording-${safeAttemptId}-${index}.webm`);
+      for (let index = 0; index < recordingItems.length; index += 1) {
+        await downloadRecordingItem(recordingItems[index], index, false);
         await new Promise((resolve) => setTimeout(resolve, 150));
       }
     } catch (error) {
@@ -392,7 +425,7 @@ const ExamFlow: React.FC = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, [audioRecordings, fetchDownloadUrl, isDownloading]);
+  }, [downloadRecordingItem, isDownloading, recordingItems]);
 
   // ================= QUESTION FLOW =================
   const runQuestion = async (q: QuestionResponse) => {
@@ -455,6 +488,15 @@ const ExamFlow: React.FC = () => {
 
         // Wait for the blob and upload
         const audioBlob = await recordingPromise;
+
+        if (audioBlob.size > 0) {
+          recordingIndexRef.current += 1;
+          const localIndex = recordingIndexRef.current;
+          setLocalRecordings((prev) => [
+            ...prev,
+            { id: `${q.id}-${localIndex}`, blob: audioBlob, index: localIndex },
+          ]);
+        }
 
         if (audioBlob.size > 0 && attemptIdRef.current) {
           setIsSaving(true);
@@ -602,6 +644,8 @@ const ExamFlow: React.FC = () => {
     if (!testId) return;
 
     try {
+      setLocalRecordings([]);
+      recordingIndexRef.current = 0;
       const result = await startAttemptMutation({ testId, sectionId: undefined });
       setAttemptId(result.attemptId);
       attemptIdRef.current = result.attemptId;
@@ -812,3 +856,6 @@ const ExamFlow: React.FC = () => {
 };
 
 export default ExamFlow;
+
+
+
