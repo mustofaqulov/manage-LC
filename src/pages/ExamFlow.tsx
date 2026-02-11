@@ -295,8 +295,8 @@ const ExamFlow: React.FC = () => {
     if (runningRef.current) return;
     runningRef.current = true;
 
-    const prepTime = q.settings?.prepTime ?? DEFAULT_PREP_TIME;
-    const recordTime = q.settings?.recordTime ?? DEFAULT_RECORD_TIME;
+    const prepTime = q.settings?.delay ?? DEFAULT_PREP_TIME;
+    const recordTime = q.settings?.duration ?? DEFAULT_RECORD_TIME;
 
     try {
       // PREPARING - First play TTS, then start prep timer
