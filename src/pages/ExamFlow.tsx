@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ExamStatus } from '../types';
 import { showToast } from '../utils/configs/toastConfig';
@@ -76,23 +76,15 @@ const ExamFlow: React.FC = () => {
   }, [fetchedSection]);
 
   // Questions from current section (shuffled + limited in random mode)
-  const [shuffledQuestions, setShuffledQuestions] = useState<QuestionResponse[]>([]);
-
-  useEffect(() => {
+  const questions = useMemo(() => {
     const raw = sectionDetail?.questions ?? [];
-    if (raw.length === 0) {
-      setShuffledQuestions([]);
-      return;
-    }
+    if (raw.length === 0) return [];
     if (isRandomMode) {
       const shuffled = [...raw].sort(() => Math.random() - 0.5);
-      setShuffledQuestions(shuffled.slice(0, 3));
-    } else {
-      setShuffledQuestions(raw);
+      return shuffled.slice(0, 3);
     }
+    return raw;
   }, [sectionDetail, isRandomMode]);
-
-  const questions = shuffledQuestions;
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const currentQuestion = questions[currentQuestionIdx];
 
