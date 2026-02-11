@@ -343,27 +343,36 @@ const ExamFlow: React.FC = () => {
     anchor.remove();
   };
 
-  const downloadRecording = useCallback(async (assetId: string, filename: string) => {
+  const fetchDownloadUrl = useCallback(async (assetId: string) => {
     const data = await queries.getDownloadUrl(assetId);
     if (!data?.downloadUrl) {
       throw new Error('Download URL not available');
     }
-    triggerDownload(data.downloadUrl, filename);
+    return data.downloadUrl as string;
   }, []);
 
   const handleDownloadRecording = useCallback(async (assetId: string, index: number) => {
     if (isDownloading) return;
     setIsDownloading(true);
+    const popup = window.open('', '_blank');
     try {
       const safeAttemptId = attemptIdRef.current ?? 'attempt';
-      await downloadRecording(assetId, `recording-${safeAttemptId}-${index + 1}.webm`);
+      const downloadUrl = await fetchDownloadUrl(assetId);
+      if (popup) {
+        popup.location.href = downloadUrl;
+      } else {
+        triggerDownload(downloadUrl, `recording-${safeAttemptId}-${index + 1}.webm`);
+      }
     } catch (error) {
+      if (popup) {
+        popup.close();
+      }
       console.error('Download failed:', error);
       showToast.error('Yozuvni yuklab olishda xatolik yuz berdi');
     } finally {
       setIsDownloading(false);
     }
-  }, [downloadRecording, isDownloading]);
+  }, [fetchDownloadUrl, isDownloading]);
 
   const handleDownloadAll = useCallback(async () => {
     if (isDownloading || audioRecordings.length === 0) return;
@@ -373,7 +382,8 @@ const ExamFlow: React.FC = () => {
       let index = 0;
       for (const recording of audioRecordings) {
         index += 1;
-        await downloadRecording(recording.assetId, `recording-${safeAttemptId}-${index}.webm`);
+        const downloadUrl = await fetchDownloadUrl(recording.assetId);
+        triggerDownload(downloadUrl, `recording-${safeAttemptId}-${index}.webm`);
         await new Promise((resolve) => setTimeout(resolve, 150));
       }
     } catch (error) {
@@ -382,7 +392,7 @@ const ExamFlow: React.FC = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, [audioRecordings, downloadRecording, isDownloading]);
+  }, [audioRecordings, fetchDownloadUrl, isDownloading]);
 
   // ================= QUESTION FLOW =================
   const runQuestion = async (q: QuestionResponse) => {
