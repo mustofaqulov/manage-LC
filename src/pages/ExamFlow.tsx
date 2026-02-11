@@ -43,18 +43,25 @@ const ExamFlow: React.FC = () => {
   const selectedSectionIds = routeState?.selectedSectionIds;
 
   // ================= API DATA =================
-  const { data: testDetail, isLoading: isLoadingTest, isError: isTestError, error: testError } = useGetTest(testId);
+  const {
+    data: testDetail,
+    isLoading: isLoadingTest,
+    isError: isTestError,
+    error: testError,
+  } = useGetTest(testId);
 
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [currentSectionIdx, setCurrentSectionIdx] = useState(0);
   const [sectionDetail, setSectionDetail] = useState<SectionDetailResponse | null>(null);
   const [attemptDetail, setAttemptDetail] = useState<AttemptDetailResponse | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Current section ID derived from test detail (filtered for custom mode)
   const allSections = testDetail?.sections ?? [];
-  const sections = isCustomMode && selectedSectionIds
-    ? allSections.filter((s) => selectedSectionIds.includes(s.id))
-    : allSections;
+  const sections =
+    isCustomMode && selectedSectionIds
+      ? allSections.filter((s) => selectedSectionIds.includes(s.id))
+      : allSections;
   const currentSectionInfo = sections[currentSectionIdx];
   const currentSectionId = currentSectionInfo?.id;
 
@@ -65,8 +72,9 @@ const ExamFlow: React.FC = () => {
     refetch: refetchSection,
   } = useGetSection(
     { testId: testId!, sectionId: currentSectionId! },
-    { enabled: !!testId && !!currentSectionId }
+    { enabled: !!testId && !!currentSectionId },
   );
+  const { data: fetchedAttempt, refetch: refetchAttempt } = useGetAttempt(attemptId);
 
   // Update section detail when fetched
   useEffect(() => {
@@ -74,6 +82,12 @@ const ExamFlow: React.FC = () => {
       setSectionDetail(fetchedSection);
     }
   }, [fetchedSection]);
+
+  useEffect(() => {
+    if (fetchedAttempt) {
+      setAttemptDetail(fetchedAttempt);
+    }
+  }, [fetchedAttempt]);
 
   // Questions from current section (shuffled + limited in random mode)
   const questions = useMemo(() => {
@@ -87,6 +101,33 @@ const ExamFlow: React.FC = () => {
   }, [sectionDetail, isRandomMode]);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const currentQuestion = questions[currentQuestionIdx];
+
+  const audioRecordings = useMemo(() => {
+    if (!attemptDetail?.responses || attemptDetail.responses.length === 0) {
+      return [];
+    }
+
+    return attemptDetail.responses
+      .map((response) => {
+        const assetId = (response.answer as { assetId?: string } | null)?.assetId;
+        if (!assetId) return null;
+        return {
+          assetId,
+          questionId: response.questionId,
+          answeredAt: response.answeredAt,
+        };
+      })
+      .filter((item): item is { assetId: string; questionId: string; answeredAt: string } => !!item)
+      .sort((a, b) => new Date(a.answeredAt).getTime() - new Date(b.answeredAt).getTime());
+  }, [attemptDetail]);
+
+  const recordingItems = useMemo(
+    () => audioRecordings.map((recording, index) => ({
+      assetId: recording.assetId,
+      label: `Recording ${index + 1}`,
+    })),
+    [audioRecordings]
+  );
 
   // ================= IMAGE URLS =================
   const [sectionImageUrls, setSectionImageUrls] = useState<string[]>([]);
@@ -117,17 +158,19 @@ const ExamFlow: React.FC = () => {
         if (!cancelled) setSectionImageUrls([]);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [sectionDetail]);
 
   // Fetch question-level image URLs (Part 1.2 has 2 images)
   const { data: questionImageData } = useGetDownloadUrl(
     currentQuestion?.promptImageAssetId ?? null,
-    { enabled: !!currentQuestion?.promptImageAssetId }
+    { enabled: !!currentQuestion?.promptImageAssetId },
   );
   const { data: questionImage2Data } = useGetDownloadUrl(
     currentQuestion?.settings?.image2AssetId ?? null,
-    { enabled: !!currentQuestion?.settings?.image2AssetId }
+    { enabled: !!currentQuestion?.settings?.image2AssetId },
   );
   const promptImageUrl = questionImageData?.downloadUrl ?? null;
   const promptImage2Url = questionImage2Data?.downloadUrl ?? null;
@@ -140,7 +183,6 @@ const ExamFlow: React.FC = () => {
   const [isStarted, setIsStarted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmittingAttempt, setIsSubmittingAttempt] = useState(false);
-
 
   // ================= REFS =================
   const rafRef = useRef<number | null>(null);
@@ -248,13 +290,13 @@ const ExamFlow: React.FC = () => {
   };
 
   // ================= AUDIO UPLOAD =================
-  const uploadAudioAndSubmitResponse = async (
-    audioBlob: Blob,
-    aId: string,
-    questionId: string,
-  ) => {
+  const uploadAudioAndSubmitResponse = async (audioBlob: Blob, aId: string, questionId: string) => {
     try {
-      console.log('📤 Uploading audio response...', { attemptId: aId, questionId, size: audioBlob.size });
+      console.log('📤 Uploading audio response...', {
+        attemptId: aId,
+        questionId,
+        size: audioBlob.size,
+      });
 
       // 1. Get presigned upload URL
       const presign = await presignUploadMutation({
@@ -289,6 +331,58 @@ const ExamFlow: React.FC = () => {
       // Don't block exam flow on upload failure
     }
   };
+
+  const triggerDownload = (url: string, filename: string) => {
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.rel = 'noopener';
+    anchor.target = '_blank';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  };
+
+  const downloadRecording = useCallback(async (assetId: string, filename: string) => {
+    const data = await queries.getDownloadUrl(assetId);
+    if (!data?.downloadUrl) {
+      throw new Error('Download URL not available');
+    }
+    triggerDownload(data.downloadUrl, filename);
+  }, []);
+
+  const handleDownloadRecording = useCallback(async (assetId: string, index: number) => {
+    if (isDownloading) return;
+    setIsDownloading(true);
+    try {
+      const safeAttemptId = attemptIdRef.current ?? 'attempt';
+      await downloadRecording(assetId, `recording-${safeAttemptId}-${index + 1}.webm`);
+    } catch (error) {
+      console.error('Download failed:', error);
+      showToast.error('Yozuvni yuklab olishda xatolik yuz berdi');
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [downloadRecording, isDownloading]);
+
+  const handleDownloadAll = useCallback(async () => {
+    if (isDownloading || audioRecordings.length === 0) return;
+    setIsDownloading(true);
+    try {
+      const safeAttemptId = attemptIdRef.current ?? 'attempt';
+      let index = 0;
+      for (const recording of audioRecordings) {
+        index += 1;
+        await downloadRecording(recording.assetId, `recording-${safeAttemptId}-${index}.webm`);
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
+    } catch (error) {
+      console.error('Bulk download failed:', error);
+      showToast.error('Yozuvlarni yuklab olishda xatolik yuz berdi');
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [audioRecordings, downloadRecording, isDownloading]);
 
   // ================= QUESTION FLOW =================
   const runQuestion = async (q: QuestionResponse) => {
@@ -398,6 +492,7 @@ const ExamFlow: React.FC = () => {
           if (attemptIdRef.current) {
             try {
               await submitAttemptMutation(attemptIdRef.current);
+              await refetchAttempt();
               console.log('✅ Attempt submitted');
             } catch (error) {
               console.error('❌ Attempt submit failed:', error);
@@ -510,7 +605,7 @@ const ExamFlow: React.FC = () => {
         navigate('/subscribe');
         return;
       }
-      alert('Imtihonni boshlashda xatolik yuz berdi. Qaytadan urinib ko\'ring.');
+      alert("Imtihonni boshlashda xatolik yuz berdi. Qaytadan urinib ko'ring.");
     }
   }, [testId, startAttemptMutation]);
 
@@ -525,7 +620,15 @@ const ExamFlow: React.FC = () => {
 
     runQuestion(currentQuestion);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isStarted, currentQuestionIdx, currentSectionIdx, status, isSaving, isLoadingSection, sectionDetail]);
+  }, [
+    isStarted,
+    currentQuestionIdx,
+    currentSectionIdx,
+    status,
+    isSaving,
+    isLoadingSection,
+    sectionDetail,
+  ]);
 
   // ================= MIC PERMISSION =================
   const requestMic = async () => {
@@ -542,7 +645,9 @@ const ExamFlow: React.FC = () => {
     } catch (error) {
       console.error('❌ Microphone access denied:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Microphone access failed: ${errorMessage}. Microphone access is required for the speaking exam.`);
+      alert(
+        `Microphone access failed: ${errorMessage}. Microphone access is required for the speaking exam.`,
+      );
     }
   };
 
@@ -579,8 +684,17 @@ const ExamFlow: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
         <div className="relative z-10 flex flex-col items-center gap-6 text-center px-6">
           <div className="w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-            <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            <svg
+              className="w-10 h-10 text-red-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
             </svg>
           </div>
           <p className="text-white/60 text-lg">Test topilmadi yoki yuklanmadi</p>
@@ -623,6 +737,10 @@ const ExamFlow: React.FC = () => {
         onGoToResults={() => navigate('/history')}
         attempt={attemptDetail}
         isSubmitting={isSubmittingAttempt}
+        recordings={recordingItems}
+        onDownloadRecording={handleDownloadRecording}
+        onDownloadAll={handleDownloadAll}
+        isDownloading={isDownloading}
       />
     );
   }
@@ -684,4 +802,3 @@ const ExamFlow: React.FC = () => {
 };
 
 export default ExamFlow;
-

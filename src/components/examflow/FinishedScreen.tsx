@@ -5,12 +5,20 @@ interface FinishedScreenProps {
   onGoToResults: () => void;
   attempt?: AttemptDetailResponse | null;
   isSubmitting?: boolean;
+  recordings?: { assetId: string; label: string }[];
+  onDownloadRecording?: (assetId: string, index: number) => void;
+  onDownloadAll?: () => void;
+  isDownloading?: boolean;
 }
 
 const FinishedScreen: React.FC<FinishedScreenProps> = ({
   onGoToResults,
   attempt,
   isSubmitting = false,
+  recordings = [],
+  onDownloadRecording,
+  onDownloadAll,
+  isDownloading = false,
 }) => {
   if (isSubmitting) {
     return (
@@ -135,6 +143,44 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
             <p className="text-white/60 text-lg font-medium leading-relaxed max-w-md mx-auto mb-8">
               Your responses are being evaluated. Results will be available in your history.
             </p>
+          )}
+
+          {recordings.length > 0 && (
+            <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8 text-left">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <div>
+                  <p className="text-white/80 font-semibold">Audio recordings</p>
+                  <p className="text-white/40 text-xs">Download your speaking responses</p>
+                </div>
+                {onDownloadAll && (
+                  <button
+                    type="button"
+                    onClick={onDownloadAll}
+                    disabled={isDownloading}
+                    className="px-4 py-2 rounded-xl bg-white/10 text-white/80 text-sm font-semibold hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    {isDownloading ? 'Preparing...' : 'Download all'}
+                  </button>
+                )}
+              </div>
+              <div className="space-y-2">
+                {recordings.map((recording, index) => (
+                  <div
+                    key={`${recording.assetId}-${index}`}
+                    className="flex items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                    <span className="text-white/70 text-sm">{recording.label}</span>
+                    {onDownloadRecording && (
+                      <button
+                        type="button"
+                        onClick={() => onDownloadRecording(recording.assetId, index)}
+                        disabled={isDownloading}
+                        className="px-3 py-1.5 rounded-lg bg-white/10 text-white/80 text-xs font-semibold hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        Download
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Button */}
