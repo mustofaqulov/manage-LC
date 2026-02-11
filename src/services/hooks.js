@@ -109,7 +109,9 @@ export const useStartAttempt = () => {
       // Attempts list'ni yangilash
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ATTEMPTS] });
     },
-    onError: () => {
+    onError: (error) => {
+      // 403 ni ExamFlow o'zi handle qiladi (toast + navigate)
+      if (error?.response?.status === 403) return;
       showToast.error(t('errors.examStartFailed'));
     },
   });

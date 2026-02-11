@@ -43,7 +43,7 @@ const ExamFlow: React.FC = () => {
   const selectedSectionIds = routeState?.selectedSectionIds;
 
   // ================= API DATA =================
-  const { data: testDetail, isLoading: isLoadingTest, isError: isTestError } = useGetTest(testId);
+  const { data: testDetail, isLoading: isLoadingTest, isError: isTestError, error: testError } = useGetTest(testId);
 
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [currentSectionIdx, setCurrentSectionIdx] = useState(0);
@@ -559,6 +559,14 @@ const ExamFlow: React.FC = () => {
     if (p > 0.3) return '#facc15';
     return '#ef4444';
   };
+
+  // ================= 403 SUBSCRIPTION CHECK =================
+  useEffect(() => {
+    if (isTestError && (testError as any)?.response?.status === 403) {
+      showToast.error('Imtihon topshirish uchun obuna sotib oling');
+      navigate('/subscribe');
+    }
+  }, [isTestError, testError, navigate]);
 
   // ================= LOADING / ERROR STATES =================
   if (isLoadingTest) {
