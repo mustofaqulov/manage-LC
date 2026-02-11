@@ -25,12 +25,15 @@ axiosClient.interceptors.request.use(
 );
 
 // Response interceptor - xatoliklarni handle qilish
+let isRedirecting = false;
+
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
 
-    if (status === 401) {
+    if (status === 401 && !isRedirecting) {
+      isRedirecting = true;
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_data');
       window.location.href = '/login';
