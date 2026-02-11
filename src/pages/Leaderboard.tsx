@@ -20,13 +20,13 @@ const Leaderboard: React.FC = () => {
           {/* Icon */}
           <div
             className="mx-auto mb-8 w-24 h-24 rounded-3xl bg-gradient-to-br from-orange-500 to-amber-400
-            flex items-center justify-center text-5xl shadow-[0_20px_60px_rgba(255,115,0,0.45)]
+            flex items-center justify-center text-4xl sm:text-5xl shadow-[0_20px_60px_rgba(255,115,0,0.45)]
             animate-pulse">
             🏆
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl font-black mb-4 text-white">
+          <h1 className="text-3xl sm:text-4xl font-black mb-4 text-white">
             {t('leaderboardExtended.leaderboardTitle')}
           </h1>
 

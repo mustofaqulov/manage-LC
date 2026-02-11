@@ -31,7 +31,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       return (
         <div className="min-h-screen flex items-center justify-center bg-[#f9fafb] p-6">
           <div className="max-w-md text-center">
-            <h1 className="text-4xl font-black text-[#ff7300] mb-4">Oops!</h1>
+            <h1 className="text-3xl sm:text-4xl font-black text-[#ff7300] mb-4">Oops!</h1>
             <p className="text-zinc-600 mb-6">Something went wrong. Please refresh the page.</p>
             <button
               onClick={() => window.location.reload()}

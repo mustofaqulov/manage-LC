@@ -204,7 +204,7 @@ const History: React.FC = () => {
   }, [attempts]);
 
   return (
-    <div className="relative min-h-screen py-36 px-6 md:px-12 overflow-hidden bg-[#050505]">
+    <div className="relative min-h-screen py-24 sm:py-28 md:py-36 px-6 md:px-12 overflow-hidden bg-[#050505]">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#120e08] to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,115,0,0.18),transparent_60%)]" />
@@ -213,8 +213,8 @@ const History: React.FC = () => {
 
       <div className="relative z-10 max-w-6xl mx-auto text-white">
         {/* Header */}
-        <div className="mb-16">
-          <h1 className="text-4xl md:text-5xl font-black mb-3">
+        <div className="mb-10 sm:mb-16">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-3">
             {t('history.title')} <span className="text-orange-400"></span>
           </h1>
           <p className="text-white/60 text-lg">{t('history.subtitle')}</p>
@@ -251,7 +251,7 @@ const History: React.FC = () => {
                   <p className="text-white/50 text-xs font-bold uppercase mb-2">
                     {t('history.totalExams')}
                   </p>
-                  <p className="text-5xl font-black">{stats.totalExams}</p>
+                  <p className="text-3xl sm:text-4xl md:text-5xl font-black">{stats.totalExams}</p>
                 </div>
               </div>
 
@@ -262,7 +262,7 @@ const History: React.FC = () => {
                   <p className="text-orange-100 text-xs font-bold uppercase mb-2">
                     {t('history.avgScore')}
                   </p>
-                  <p className="text-5xl font-black text-white">
+                  <p className="text-3xl sm:text-4xl md:text-5xl font-black text-white">
                     {stats.avgScore > 0 ? `${stats.avgScore}%` : '—'}
                   </p>
                 </div>
@@ -275,7 +275,7 @@ const History: React.FC = () => {
                   <p className="text-white/50 text-xs font-bold uppercase mb-2">
                     {t('history.bestScore')}
                   </p>
-                  <p className="text-5xl font-black text-green-400">
+                  <p className="text-3xl sm:text-4xl md:text-5xl font-black text-green-400">
                     {stats.bestScore > 0 ? `${stats.bestScore}%` : '—'}
                   </p>
                 </div>
@@ -310,7 +310,74 @@ const History: React.FC = () => {
               <div className="relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/20 to-amber-400/20 blur-xl rounded-3xl opacity-40" />
                 <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden">
-                  <table className="w-full text-left">
+                  {/* Mobile cards */}
+                  <div className="md:hidden divide-y divide-white/5">
+                    {attempts.map((item) => {
+                      const statusStyle = STATUS_STYLES[item.status] || STATUS_STYLES.SUBMITTED;
+                      const delta = deltaMap[item.id];
+                      const isExpanded = expandedId === item.id;
+
+                      return (
+                        <div key={item.id} className="p-4">
+                          <button
+                            onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                            className="w-full text-left">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-white/40 text-xs">{formatDate(item.startedAt)}</p>
+                                <p className="text-white font-semibold text-sm truncate">
+                                  {item.testTitle}
+                                </p>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  <span className="px-2.5 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] font-bold">
+                                    {item.cefrLevel}
+                                  </span>
+                                  <span
+                                    className={`px-3 py-1 rounded-xl text-[10px] font-bold uppercase bg-gradient-to-r ${statusStyle.bg}`}>
+                                    {statusStyle.label}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-2xl font-black text-white">
+                                  {item.scorePercentage != null
+                                    ? `${Math.round(item.scorePercentage)}%`
+                                    : 'â€”'}
+                                </span>
+                                {delta !== null && delta !== undefined && delta !== 0 && (
+                                  <div
+                                    className={`mt-1 inline-flex items-center gap-0.5 text-[10px] font-bold ${
+                                      delta > 0 ? 'text-green-400' : 'text-red-400'
+                                    }`}>
+                                    <svg
+                                      className={`w-3 h-3 ${delta < 0 ? 'rotate-180' : ''}`}
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20">
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    {delta > 0 ? '+' : ''}{delta}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+
+                          {isExpanded && (
+                            <div className="mt-4 pt-4 border-t border-white/5">
+                              <AttemptDetail attemptId={item.id} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Desktop table */}
+                  <table className="hidden md:table w-full text-left">
                     <thead className="bg-white/5">
                       <tr>
                         {[t('history.date'), 'Test', 'Level', 'Status', t('history.score')].map(

@@ -22,7 +22,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
 }) => {
   if (isSubmitting) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
+      <div className="relative min-h-screen flex items-center justify-center px-6 pb-6 pt-24 sm:pt-28 md:pt-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
         <div className="relative z-10 flex flex-col items-center gap-6">
           <div className="w-16 h-16 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin" />
@@ -36,7 +36,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
   const scorePercent = attempt?.scorePercentage != null ? Math.round(attempt.scorePercentage) : null;
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-6 overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center px-6 pb-6 pt-24 sm:pt-28 md:pt-32 overflow-hidden">
       {/* Dark background with gradients */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,197,94,0.12),transparent_65%)]" />
@@ -70,7 +70,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">Exam Complete</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4">Exam Complete</h1>
 
           {/* Status */}
           {attempt?.status === 'SUBMITTED' || attempt?.status === 'SCORING' ? (
@@ -95,7 +95,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
                   <p className="text-white/40 text-xs font-bold uppercase tracking-wider mb-3">
                     Overall Score
                   </p>
-                  <p className="text-6xl font-black bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                  <p className="text-4xl sm:text-5xl md:text-6xl font-black bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                     {scorePercent !== null ? `${scorePercent}%` : attempt.totalScore}
                   </p>
                   {attempt.maxTotalScore && (
@@ -209,4 +209,5 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
 };
 
 export default FinishedScreen;
+
 

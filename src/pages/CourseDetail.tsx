@@ -26,7 +26,7 @@ const CourseDetail: React.FC = () => {
             </nav>
 
             {/* Title */}
-            <h1 className="text-5xl md:text-6xl xl:text-7xl font-black leading-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight mb-6">
               {t('courseDetail.titleEnglish')}{' '}
               <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                 {t('courseDetail.titleMastery')}
@@ -111,7 +111,7 @@ const CourseDetail: React.FC = () => {
                     transition-all duration-500 ease-out
                     group-hover:-translate-y-2 group-hover:scale-[1.04]
                   ">
-                  <div className="text-4xl font-black mb-2 text-white">{item.value}</div>
+                  <div className="text-3xl sm:text-4xl font-black mb-2 text-white">{item.value}</div>
                   <div className="text-white/60 text-sm uppercase tracking-wider">{item.label}</div>
                 </div>
               </div>

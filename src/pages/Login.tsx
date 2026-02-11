@@ -166,7 +166,7 @@ const Login: React.FC = () => {
 
           <div className="relative">
             <div className="text-center mb-10">
-              <h2 className="text-4xl font-black mb-3 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+              <h2 className="text-3xl sm:text-4xl font-black mb-3 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                 {t('login.title')}
               </h2>
               <p className="text-white/55 text-sm">{t('login.subtitle')}</p>
@@ -297,7 +297,7 @@ const Login: React.FC = () => {
                     placeholder={t('login.codePlaceholder')}
                     className={`
                       w-full py-4 rounded-2xl text-center
-                      bg-black/40 text-white text-4xl font-black
+                      bg-black/40 text-white text-3xl sm:text-4xl font-black
                       tracking-[0.5em]
                       border ${error ? 'border-red-500' : 'border-white/15'}
                       focus:border-orange-400 focus:ring-1 focus:ring-orange-400

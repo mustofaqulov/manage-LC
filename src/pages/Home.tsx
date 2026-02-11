@@ -164,7 +164,7 @@ const Home: React.FC = () => {
           <div className="text-center mb-12 sm:mb-16 md:mb-24">
             <h2
               className="
-        text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight mb-4 sm:mb-6
+        text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black leading-tight mb-4 sm:mb-6
         text-white
         drop-shadow-[0_12px_45px_rgba(255,115,0,0.35)]
         px-4
@@ -213,7 +213,7 @@ const Home: React.FC = () => {
             transition-transform duration-500
             group-hover:scale-110
           ">
-                  <span className="text-white text-2xl sm:text-3xl md:text-4xl font-black">EN</span>
+                  <span className="text-white text-xl sm:text-2xl md:text-3xl font-black">EN</span>
                 </div>
 
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-3 sm:mb-4">
@@ -254,7 +254,7 @@ const Home: React.FC = () => {
           bg-gradient-to-br from-zinc-700 to-zinc-800
           flex items-center justify-center
         ">
-                <span className="text-zinc-300 text-2xl sm:text-3xl md:text-4xl font-black">
+                <span className="text-zinc-300 text-xl sm:text-2xl md:text-3xl font-black">
                   MA
                 </span>
               </div>

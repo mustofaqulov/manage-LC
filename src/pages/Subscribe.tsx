@@ -111,7 +111,7 @@ const Subscribe: React.FC = () => {
 
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16 md:mb-20">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 sm:mb-6 bg-gradient-to-r from-orange-600 via-orange-300 to-orange-300 bg-clip-text text-transparent px-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 sm:mb-6 bg-gradient-to-r from-orange-600 via-orange-300 to-orange-300 bg-clip-text text-transparent px-4">
             Obuna rejalar
           </h1>
           <p className="text-white text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto px-4">
@@ -165,7 +165,7 @@ const Subscribe: React.FC = () => {
                 {/* Price */}
                 <div className="mb-6">
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-3xl sm:text-4xl font-black text-white">{plan.price}</span>
+                    <span className="text-2xl sm:text-3xl md:text-4xl font-black text-white">{plan.price}</span>
                     <span className="text-white/40 text-sm font-medium">UZS</span>
                   </div>
                   {plan.pricePerMonth && plan.id !== '3month' && (

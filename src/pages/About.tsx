@@ -14,7 +14,7 @@ const About: React.FC = () => {
 
       <div className="relative z-10 max-w-6xl mx-auto text-white">
         <div className="text-center mb-20">
-          <h1 className="text-5xl md:text-6xl font-black mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4">
             {t('about.title')}
             <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent"></span>
           </h1>
@@ -36,7 +36,7 @@ const About: React.FC = () => {
             </div>
 
             <div className="mb-10">
-              <h3 className="text-3xl font-black mb-4 flex items-center gap-3">
+              <h3 className="text-2xl sm:text-3xl font-black mb-4 flex items-center gap-3">
                 <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
                   🎯
                 </span>
@@ -59,7 +59,7 @@ const About: React.FC = () => {
               <div
                 className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 text-center
                 hover:-translate-y-2 transition shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
-                <p className="text-5xl font-black bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent mb-2">
+                <p className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent mb-2">
                   {stat.value}
                 </p>
                 <p className="text-white/60 text-sm font-semibold">{stat.label}</p>

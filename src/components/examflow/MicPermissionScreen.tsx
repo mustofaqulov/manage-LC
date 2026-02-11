@@ -39,7 +39,7 @@ const MicPermissionScreen: React.FC<MicPermissionScreenProps> = ({
           </div>
 
           {/* Title */}
-          <h2 className="text-4xl font-black text-white mb-5 text-center tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-black text-white mb-5 text-center tracking-tight">
             {t('examFlow.micAccessRequired')}
           </h2>
 
