@@ -11,6 +11,7 @@ interface ExamBodyProps {
   waveformCanvasRef: React.RefObject<HTMLCanvasElement>;
   onNextPart: () => void;
   isSaving?: boolean;
+  sectionTitle?: string; // Part 2 vs Part 3 farqlash uchun
 }
 
 const ExamBody: React.FC<ExamBodyProps> = ({
@@ -22,10 +23,19 @@ const ExamBody: React.FC<ExamBodyProps> = ({
   waveformCanvasRef,
   onNextPart,
   isSaving = false,
+  sectionTitle = '',
 }) => {
   const benefits: string[] = currentQuestion?.settings?.benefits ?? [];
   const drawbacks: string[] = currentQuestion?.settings?.drawbacks ?? [];
   const hasBenefitsDrawbacks = benefits.length > 0 || drawbacks.length > 0;
+
+  // Options'larni olish
+  const options = currentQuestion?.options ?? [];
+  const hasOptions = options.length > 0;
+
+  // Part 2 yoki Part 3 ekanligini aniqlash
+  const isPart2 = sectionTitle.toUpperCase().includes('PART_2') || sectionTitle.toUpperCase().includes('PART 2');
+  const isPart3 = sectionTitle.toUpperCase().includes('PART_3') || sectionTitle.toUpperCase().includes('PART 3');
 
   return (
     <div className="relative group">
@@ -85,6 +95,43 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               <p className="text-lg md:text-xl text-white/60 font-medium max-w-3xl mx-auto leading-relaxed">
                 {currentQuestion.prompt}
               </p>
+            )}
+
+            {/* Part 2 Options - Oddiy bullet points (faqat content) */}
+            {hasOptions && isPart2 && (
+              <div className="w-full max-w-2xl mx-auto text-left pt-4">
+                <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                  <ul className="space-y-3">
+                    {options.map((option) => (
+                      <li key={option.id} className="flex items-start gap-3 text-white/70 text-base">
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400/80 mt-2 flex-shrink-0" />
+                        <span>{option.content}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Part 3 Options - Kartochkalar (label + content) */}
+            {hasOptions && isPart3 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 w-full max-w-3xl mx-auto">
+                {options.map((option, index) => (
+                  <div
+                    key={option.id}
+                    className="bg-white/[0.02] border border-white/10 rounded-2xl p-5 backdrop-blur-sm hover:bg-white/[0.04] transition-all duration-300 text-left">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center border border-orange-500/30">
+                        <span className="text-xs font-bold text-orange-400">{index + 1}</span>
+                      </div>
+                      <h4 className="text-sm font-bold text-orange-400 uppercase tracking-wider">
+                        {option.label}
+                      </h4>
+                    </div>
+                    <p className="text-white/70 text-sm leading-relaxed">{option.content}</p>
+                  </div>
+                ))}
+              </div>
             )}
 
             {/* Section images (Part 1.2 — side by side, don't change between questions) */}

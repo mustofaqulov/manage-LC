@@ -883,6 +883,7 @@ const ExamFlow: React.FC = () => {
           waveformCanvasRef={waveformCanvasRef}
           onNextPart={handleNextSection}
           isSaving={isSaving}
+          sectionTitle={sectionDetail?.title ?? ''}
         />
       </div>
     </div>
