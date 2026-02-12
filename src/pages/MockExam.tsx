@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/i18n';
 import { useAuth } from '../hooks/useAuth';
+import { useHasExamAccess } from '../hooks/useHasExamAccess';
 import { useGetTests } from '../services/hooks';
+import { showToast } from '../utils/configs/toastConfig';
 import type { TestListResponse, CefrLevel } from '../api/types';
 
 type ExamMode = 'full' | 'random';
@@ -60,14 +62,30 @@ const MODE_CARDS = [
 
 const MockExam: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { hasAccess } = useHasExamAccess();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<ExamMode | null>(null);
+  const toastShownRef = useRef(false); // Toast faqat bir marta chiqishi uchun
 
   const { data: testsData, isLoading, isError } = useGetTests({});
   const tests: TestListResponse[] = testsData?.items ?? [];
 
+  // Har safar sahifaga kirganda premium obuna haqida ogohlantirish
+  useEffect(() => {
+    if (isAuthenticated && !hasAccess && !toastShownRef.current) {
+      showToast.warning('Imtihon topshirish uchun premium obuna sotib oling');
+      toastShownRef.current = true; // Ikkinchi marta chiqmasligi uchun
+    }
+  }, [isAuthenticated, hasAccess]);
+
   const handleModeSelect = (mode: ExamMode | 'custom') => {
+    // Access yo'q bo'lsa toast ko'rsatib, return qilamiz
+    if (!hasAccess) {
+      showToast.warning('Imtihon topshirish uchun premium obuna sotib oling');
+      return;
+    }
+
     if (mode === 'custom') {
       navigate('/custom-exam');
       return;
@@ -139,15 +157,35 @@ const MockExam: React.FC = () => {
               <button
                 key={card.mode}
                 onClick={() => handleModeSelect(card.mode)}
-                className="group relative text-left">
+                disabled={!hasAccess}
+                className={`group relative text-left ${!hasAccess ? 'cursor-not-allowed opacity-50' : ''}`}>
                 <div
-                  className="absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] opacity-0 group-hover:opacity-100 blur-2xl transition-all duration-700"
+                  className={`absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] opacity-0 blur-2xl transition-all duration-700 ${hasAccess ? 'group-hover:opacity-100' : ''}`}
                   style={{ background: `radial-gradient(circle, ${card.glow}, transparent 70%)` }}
                 />
-                <div className="relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-6 sm:p-8 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)] group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03] transition-all duration-500 flex flex-col items-center text-center min-h-[280px] sm:min-h-[300px]">
+                <div className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-6 sm:p-8 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)] transition-all duration-500 flex flex-col items-center text-center min-h-[280px] sm:min-h-[300px] ${hasAccess ? 'group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03]' : ''}`}>
+
+                  {/* Premium Badge - faqat access yo'q bo'lsa */}
+                  {!hasAccess && (
+                    <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 backdrop-blur-sm">
+                      <span className="text-xs font-bold text-orange-400 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                        </svg>
+                        Premium
+                      </span>
+                    </div>
+                  )}
+
                   {/* Icon */}
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-white mb-5 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
-                    {card.icon}
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-white mb-5 shadow-lg transition-transform duration-500 ${hasAccess ? 'group-hover:scale-110' : ''}`}>
+                    {!hasAccess ? (
+                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      card.icon
+                    )}
                   </div>
 
                   {/* Title */}
@@ -266,8 +304,14 @@ const MockExam: React.FC = () => {
                         {/* Start button */}
                         <button
                           onClick={() => handleStartTest(test.id)}
-                          className="w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base text-white bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_8px_30px_rgba(255,140,0,0.3)] hover:shadow-[0_12px_40px_rgba(255,140,0,0.5)] hover:scale-105 transition-all duration-300">
-                          {t('mockExam.startExam')}
+                          disabled={!hasAccess}
+                          className={`w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base text-white
+                            ${hasAccess
+                              ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_8px_30px_rgba(255,140,0,0.3)] hover:shadow-[0_12px_40px_rgba(255,140,0,0.5)] hover:scale-105 cursor-pointer'
+                              : 'bg-gray-600 cursor-not-allowed opacity-50'
+                            }
+                            transition-all duration-300 disabled:hover:scale-100`}>
+                          {hasAccess ? t('mockExam.startExam') : '🔒 Premium obuna kerak'}
                         </button>
                       </div>
                     </div>

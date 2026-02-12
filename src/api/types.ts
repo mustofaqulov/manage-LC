@@ -105,6 +105,9 @@ export interface UserResponse {
   address: string | null;
   roles: Role[];
   lastLoginAt: Instant | null;
+  // Premium subscription fields (to be added by backend in future)
+  startDate?: Instant | null;
+  endDate?: Instant | null;
 }
 
 // Test

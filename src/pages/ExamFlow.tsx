@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ExamStatus } from '../types';
 import { showToast } from '../utils/configs/toastConfig';
 import { playTTS, playBeep, stopAllAudio } from '../services/geminiService';
+import { useHasExamAccess } from '../hooks/useHasExamAccess';
 import {
   useGetTest,
   useGetSection,
@@ -35,6 +36,18 @@ const ExamFlow: React.FC = () => {
   const { testId } = useParams<{ testId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { hasAccess, roles } = useHasExamAccess();
+  const accessCheckedRef = useRef(false);
+
+  // Premium obuna tekshiruvi - access yo'q bo'lsa /subscribe ga yo'naltirish
+  useEffect(() => {
+    // Roles yuklanguncha kutamiz va faqat bir marta tekshiramiz
+    if (roles.length > 0 && !hasAccess && !accessCheckedRef.current) {
+      accessCheckedRef.current = true;
+      showToast.warning('Imtihon topshirish uchun premium obuna sotib oling');
+      navigate('/subscribe', { replace: true });
+    }
+  }, [hasAccess, roles, navigate]);
 
   // Mode support
   const routeState = location.state as { selectedSectionIds?: string[]; mode?: string } | null;

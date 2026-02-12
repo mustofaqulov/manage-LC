@@ -13,18 +13,18 @@ const Login: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState<'PROFILE' | 'CODE'>('PROFILE');
+  const [step, setStep] = useState<'PHONE' | 'CODE' | 'PROFILE'>('PHONE');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Profile info
+  // Profile info - faqat missingInfo === true bo'lganda kerak
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
 
   // React Query mutations
-  const { mutate: login, isPending } = useLogin();
+  const { mutate: login, isPending: isLoginPending } = useLogin();
   const { mutate: updateMe, isPending: isUpdating } = useUpdateMe();
 
   const formatPhone = (digits: string) => {
@@ -38,25 +38,15 @@ const Login: React.FC = () => {
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    // Extract only digits after the +998 prefix
     const allDigits = raw.replace(/\D/g, '');
-    // Remove leading 998 if user typed it (we always prepend it)
     const digits = allDigits.startsWith('998') ? allDigits.slice(3) : allDigits;
     const value = digits.slice(0, 9);
     setPhone(value);
     setError(null);
   };
 
+  // PHONE step - Telegram bot ochish
   const handleSendCode = () => {
-    // Validation
-    if (!firstName.trim()) {
-      setError('Ism kiritish majburiy');
-      return;
-    }
-    if (!lastName.trim()) {
-      setError('Familiya kiritish majburiy');
-      return;
-    }
     if (phone.length < 9) {
       setError("Telefon raqam 9 ta raqamdan iborat bo'lishi kerak");
       return;
@@ -71,6 +61,7 @@ const Login: React.FC = () => {
     setError(null);
   };
 
+  // CODE step - Login API chaqirish
   const handleVerify = () => {
     if (code.length !== 5) {
       setError("Kod 5 ta raqamdan iborat bo'lishi kerak");
@@ -78,7 +69,6 @@ const Login: React.FC = () => {
     }
 
     setError(null);
-
     const fullPhone = `998${phone}`;
 
     login(
@@ -88,8 +78,7 @@ const Login: React.FC = () => {
       },
       {
         onSuccess: (result) => {
-          // LoginResponse'da `role` (singular), UserResponse'da `roles` (array)
-          // Shuning uchun to'g'ri format qilish kerak
+          // User ma'lumotlarini Redux'ga saqlash
           const mappedUser: UserResponse = {
             id: result.id,
             phone: result.phone,
@@ -110,26 +99,14 @@ const Login: React.FC = () => {
             }),
           );
 
-          // Login bo'lgandan keyin darhol profil ma'lumotlarini saqlash
-          updateMe(
-            {
-              firstName: firstName.trim(),
-              lastName: lastName.trim(),
-              email: email.trim() || undefined,
-            },
-            {
-              onSuccess: (updatedUser: UserResponse) => {
-                // Redux'ni haqiqiy UserResponse bilan yangilash
-                dispatch(setUser(updatedUser));
-                navigate('/mock-exam');
-              },
-              onError: (err: any) => {
-                // Profil ma'lumotlarini saqlab bo'lmasa ham mock-exam'ga o'tish
-                console.error('Profile update error:', err);
-                navigate('/mock-exam');
-              },
-            },
-          );
+          // ⭐ missingInfo tekshirish - bu kalit!
+          if (result.missingInfo) {
+            // Birinchi marta - profil ma'lumotlarini so'rash kerak
+            setStep('PROFILE');
+          } else {
+            // Avval ro'yxatdan o'tgan - to'g'ridan mock-exam'ga
+            navigate('/mock-exam');
+          }
         },
         onError: (err: any) => {
           if (err.response?.status === 401) {
@@ -146,6 +123,38 @@ const Login: React.FC = () => {
     );
   };
 
+  // PROFILE step - Profil ma'lumotlarini saqlash
+  const handleSaveProfile = () => {
+    if (!firstName.trim()) {
+      setError('Ism kiritish majburiy');
+      return;
+    }
+    if (!lastName.trim()) {
+      setError('Familiya kiritish majburiy');
+      return;
+    }
+
+    setError(null);
+
+    updateMe(
+      {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim() || undefined,
+      },
+      {
+        onSuccess: (updatedUser: UserResponse) => {
+          // Redux'ni yangilangan user bilan yangilash
+          dispatch(setUser(updatedUser));
+          navigate('/mock-exam');
+        },
+        onError: (err: any) => {
+          console.error('Profile update error:', err);
+          setError("Profil saqlashda xatolik. Qaytadan urinib ko'ring.");
+        },
+      },
+    );
+  };
 
   return (
     <div className="relative min-h-screen flex items-start justify-center px-6 pt-32 pb-20 overflow-hidden bg-[#050505]">
@@ -172,49 +181,13 @@ const Login: React.FC = () => {
               <p className="text-white/55 text-sm">{t('login.subtitle')}</p>
             </div>
 
-            {step === 'PROFILE' ? (
-              /* PROFILE STEP - Ma'lumotlarni to'ldirish */
+            {step === 'PHONE' && (
+              /* STEP 1: PHONE - Faqat telefon raqam */
               <div className="space-y-5">
                 <div className="text-center mb-2">
                   <p className="text-white/40 text-xs">
-                    Ro'yxatdan o'tish uchun ma'lumotlaringizni kiriting
+                    Telegram orqali tasdiqlash kodi olish
                   </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  {/* First Name */}
-                  <div>
-                    <label className="block text-xs font-bold text-white/60 mb-2">
-                      Ism *
-                    </label>
-                    <input
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => {
-                        setFirstName(e.target.value);
-                        setError(null);
-                      }}
-                      placeholder="Ism"
-                      className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
-                    />
-                  </div>
-
-                  {/* Last Name */}
-                  <div>
-                    <label className="block text-xs font-bold text-white/60 mb-2">
-                      Familiya *
-                    </label>
-                    <input
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => {
-                        setLastName(e.target.value);
-                        setError(null);
-                      }}
-                      placeholder="Familiya"
-                      className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
-                    />
-                  </div>
                 </div>
 
                 {/* Phone */}
@@ -227,24 +200,8 @@ const Login: React.FC = () => {
                     value={formatPhone(phone)}
                     onChange={handlePhoneChange}
                     placeholder="+998 "
+                    autoFocus
                     className="w-full px-4 py-3 rounded-xl bg-black/40 text-white font-bold text-sm tracking-wide border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
-                  />
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label className="block text-xs font-bold text-white/60 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setError(null);
-                    }}
-                    placeholder="example@gmail.com"
-                    className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
                   />
                 </div>
 
@@ -263,23 +220,18 @@ const Login: React.FC = () => {
 
                 <button
                   onClick={handleSendCode}
-                  disabled={!firstName.trim() || !lastName.trim() || phone.length < 9 || isPending}
+                  disabled={phone.length < 9}
                   className="w-full py-4 rounded-2xl font-black text-lg bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-[0_15px_50px_rgba(255,115,0,0.45)] hover:shadow-[0_25px_80px_rgba(255,115,0,0.65)] hover:scale-[1.04] disabled:opacity-40 disabled:hover:scale-100 transition-all flex items-center justify-center gap-3">
-                  {isPending && (
-                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  )}
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                   </svg>
                   Telegram botdan kod olish
                 </button>
-
-                <p className="text-xs text-white/40 text-center">
-                  * - Majburiy maydonlar
-                </p>
               </div>
-            ) : (
-              /* CODE STEP */
+            )}
+
+            {step === 'CODE' && (
+              /* STEP 2: CODE - Kod kiritish */
               <div className="space-y-7">
                 <div>
                   <label className="block text-xs font-bold text-white/60 mb-3 uppercase tracking-[0.25em]">
@@ -295,6 +247,7 @@ const Login: React.FC = () => {
                       setError(null);
                     }}
                     placeholder={t('login.codePlaceholder')}
+                    autoFocus
                     className={`
                       w-full py-4 rounded-2xl text-center
                       bg-black/40 text-white text-3xl sm:text-4xl font-black
@@ -325,7 +278,7 @@ const Login: React.FC = () => {
 
                 <button
                   onClick={handleVerify}
-                  disabled={code.length !== 5 || isPending}
+                  disabled={code.length !== 5 || isLoginPending}
                   className="
                     w-full py-4 rounded-2xl font-black text-lg
                     bg-gradient-to-r from-orange-500 to-amber-400
@@ -337,7 +290,7 @@ const Login: React.FC = () => {
                     transition-all
                     flex items-center justify-center gap-3
                   ">
-                  {isPending && (
+                  {isLoginPending && (
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -353,7 +306,7 @@ const Login: React.FC = () => {
                 <div className="flex gap-3">
                   <button
                     onClick={() => {
-                      setStep('PROFILE');
+                      setStep('PHONE');
                       setCode('');
                       setError(null);
                     }}
@@ -363,11 +316,110 @@ const Login: React.FC = () => {
 
                   <button
                     onClick={handleSendCode}
-                    disabled={isPending}
+                    disabled={isLoginPending}
                     className="flex-1 py-3 rounded-xl text-white/40 text-sm font-bold hover:text-white/70 hover:bg-white/5 transition disabled:opacity-40">
                     Kodni qayta olish
                   </button>
                 </div>
+              </div>
+            )}
+
+            {step === 'PROFILE' && (
+              /* STEP 3: PROFILE - Faqat missingInfo === true bo'lganda */
+              <div className="space-y-5">
+                <div className="text-center mb-2">
+                  <p className="text-white/40 text-xs">
+                    Profilingizni to'ldiring
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* First Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-white/60 mb-2">
+                      Ism *
+                    </label>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                        setError(null);
+                      }}
+                      placeholder="Ism"
+                      autoFocus
+                      className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Last Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-white/60 mb-2">
+                      Familiya *
+                    </label>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                        setError(null);
+                      }}
+                      placeholder="Familiya"
+                      className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-xs font-bold text-white/60 mb-2">
+                    Email (ixtiyoriy)
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError(null);
+                    }}
+                    placeholder="example@gmail.com"
+                    className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-red-400 text-sm flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={!firstName.trim() || !lastName.trim() || isUpdating}
+                  className="w-full py-4 rounded-2xl font-black text-lg bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-[0_15px_50px_rgba(255,115,0,0.45)] hover:shadow-[0_25px_80px_rgba(255,115,0,0.65)] hover:scale-[1.04] disabled:opacity-40 disabled:hover:scale-100 transition-all flex items-center justify-center gap-3">
+                  {isUpdating && (
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  )}
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Saqlash
+                </button>
+
+                <p className="text-xs text-white/40 text-center">
+                  * - Majburiy maydonlar
+                </p>
               </div>
             )}
 
@@ -382,4 +434,3 @@ const Login: React.FC = () => {
 };
 
 export default Login;
-

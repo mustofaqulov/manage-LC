@@ -1,0 +1,3404 @@
+---
+openapi: 3.1.0
+components:
+  schemas:
+    AddSectionAssetRequest:
+      type: object
+      required:
+      - assetId
+      properties:
+        assetId:
+          $ref: "#/components/schemas/UUID"
+        contextLabel:
+          type:
+          - string
+          - "null"
+        orderIndex:
+          type:
+          - integer
+          - "null"
+          format: int32
+    AdminAttemptDetailResponse:
+      type: object
+      required:
+      - id
+      - testId
+      - testTitle
+      - userId
+      - status
+      - startedAt
+      - sections
+      - responses
+      - scoringJobs
+      - overrides
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        testId:
+          $ref: "#/components/schemas/UUID"
+        testTitle:
+          type: string
+        userId:
+          $ref: "#/components/schemas/UUID"
+        userEmail:
+          type:
+          - string
+          - "null"
+        userName:
+          type:
+          - string
+          - "null"
+        status:
+          $ref: "#/components/schemas/AttemptStatus"
+        startedAt:
+          $ref: "#/components/schemas/Instant"
+        submittedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        scoredAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        totalScore:
+          type:
+          - number
+          - "null"
+        maxTotalScore:
+          type:
+          - number
+          - "null"
+        scorePercentage:
+          type:
+          - number
+          - "null"
+        estimatedCefrLevel:
+          type:
+          - string
+          - "null"
+        aiSummary:
+          type:
+          - string
+          - "null"
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttemptSectionResponse"
+        responses:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponseResponse"
+        scoringJobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScoringJobResponse"
+        overrides:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScoreOverrideResponse"
+    AdminExpectedAnswerResponse:
+      type: object
+      required:
+      - id
+      - acceptedValues
+      - scoreWeight
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        answerKey:
+          type:
+          - string
+          - "null"
+        acceptedValues:
+          type: array
+          items:
+            type: string
+        isCaseSensitive:
+          type: boolean
+        isRegex:
+          type: boolean
+        scoreWeight:
+          type: number
+    AdminOptionResponse:
+      type: object
+      required:
+      - id
+      - label
+      - content
+      - scoreWeight
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        label:
+          type: string
+        content:
+          type: string
+        contentImageAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        orderIndex:
+          type: integer
+          format: int32
+        isCorrect:
+          type: boolean
+        scoreWeight:
+          type: number
+        matchTarget:
+          type:
+          - string
+          - "null"
+    AdminQuestionResponse:
+      type: object
+      required:
+      - id
+      - sectionId
+      - questionType
+      - prompt
+      - maxScore
+      - settings
+      - createdAt
+      - options
+      - expectedAnswers
+      - rubrics
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        sectionId:
+          $ref: "#/components/schemas/UUID"
+        questionType:
+          $ref: "#/components/schemas/QuestionType"
+        orderIndex:
+          type: integer
+          format: int32
+        prompt:
+          type: string
+        promptAudioAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        promptImageAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        maxScore:
+          type: number
+        settings:
+          type: object
+          additionalProperties: {}
+        explanation:
+          type:
+          - string
+          - "null"
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+        updatedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminOptionResponse"
+        expectedAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminExpectedAnswerResponse"
+        rubrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminQuestionRubricResponse"
+    AdminQuestionRubricResponse:
+      type: object
+      required:
+      - rubricId
+      - rubricName
+      properties:
+        rubricId:
+          $ref: "#/components/schemas/UUID"
+        rubricName:
+          type: string
+        isPrimary:
+          type: boolean
+    AdminRubricCriterionResponse:
+      type: object
+      required:
+      - id
+      - name
+      - maxScore
+      - weight
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - "null"
+        maxScore:
+          type: number
+        weight:
+          type: number
+        orderIndex:
+          type: integer
+          format: int32
+        levelDescriptors:
+          type:
+          - object
+          - "null"
+          additionalProperties:
+            type: string
+    AdminRubricResponse:
+      type: object
+      required:
+      - id
+      - name
+      - skill
+      - maxScore
+      - createdAt
+      - criteria
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - "null"
+        skill:
+          $ref: "#/components/schemas/SkillType"
+        cefrLevel:
+          anyOf:
+          - $ref: "#/components/schemas/CefrLevel"
+          - type: "null"
+        maxScore:
+          type: number
+        createdBy:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+        updatedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        criteria:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminRubricCriterionResponse"
+    AdminSectionResponse:
+      type: object
+      required:
+      - id
+      - testId
+      - title
+      - skill
+      - settings
+      - createdAt
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        testId:
+          $ref: "#/components/schemas/UUID"
+        title:
+          type: string
+        skill:
+          $ref: "#/components/schemas/SkillType"
+        orderIndex:
+          type: integer
+          format: int32
+        instructions:
+          type:
+          - string
+          - "null"
+        timeLimitMinutes:
+          type:
+          - integer
+          - "null"
+          format: int32
+        maxScore:
+          type:
+          - number
+          - "null"
+        settings:
+          type: object
+          additionalProperties: {}
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+        updatedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        questions:
+          type:
+          - array
+          - "null"
+          items:
+            $ref: "#/components/schemas/AdminQuestionResponse"
+        assets:
+          type:
+          - array
+          - "null"
+          items:
+            $ref: "#/components/schemas/SectionAssetResponse"
+    AdminTestResponse:
+      type: object
+      required:
+      - id
+      - title
+      - cefrLevel
+      - status
+      - settings
+      - createdAt
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        title:
+          type: string
+        description:
+          type:
+          - string
+          - "null"
+        cefrLevel:
+          $ref: "#/components/schemas/CefrLevel"
+        status:
+          $ref: "#/components/schemas/TestStatus"
+        version:
+          type: integer
+          format: int32
+        parentId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        timeLimitMinutes:
+          type:
+          - integer
+          - "null"
+          format: int32
+        passingScore:
+          type:
+          - number
+          - "null"
+        instructions:
+          type:
+          - string
+          - "null"
+        settings:
+          type: object
+          additionalProperties: {}
+        publishedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        createdBy:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+        updatedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        sections:
+          type:
+          - array
+          - "null"
+          items:
+            $ref: "#/components/schemas/AdminSectionResponse"
+    AdminUserResponse:
+      type: object
+      required:
+      - id
+      - phone
+      - roles
+      - createdAt
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        phone:
+          type: string
+        firstName:
+          type:
+          - string
+          - "null"
+        lastName:
+          type:
+          - string
+          - "null"
+        email:
+          type:
+          - string
+          - "null"
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Role"
+        isActive:
+          type: boolean
+        region:
+          type:
+          - string
+          - "null"
+        city:
+          type:
+          - string
+          - "null"
+        address:
+          type:
+          - string
+          - "null"
+        startDate:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        endDate:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        lastLoginAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+    AssetType:
+      type: string
+      enum:
+      - IMAGE
+      - AUDIO
+      - VIDEO
+      - DOCUMENT
+    AttemptDetailResponse:
+      type: object
+      required:
+      - id
+      - testId
+      - testTitle
+      - cefrLevel
+      - status
+      - startedAt
+      - sections
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        testId:
+          $ref: "#/components/schemas/UUID"
+        testTitle:
+          type: string
+        cefrLevel:
+          $ref: "#/components/schemas/CefrLevel"
+        status:
+          $ref: "#/components/schemas/AttemptStatus"
+        startedAt:
+          $ref: "#/components/schemas/Instant"
+        submittedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        scoredAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        expiresAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        totalScore:
+          type:
+          - number
+          - "null"
+        maxTotalScore:
+          type:
+          - number
+          - "null"
+        scorePercentage:
+          type:
+          - number
+          - "null"
+        estimatedCefrLevel:
+          anyOf:
+          - $ref: "#/components/schemas/CefrLevel"
+          - type: "null"
+        aiSummary:
+          type:
+          - string
+          - "null"
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttemptSectionResponse"
+        responses:
+          type:
+          - array
+          - "null"
+          items:
+            $ref: "#/components/schemas/ResponseResponse"
+    AttemptListResponse:
+      type: object
+      required:
+      - id
+      - testId
+      - testTitle
+      - cefrLevel
+      - status
+      - startedAt
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        testId:
+          $ref: "#/components/schemas/UUID"
+        testTitle:
+          type: string
+        cefrLevel:
+          $ref: "#/components/schemas/CefrLevel"
+        status:
+          $ref: "#/components/schemas/AttemptStatus"
+        startedAt:
+          $ref: "#/components/schemas/Instant"
+        submittedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        scoredAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        totalScore:
+          type:
+          - number
+          - "null"
+        maxTotalScore:
+          type:
+          - number
+          - "null"
+        scorePercentage:
+          type:
+          - number
+          - "null"
+        estimatedCefrLevel:
+          anyOf:
+          - $ref: "#/components/schemas/CefrLevel"
+          - type: "null"
+    AttemptSectionResponse:
+      type: object
+      required:
+      - id
+      - sectionId
+      - sectionTitle
+      - skill
+      - status
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        sectionId:
+          $ref: "#/components/schemas/UUID"
+        sectionTitle:
+          type: string
+        skill:
+          $ref: "#/components/schemas/SkillType"
+        status:
+          $ref: "#/components/schemas/SectionAttemptStatus"
+        startedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        submittedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        scoredAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        sectionScore:
+          type:
+          - number
+          - "null"
+        maxSectionScore:
+          type:
+          - number
+          - "null"
+        aiFeedback:
+          type:
+          - string
+          - "null"
+    AttemptStatus:
+      type: string
+      enum:
+      - IN_PROGRESS
+      - SUBMITTED
+      - SCORING
+      - SCORED
+      - CANCELLED
+      - EXPIRED
+    CefrLevel:
+      type: string
+      enum:
+      - A1
+      - A2
+      - B1
+      - B2
+      - C1
+      - C2
+    CreateExpectedAnswerRequest:
+      type: object
+      required:
+      - acceptedValues
+      - scoreWeight
+      properties:
+        answerKey:
+          type:
+          - string
+          - "null"
+        acceptedValues:
+          type: array
+          items:
+            type: string
+        isCaseSensitive:
+          type: boolean
+        isRegex:
+          type: boolean
+        scoreWeight:
+          type: number
+    CreateOptionRequest:
+      type: object
+      required:
+      - label
+      - content
+      - scoreWeight
+      properties:
+        label:
+          type: string
+        content:
+          type: string
+        contentImageAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        orderIndex:
+          type: integer
+          format: int32
+        isCorrect:
+          type: boolean
+        scoreWeight:
+          type: number
+        matchTarget:
+          type:
+          - string
+          - "null"
+    CreateQuestionRequest:
+      type: object
+      required:
+      - sectionId
+      - questionType
+      - prompt
+      - maxScore
+      - settings
+      properties:
+        sectionId:
+          $ref: "#/components/schemas/UUID"
+        questionType:
+          $ref: "#/components/schemas/QuestionType"
+        orderIndex:
+          type:
+          - integer
+          - "null"
+          format: int32
+        prompt:
+          type: string
+        promptAudioAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        promptImageAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        maxScore:
+          type: number
+        settings:
+          type: object
+          additionalProperties: {}
+        explanation:
+          type:
+          - string
+          - "null"
+        options:
+          type:
+          - array
+          - "null"
+          items:
+            $ref: "#/components/schemas/CreateOptionRequest"
+        expectedAnswers:
+          type:
+          - array
+          - "null"
+          items:
+            $ref: "#/components/schemas/CreateExpectedAnswerRequest"
+        rubricId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+    CreateRubricCriterionRequest:
+      type: object
+      required:
+      - name
+      - maxScore
+      - weight
+      properties:
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - "null"
+        maxScore:
+          type: number
+        weight:
+          type: number
+        orderIndex:
+          type: integer
+          format: int32
+        levelDescriptors:
+          type:
+          - object
+          - "null"
+          additionalProperties:
+            type: string
+    CreateRubricRequest:
+      type: object
+      required:
+      - name
+      - skill
+      - maxScore
+      - criteria
+      properties:
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - "null"
+        skill:
+          $ref: "#/components/schemas/SkillType"
+        cefrLevel:
+          anyOf:
+          - $ref: "#/components/schemas/CefrLevel"
+          - type: "null"
+        maxScore:
+          type: number
+        criteria:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateRubricCriterionRequest"
+    CreateSectionRequest:
+      type: object
+      required:
+      - testId
+      - title
+      - skill
+      - settings
+      properties:
+        testId:
+          $ref: "#/components/schemas/UUID"
+        title:
+          type: string
+        skill:
+          $ref: "#/components/schemas/SkillType"
+        orderIndex:
+          type:
+          - integer
+          - "null"
+          format: int32
+        instructions:
+          type:
+          - string
+          - "null"
+        timeLimitMinutes:
+          type:
+          - integer
+          - "null"
+          format: int32
+        settings:
+          type: object
+          additionalProperties: {}
+    CreateTestRequest:
+      type: object
+      required:
+      - title
+      - cefrLevel
+      - settings
+      properties:
+        title:
+          type: string
+        description:
+          type:
+          - string
+          - "null"
+        cefrLevel:
+          $ref: "#/components/schemas/CefrLevel"
+        timeLimitMinutes:
+          type:
+          - integer
+          - "null"
+          format: int32
+        passingScore:
+          type:
+          - number
+          - "null"
+        instructions:
+          type:
+          - string
+          - "null"
+        settings:
+          type: object
+          additionalProperties: {}
+    GrantAccessRequest:
+      type: object
+      required:
+      - startDate
+      - endDate
+      properties:
+        startDate:
+          $ref: "#/components/schemas/Instant"
+        endDate:
+          $ref: "#/components/schemas/Instant"
+    Instant:
+      type: string
+      format: date-time
+      examples:
+      - 2022-03-10T16:15:50Z
+    LoginRequest:
+      type: object
+      required:
+      - phone
+      - pinCode
+      properties:
+        phone:
+          type: string
+        pinCode:
+          type: string
+    LoginResponse:
+      type: object
+      required:
+      - id
+      - phone
+      - role
+      - token
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        phone:
+          type: string
+        firstName:
+          type:
+          - string
+          - "null"
+        lastName:
+          type:
+          - string
+          - "null"
+        role:
+          $ref: "#/components/schemas/Role"
+        token:
+          type: string
+        missingInfo:
+          type: boolean
+    OptionResponse:
+      type: object
+      required:
+      - id
+      - label
+      - content
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        label:
+          type: string
+        content:
+          type: string
+        contentImageAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        orderIndex:
+          type: integer
+          format: int32
+        matchTarget:
+          type:
+          - string
+          - "null"
+    OverrideScoreRequest:
+      type: object
+      required:
+      - targetType
+      - targetId
+      - newScore
+      - reason
+      properties:
+        targetType:
+          $ref: "#/components/schemas/OverrideTargetType"
+        targetId:
+          $ref: "#/components/schemas/UUID"
+        newScore:
+          type: number
+        reason:
+          type: string
+    OverrideTargetType:
+      type: string
+      enum:
+      - RESPONSE
+      - RUBRIC_SCORE
+      - SECTION
+      - ATTEMPT
+    PagedAdminRubricResponse:
+      type: object
+      required:
+      - items
+      - sortableFields
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminRubricResponse"
+        total:
+          type: integer
+          format: int32
+        sortableFields:
+          type: array
+          items:
+            type: string
+    PagedAdminTestResponse:
+      type: object
+      required:
+      - items
+      - sortableFields
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminTestResponse"
+        total:
+          type: integer
+          format: int32
+        sortableFields:
+          type: array
+          items:
+            type: string
+    PagedAdminUserResponse:
+      type: object
+      required:
+      - items
+      - sortableFields
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUserResponse"
+        total:
+          type: integer
+          format: int32
+        sortableFields:
+          type: array
+          items:
+            type: string
+    PagedAttemptListResponse:
+      type: object
+      required:
+      - items
+      - sortableFields
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttemptListResponse"
+        total:
+          type: integer
+          format: int32
+        sortableFields:
+          type: array
+          items:
+            type: string
+    PagedTestListResponse:
+      type: object
+      required:
+      - items
+      - sortableFields
+      properties:
+        totalCount:
+          type: integer
+          format: int64
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestListResponse"
+        total:
+          type: integer
+          format: int32
+        sortableFields:
+          type: array
+          items:
+            type: string
+    PresignDownloadRequestDto:
+      type: object
+      properties:
+        assetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        s3Key:
+          type:
+          - string
+          - "null"
+        bucket:
+          type:
+          - string
+          - "null"
+    PresignDownloadResponse:
+      type: object
+      required:
+      - downloadUrl
+      - method
+      properties:
+        downloadUrl:
+          type: string
+        method:
+          type: string
+        expiresAt:
+          type: integer
+          format: int64
+    PresignUploadRequestDto:
+      type: object
+      required:
+      - assetType
+      - mimeType
+      - contextType
+      properties:
+        assetType:
+          $ref: "#/components/schemas/AssetType"
+        mimeType:
+          type: string
+        filename:
+          type:
+          - string
+          - "null"
+        fileSizeBytes:
+          type:
+          - integer
+          - "null"
+          format: int64
+        contextType:
+          type: string
+        questionId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        sectionId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        attemptId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+    PresignUploadResponse:
+      type: object
+      required:
+      - assetId
+      - uploadUrl
+      - method
+      - headers
+      - s3Key
+      properties:
+        assetId:
+          $ref: "#/components/schemas/UUID"
+        uploadUrl:
+          type: string
+        method:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        expiresAt:
+          type: integer
+          format: int64
+        s3Key:
+          type: string
+    QuestionResponse:
+      type: object
+      required:
+      - id
+      - questionType
+      - prompt
+      - maxScore
+      - settings
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        questionType:
+          $ref: "#/components/schemas/QuestionType"
+        orderIndex:
+          type: integer
+          format: int32
+        prompt:
+          type: string
+        promptAudioAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        promptImageAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        maxScore:
+          type: number
+        settings:
+          type: object
+          additionalProperties: {}
+        options:
+          type:
+          - array
+          - "null"
+          items:
+            $ref: "#/components/schemas/OptionResponse"
+    QuestionType:
+      type: string
+      enum:
+      - MCQ_SINGLE
+      - MCQ_MULTI
+      - TRUE_FALSE
+      - GAP_FILL
+      - SHORT_ANSWER
+      - MATCHING
+      - ESSAY
+      - SPEAKING_RESPONSE
+    ReorderSectionAssetsRequest:
+      type: object
+      required:
+      - assetIds
+      properties:
+        assetIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+    ReorderSectionsRequest:
+      type: object
+      required:
+      - sectionIds
+      properties:
+        sectionIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+    RescoreAttemptRequest:
+      type: object
+      required:
+      - reason
+      properties:
+        sectionId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        reason:
+          type: string
+    ResponseResponse:
+      type: object
+      required:
+      - id
+      - questionId
+      - questionType
+      - answer
+      - answeredAt
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        questionId:
+          $ref: "#/components/schemas/UUID"
+        questionType:
+          $ref: "#/components/schemas/QuestionType"
+        answer:
+          type: object
+          additionalProperties: {}
+        answeredAt:
+          $ref: "#/components/schemas/Instant"
+        isCorrect:
+          type:
+          - boolean
+          - "null"
+        scoreAwarded:
+          type:
+          - number
+          - "null"
+        maxScore:
+          type:
+          - number
+          - "null"
+        aiSummary:
+          type:
+          - string
+          - "null"
+        rubricScores:
+          type:
+          - array
+          - "null"
+          items:
+            $ref: "#/components/schemas/RubricScoreResponse"
+    Role:
+      type: string
+      enum:
+      - USER
+      - GRADER
+      - CONTENT_EDITOR
+      - ADMIN
+    RubricScoreResponse:
+      type: object
+      required:
+      - criterionId
+      - criterionName
+      - score
+      - maxScore
+      properties:
+        criterionId:
+          $ref: "#/components/schemas/UUID"
+        criterionName:
+          type: string
+        score:
+          type: number
+        maxScore:
+          type: number
+        feedback:
+          type:
+          - string
+          - "null"
+    ScoreOverrideResponse:
+      type: object
+      required:
+      - id
+      - targetType
+      - targetId
+      - newScore
+      - reason
+      - createdAt
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        targetType:
+          type: string
+        targetId:
+          $ref: "#/components/schemas/UUID"
+        previousScore:
+          type:
+          - number
+          - "null"
+        newScore:
+          type: number
+        reason:
+          type: string
+        overriddenBy:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+    ScoringJobResponse:
+      type: object
+      required:
+      - id
+      - status
+      - createdAt
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        sectionId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        status:
+          $ref: "#/components/schemas/ScoringJobStatus"
+        attemptNo:
+          type: integer
+          format: int32
+        aiProvider:
+          type:
+          - string
+          - "null"
+        aiModel:
+          type:
+          - string
+          - "null"
+        processingTimeMs:
+          type:
+          - integer
+          - "null"
+          format: int32
+        errorMessage:
+          type:
+          - string
+          - "null"
+        createdAt:
+          $ref: "#/components/schemas/Instant"
+        completedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+    ScoringJobStatus:
+      type: string
+      enum:
+      - PENDING
+      - RUNNING
+      - SUCCEEDED
+      - FAILED
+      - CANCELLED
+    SectionAssetResponse:
+      type: object
+      required:
+      - id
+      - assetType
+      - mimeType
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        assetType:
+          $ref: "#/components/schemas/AssetType"
+        mimeType:
+          type: string
+        contextLabel:
+          type:
+          - string
+          - "null"
+        orderIndex:
+          type: integer
+          format: int32
+    SectionAttemptStatus:
+      type: string
+      enum:
+      - NOT_STARTED
+      - IN_PROGRESS
+      - SUBMITTED
+      - SCORING
+      - SCORED
+    SectionDetailResponse:
+      type: object
+      required:
+      - id
+      - title
+      - skill
+      - assets
+      - questions
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        title:
+          type: string
+        skill:
+          $ref: "#/components/schemas/SkillType"
+        orderIndex:
+          type: integer
+          format: int32
+        instructions:
+          type:
+          - string
+          - "null"
+        timeLimitMinutes:
+          type:
+          - integer
+          - "null"
+          format: int32
+        maxScore:
+          type:
+          - number
+          - "null"
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/SectionAssetResponse"
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuestionResponse"
+    SectionResponse:
+      type: object
+      required:
+      - id
+      - title
+      - skill
+      - assets
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        title:
+          type: string
+        skill:
+          $ref: "#/components/schemas/SkillType"
+        orderIndex:
+          type: integer
+          format: int32
+        instructions:
+          type:
+          - string
+          - "null"
+        timeLimitMinutes:
+          type:
+          - integer
+          - "null"
+          format: int32
+        questionCount:
+          type: integer
+          format: int32
+        maxScore:
+          type:
+          - number
+          - "null"
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/SectionAssetResponse"
+    SkillType:
+      type: string
+      enum:
+      - READING
+      - LISTENING
+      - WRITING
+      - SPEAKING
+    StartAttemptRequest:
+      type: object
+      required:
+      - testId
+      properties:
+        testId:
+          $ref: "#/components/schemas/UUID"
+        sectionId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+    StartAttemptResponse:
+      type: object
+      required:
+      - attemptId
+      - testId
+      - status
+      - startedAt
+      properties:
+        attemptId:
+          $ref: "#/components/schemas/UUID"
+        testId:
+          $ref: "#/components/schemas/UUID"
+        status:
+          $ref: "#/components/schemas/AttemptStatus"
+        startedAt:
+          $ref: "#/components/schemas/Instant"
+        expiresAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+    SubmitAttemptResponse:
+      type: object
+      required:
+      - attemptId
+      - status
+      - submittedAt
+      properties:
+        attemptId:
+          $ref: "#/components/schemas/UUID"
+        status:
+          $ref: "#/components/schemas/AttemptStatus"
+        submittedAt:
+          $ref: "#/components/schemas/Instant"
+        totalObjectiveScore:
+          type:
+          - number
+          - "null"
+        maxObjectiveScore:
+          type:
+          - number
+          - "null"
+    SubmitSectionRequest:
+      type: object
+      required:
+      - sectionId
+      properties:
+        sectionId:
+          $ref: "#/components/schemas/UUID"
+    SubmitSectionResponse:
+      type: object
+      required:
+      - attemptId
+      - sectionId
+      - status
+      - submittedAt
+      properties:
+        attemptId:
+          $ref: "#/components/schemas/UUID"
+        sectionId:
+          $ref: "#/components/schemas/UUID"
+        status:
+          $ref: "#/components/schemas/SectionAttemptStatus"
+        submittedAt:
+          $ref: "#/components/schemas/Instant"
+        objectiveScore:
+          type:
+          - number
+          - "null"
+        maxObjectiveScore:
+          type:
+          - number
+          - "null"
+    TestDetailResponse:
+      type: object
+      required:
+      - id
+      - title
+      - cefrLevel
+      - sections
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        title:
+          type: string
+        description:
+          type:
+          - string
+          - "null"
+        cefrLevel:
+          $ref: "#/components/schemas/CefrLevel"
+        timeLimitMinutes:
+          type:
+          - integer
+          - "null"
+          format: int32
+        passingScore:
+          type:
+          - number
+          - "null"
+        instructions:
+          type:
+          - string
+          - "null"
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/SectionResponse"
+        publishedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+    TestListResponse:
+      type: object
+      required:
+      - id
+      - title
+      - cefrLevel
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        title:
+          type: string
+        description:
+          type:
+          - string
+          - "null"
+        cefrLevel:
+          $ref: "#/components/schemas/CefrLevel"
+        timeLimitMinutes:
+          type:
+          - integer
+          - "null"
+          format: int32
+        sectionCount:
+          type: integer
+          format: int32
+        publishedAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+    TestStatus:
+      type: string
+      enum:
+      - DRAFT
+      - PUBLISHED
+      - ARCHIVED
+    UUID:
+      type: string
+      format: uuid
+      pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+    Unit:
+      type: object
+    UpdateQuestionRequest:
+      type: object
+      properties:
+        questionType:
+          anyOf:
+          - $ref: "#/components/schemas/QuestionType"
+          - type: "null"
+        orderIndex:
+          type:
+          - integer
+          - "null"
+          format: int32
+        prompt:
+          type:
+          - string
+          - "null"
+        promptAudioAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        promptImageAssetId:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        maxScore:
+          type:
+          - number
+          - "null"
+        settings:
+          type:
+          - object
+          - "null"
+          additionalProperties: {}
+        explanation:
+          type:
+          - string
+          - "null"
+    UpdateRolesRequest:
+      type: object
+      required:
+      - roles
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Role"
+    UpdateSectionRequest:
+      type: object
+      properties:
+        title:
+          type:
+          - string
+          - "null"
+        skill:
+          anyOf:
+          - $ref: "#/components/schemas/SkillType"
+          - type: "null"
+        orderIndex:
+          type:
+          - integer
+          - "null"
+          format: int32
+        instructions:
+          type:
+          - string
+          - "null"
+        timeLimitMinutes:
+          type:
+          - integer
+          - "null"
+          format: int32
+        settings:
+          type:
+          - object
+          - "null"
+          additionalProperties: {}
+    UpdateTestRequest:
+      type: object
+      properties:
+        title:
+          type:
+          - string
+          - "null"
+        description:
+          type:
+          - string
+          - "null"
+        cefrLevel:
+          anyOf:
+          - $ref: "#/components/schemas/CefrLevel"
+          - type: "null"
+        timeLimitMinutes:
+          type:
+          - integer
+          - "null"
+          format: int32
+        passingScore:
+          type:
+          - number
+          - "null"
+        instructions:
+          type:
+          - string
+          - "null"
+        settings:
+          type:
+          - object
+          - "null"
+          additionalProperties: {}
+    UpsertResponseRequest:
+      type: object
+      required:
+      - questionId
+      - answer
+      properties:
+        questionId:
+          $ref: "#/components/schemas/UUID"
+        answer:
+          type: object
+          minProperties: 1
+          additionalProperties: {}
+    UpsertResponseResponse:
+      type: object
+      required:
+      - responseId
+      - questionId
+      - answeredAt
+      properties:
+        responseId:
+          $ref: "#/components/schemas/UUID"
+        questionId:
+          $ref: "#/components/schemas/UUID"
+        answeredAt:
+          $ref: "#/components/schemas/Instant"
+        saved:
+          type: boolean
+    UserRequest:
+      type: object
+      required:
+      - firstName
+      - lastName
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type:
+          - string
+          - "null"
+        region:
+          type:
+          - string
+          - "null"
+        city:
+          type:
+          - string
+          - "null"
+        address:
+          type:
+          - string
+          - "null"
+    UserResponse:
+      type: object
+      required:
+      - id
+      - phone
+      - roles
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        phone:
+          type: string
+        firstName:
+          type:
+          - string
+          - "null"
+        lastName:
+          type:
+          - string
+          - "null"
+        email:
+          type:
+          - string
+          - "null"
+        region:
+          type:
+          - string
+          - "null"
+        city:
+          type:
+          - string
+          - "null"
+        address:
+          type:
+          - string
+          - "null"
+        roles:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/Role"
+        lastLoginAt:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+  securitySchemes:
+    SecurityScheme:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Authentication
+paths:
+  /admin/questions:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuestionRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminQuestionResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Create Question
+      tags:
+      - Question Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/questions/{questionId}:
+    put:
+      parameters:
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateQuestionRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminQuestionResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Update Question
+      tags:
+      - Question Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+    delete:
+      parameters:
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Delete Question
+      tags:
+      - Question Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/rubrics:
+    get:
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedAdminRubricResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: List Rubrics
+      tags:
+      - Rubric Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRubricRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminRubricResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Create Rubric
+      tags:
+      - Rubric Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/rubrics/{rubricId}:
+    get:
+      parameters:
+      - name: rubricId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminRubricResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Rubric
+      tags:
+      - Rubric Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+    delete:
+      parameters:
+      - name: rubricId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Delete Rubric
+      tags:
+      - Rubric Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/submissions:
+    get:
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - name: status
+        in: query
+        schema:
+          anyOf:
+          - $ref: "#/components/schemas/AttemptStatus"
+          - type: "null"
+      - name: testId
+        in: query
+        schema:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+      - name: userId
+        in: query
+        schema:
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedAttemptListResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: List Attempts
+      tags:
+      - Admin Submission Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - GRADER
+  /admin/submissions/{attemptId}:
+    get:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAttemptDetailResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Attempt Detail
+      tags:
+      - Admin Submission Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - GRADER
+  /admin/submissions/{attemptId}/override:
+    post:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OverrideScoreRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Override Score
+      tags:
+      - Admin Submission Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - GRADER
+  /admin/submissions/{attemptId}/rescore:
+    post:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RescoreAttemptRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Rescore Attempt
+      tags:
+      - Admin Submission Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - GRADER
+  /admin/tests:
+    get:
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - name: status
+        in: query
+        schema:
+          anyOf:
+          - $ref: "#/components/schemas/TestStatus"
+          - type: "null"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedAdminTestResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: List Tests
+      tags:
+      - Admin Test Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTestRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTestResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Create Test
+      tags:
+      - Admin Test Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/tests/sections:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSectionRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSectionResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Create Section
+      tags:
+      - Section Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/tests/sections/{sectionId}:
+    put:
+      parameters:
+      - name: sectionId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSectionRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSectionResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Update Section
+      tags:
+      - Section Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+    delete:
+      parameters:
+      - name: sectionId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Delete Section
+      tags:
+      - Section Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/tests/sections/{sectionId}/assets:
+    post:
+      parameters:
+      - name: sectionId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddSectionAssetRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SectionAssetResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Add Asset To Section
+      tags:
+      - Section Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/tests/sections/{sectionId}/assets/reorder:
+    post:
+      parameters:
+      - name: sectionId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderSectionAssetsRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Reorder Section Assets
+      tags:
+      - Section Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/tests/sections/{sectionId}/assets/{assetId}:
+    delete:
+      parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      - name: sectionId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Remove Asset From Section
+      tags:
+      - Section Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/tests/{testId}:
+    put:
+      parameters:
+      - name: testId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTestRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTestResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Update Test
+      tags:
+      - Admin Test Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+    get:
+      parameters:
+      - name: testId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTestResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Test
+      tags:
+      - Admin Test Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+    delete:
+      parameters:
+      - name: testId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Delete Test
+      tags:
+      - Admin Test Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/tests/{testId}/archive:
+    post:
+      parameters:
+      - name: testId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTestResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Archive Test
+      tags:
+      - Admin Test Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/tests/{testId}/new-version:
+    post:
+      parameters:
+      - name: testId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTestResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Create New Version
+      tags:
+      - Admin Test Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/tests/{testId}/publish:
+    post:
+      parameters:
+      - name: testId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTestResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Publish Test
+      tags:
+      - Admin Test Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/tests/{testId}/sections/reorder:
+    post:
+      parameters:
+      - name: testId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderSectionsRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Reorder Sections
+      tags:
+      - Section Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /admin/users:
+    get:
+      parameters:
+      - name: isActive
+        in: query
+        schema:
+          type:
+          - boolean
+          - "null"
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: role
+        in: query
+        schema:
+          anyOf:
+          - $ref: "#/components/schemas/Role"
+          - type: "null"
+      - name: search
+        in: query
+        schema:
+          type:
+          - string
+          - "null"
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedAdminUserResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: List Users
+      tags:
+      - Admin User Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+  /admin/users/{id}:
+    get:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get User
+      tags:
+      - Admin User Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+    delete:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Delete User
+      tags:
+      - Admin User Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+  /admin/users/{id}/block:
+    post:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Block User
+      tags:
+      - Admin User Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+  /admin/users/{id}/grant-access:
+    post:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrantAccessRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Grant Access
+      tags:
+      - Admin User Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+  /admin/users/{id}/remove-access:
+    post:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Remove Access
+      tags:
+      - Admin User Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+  /admin/users/{id}/roles:
+    put:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRolesRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Update Roles
+      tags:
+      - Admin User Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+  /admin/users/{id}/unblock:
+    post:
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Unblock User
+      tags:
+      - Admin User Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+  /assets/presign-download:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PresignDownloadRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PresignDownloadResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Presign Download
+      tags:
+      - Asset Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /assets/presign-upload:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PresignUploadRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PresignUploadResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Presign Upload
+      tags:
+      - Asset Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - CONTENT_EDITOR
+  /assets/{assetId}/download-url:
+    get:
+      parameters:
+      - name: assetId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PresignDownloadResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Download Url
+      tags:
+      - Asset Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /attempts:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartAttemptRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StartAttemptResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Start Attempt
+      tags:
+      - Attempt Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+    get:
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+          maximum: 100
+          minimum: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedAttemptListResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Attempt History
+      tags:
+      - Attempt Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /attempts/{attemptId}:
+    get:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttemptDetailResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Attempt Detail
+      tags:
+      - Attempt Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /attempts/{attemptId}/responses:
+    put:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertResponseRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpsertResponseResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Upsert Response
+      tags:
+      - Attempt Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /attempts/{attemptId}/sections/submit:
+    post:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitSectionRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitSectionResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Submit Section
+      tags:
+      - Attempt Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /attempts/{attemptId}/submit:
+    post:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitAttemptResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Submit Attempt
+      tags:
+      - Attempt Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /auth/login:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          description: Bad Request
+      summary: Login Or Signup
+      tags:
+      - Auth Resource
+  /tests:
+    get:
+      parameters:
+      - name: level
+        in: query
+        schema:
+          anyOf:
+          - $ref: "#/components/schemas/CefrLevel"
+          - type: "null"
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedTestListResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: List Tests
+      tags:
+      - Test Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /tests/{testId}:
+    get:
+      parameters:
+      - name: testId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestDetailResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Test
+      tags:
+      - Test Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /tests/{testId}/sections/{sectionId}:
+    get:
+      parameters:
+      - name: sectionId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      - name: testId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SectionDetailResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Section
+      tags:
+      - Test Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /users/me:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Update Me
+      tags:
+      - User Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Me
+      tags:
+      - User Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /webhook/telegram:
+    post:
+      parameters:
+      - name: X-Telegram-Bot-Api-Secret-Token
+        in: header
+        schema:
+          type:
+          - string
+          - "null"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: {}
+      summary: Handle Webhook
+      tags:
+      - Telegram Webhook Resource
+info:
+  title: ManageLC CEFR Platform API
+  version: 1.0.0
+  description: CEFR Mock Test Platform API
+
+
