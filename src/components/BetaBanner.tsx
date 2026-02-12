@@ -1,41 +1,46 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 /**
  * Beta versiya banner komponenti
  * Test rejimida ishlayotgan sayt uchun ogohlantirish
+ * Animatsiya va liquid glass effect bilan
  */
 export const BetaBanner: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(
-    () => localStorage.getItem('beta_banner_dismissed') !== 'true'
-  );
-
-  const handleDismiss = () => {
-    localStorage.setItem('beta_banner_dismissed', 'true');
-    setIsVisible(false);
-  };
-
-  if (!isVisible) return null;
-
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white px-4 py-2 shadow-lg">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Beta Badge */}
-          <span className="px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-black uppercase tracking-wider">
+    <div className="fixed top-0 left-0 right-0 z-[100] overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 animate-gradient-x" />
+
+      {/* Liquid glass overlay with blur */}
+      <div className="absolute inset-0 backdrop-blur-md bg-white/10" />
+
+      {/* Animated floating bubbles */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute w-32 h-32 bg-white/10 rounded-full -top-16 -left-8 animate-float-slow blur-xl" />
+        <div className="absolute w-24 h-24 bg-white/10 rounded-full top-0 left-1/4 animate-float-medium blur-lg" />
+        <div className="absolute w-28 h-28 bg-white/10 rounded-full -top-12 right-1/4 animate-float-fast blur-xl" />
+        <div className="absolute w-20 h-20 bg-white/10 rounded-full top-0 -right-4 animate-float-slow blur-lg" />
+      </div>
+
+      {/* Content */}
+      <div className="relative backdrop-blur-sm bg-gradient-to-r from-white/5 to-white/10 border-b border-white/20 shadow-lg">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 flex-wrap px-4 py-2 text-white">
+          {/* Animated Beta Badge */}
+          <span className="px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-black uppercase tracking-wider animate-pulse shadow-lg">
             BETA
           </span>
 
           {/* Message */}
-          <p className="text-sm font-medium">
+          <p className="text-sm font-medium text-center">
             <span className="font-bold">Test rejimi:</span> Bu sayt beta versiyada ishlayapti.
             <span className="hidden sm:inline"> Xatolarni topgan bo'lsangiz,</span>{' '}
             <a
               href="https://t.me/mustofaqulof"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-bold underline hover:text-white/90 transition-colors"
+              className="inline-flex items-center gap-1 font-bold underline hover:text-white/90 transition-all hover:scale-105"
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 animate-bounce" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z" />
               </svg>
               @mustofaqulof
@@ -43,28 +48,56 @@ export const BetaBanner: React.FC = () => {
             <span className="hidden sm:inline"> ga xabar bering.</span>
           </p>
         </div>
-
-        {/* Dismiss Button */}
-        <button
-          onClick={handleDismiss}
-          className="flex-shrink-0 p-1 hover:bg-white/20 rounded-lg transition-colors"
-          aria-label="Yopish"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
       </div>
+
+      {/* Custom animations */}
+      <style>{`
+        @keyframes gradient-x {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+        @keyframes float-slow {
+          0%, 100% {
+            transform: translateY(0) translateX(0);
+          }
+          50% {
+            transform: translateY(-20px) translateX(10px);
+          }
+        }
+        @keyframes float-medium {
+          0%, 100% {
+            transform: translateY(0) translateX(0);
+          }
+          50% {
+            transform: translateY(-15px) translateX(-8px);
+          }
+        }
+        @keyframes float-fast {
+          0%, 100% {
+            transform: translateY(0) translateX(0);
+          }
+          50% {
+            transform: translateY(-25px) translateX(12px);
+          }
+        }
+        .animate-gradient-x {
+          background-size: 200% 200%;
+          animation: gradient-x 8s ease infinite;
+        }
+        .animate-float-slow {
+          animation: float-slow 6s ease-in-out infinite;
+        }
+        .animate-float-medium {
+          animation: float-medium 5s ease-in-out infinite;
+        }
+        .animate-float-fast {
+          animation: float-fast 4s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };
