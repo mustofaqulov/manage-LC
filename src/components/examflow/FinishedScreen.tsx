@@ -145,40 +145,25 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
             </p>
           )}
 
-          {recordings.length > 0 && (
+          {recordings.length > 0 && onDownloadAll && (
             <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8 text-left">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <p className="text-white/80 font-semibold">Audio recordings</p>
-                  <p className="text-white/40 text-xs">Download your speaking responses</p>
+                  <p className="text-white/40 text-xs">
+                    {recordings.length} javob yozildi • Bitta MP3 fayl sifatida yuklab olish
+                  </p>
                 </div>
-                {onDownloadAll && (
-                  <button
-                    type="button"
-                    onClick={onDownloadAll}
-                    disabled={isDownloading}
-                    className="px-4 py-2 rounded-xl bg-white/10 text-white/80 text-sm font-semibold hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                    {isDownloading ? 'Preparing...' : 'Download all'}
-                  </button>
-                )}
-              </div>
-              <div className="space-y-2">
-                {recordings.map((recording, index) => (
-                  <div
-                    key={`${recording.id}-${index}`}
-                    className="flex items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-                    <span className="text-white/70 text-sm">{recording.label}</span>
-                    {onDownloadRecording && (
-                      <button
-                        type="button"
-                        onClick={() => onDownloadRecording(recording, index)}
-                        disabled={isDownloading}
-                        className="px-3 py-1.5 rounded-lg bg-white/10 text-white/80 text-xs font-semibold hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        Download
-                      </button>
-                    )}
-                  </div>
-                ))}
+                <button
+                  type="button"
+                  onClick={onDownloadAll}
+                  disabled={isDownloading}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-bold hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                  </svg>
+                  {isDownloading ? 'Converting...' : 'Download as MP3'}
+                </button>
               </div>
             </div>
           )}

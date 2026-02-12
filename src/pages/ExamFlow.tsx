@@ -4,6 +4,7 @@ import { ExamStatus } from '../types';
 import { showToast } from '../utils/configs/toastConfig';
 import { playTTS, playBeep, stopAllAudio } from '../services/geminiService';
 import { useHasExamAccess } from '../hooks/useHasExamAccess';
+import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
 import {
   useGetTest,
   useGetSection,
@@ -449,17 +450,49 @@ const ExamFlow: React.FC = () => {
     if (isDownloading || recordingItems.length === 0) return;
     setIsDownloading(true);
     try {
-      for (let index = 0; index < recordingItems.length; index += 1) {
-        await downloadRecordingItem(recordingItems[index], index, false);
-        await new Promise((resolve) => setTimeout(resolve, 150));
+      // Barcha audio blob'larni yig'ish
+      const audioBlobs: Blob[] = [];
+
+      for (const recording of recordingItems) {
+        if (recording.blob) {
+          // Local blob mavjud
+          audioBlobs.push(recording.blob);
+        } else if (recording.assetId) {
+          // Server'dan yuklab olish kerak
+          const downloadData = await queries.getDownloadUrl(recording.assetId);
+          const response = await fetch(downloadData.downloadUrl);
+          const blob = await response.blob();
+          audioBlobs.push(blob);
+        }
       }
+
+      if (audioBlobs.length === 0) {
+        showToast.warning('Hech qanday audio topilmadi');
+        return;
+      }
+
+      showToast.info('Audio MP3 formatga konvertatsiya qilinmoqda...');
+
+      // Barcha audio'larni bitta MP3 ga birlashtirish
+      const combinedMp3 = await combineAudioToMp3(audioBlobs, (progress) => {
+        console.log(`🔄 Conversion progress: ${Math.round(progress * 100)}%`);
+      });
+
+      // Fayl nomini yaratish
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const filename = `exam-recording-${timestamp}.mp3`;
+
+      // Yuklab olish
+      downloadMp3(combinedMp3, filename);
+
+      showToast.success('Audio muvaffaqiyatli yuklab olindi');
     } catch (error) {
-      console.error('Bulk download failed:', error);
-      showToast.error('Yozuvlarni yuklab olishda xatolik yuz berdi');
+      console.error('MP3 conversion failed:', error);
+      showToast.error('Audio yuklab olishda xatolik yuz berdi');
     } finally {
       setIsDownloading(false);
     }
-  }, [downloadRecordingItem, isDownloading, recordingItems]);
+  }, [isDownloading, recordingItems]);
 
   // ================= QUESTION FLOW =================
   const runQuestion = async (q: QuestionResponse) => {

@@ -3,6 +3,9 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useGetAttemptHistory, useGetAttempt } from '../services/hooks';
 import type { AttemptListResponse, AttemptStatus } from '../api/types';
 import ScoreChart from '../components/ScoreChart';
+import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
+import { showToast } from '../utils/configs/toastConfig';
+import * as queries from '../services/queries';
 
 const STATUS_STYLES: Record<AttemptStatus, { bg: string; text: string; label: string }> = {
   IN_PROGRESS: { bg: 'from-blue-500 to-cyan-500', text: 'text-blue-400', label: 'Jarayonda' },
@@ -30,6 +33,62 @@ const formatDate = (dateStr: string) => {
 // Expandable detail row
 const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
   const { data: detail, isLoading } = useGetAttempt(attemptId);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadAudio = async () => {
+    if (!detail || isDownloading) return;
+
+    const responses = detail.responses ?? [];
+    const audioResponses = responses.filter(
+      (r) => r.answer && typeof r.answer === 'object' && 'audio' in r.answer && r.answer.audio
+    );
+
+    if (audioResponses.length === 0) {
+      showToast.warning('Audio topilmadi');
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      showToast.info('Audio yuklanmoqda...');
+
+      // Har bir audio'ni yuklab olish
+      const audioBlobs: Blob[] = [];
+      for (const response of audioResponses) {
+        const audioData = (response.answer as any).audio;
+        if (audioData.bucket && audioData.key) {
+          const downloadData = await queries.getDownloadUrl({ bucket: audioData.bucket, s3Key: audioData.key });
+          const res = await fetch(downloadData.downloadUrl);
+          const blob = await res.blob();
+          audioBlobs.push(blob);
+        }
+      }
+
+      if (audioBlobs.length === 0) {
+        showToast.error('Audio yuklanmadi');
+        return;
+      }
+
+      showToast.info('Audio MP3 formatga konvertatsiya qilinmoqda...');
+
+      // Barcha audio'larni bitta MP3 ga birlashtirish
+      const combinedMp3 = await combineAudioToMp3(audioBlobs);
+
+      // Fayl nomini yaratish
+      const timestamp = new Date(detail.startedAt).toISOString().slice(0, 10);
+      const filename = `exam-${detail.testTitle?.replace(/\s+/g, '-') || 'recording'}-${timestamp}.mp3`;
+
+      // Yuklab olish
+      downloadMp3(combinedMp3, filename);
+
+      showToast.success('Audio muvaffaqiyatli yuklab olindi');
+    } catch (error) {
+      console.error('Audio download failed:', error);
+      showToast.error('Audio yuklab olishda xatolik yuz berdi');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -45,20 +104,39 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
 
   const sections = detail.sections ?? [];
   const responses = detail.responses ?? [];
+  const hasAudio = responses.some(
+    (r) => r.answer && typeof r.answer === 'object' && 'audio' in r.answer && r.answer.audio
+  );
 
   return (
     <div className="space-y-5 py-2">
       {/* Summary row */}
-      <div className="flex flex-wrap items-center gap-3">
-        {detail.estimatedCefrLevel && (
-          <span className="px-3 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold">
-            CEFR {detail.estimatedCefrLevel}
-          </span>
-        )}
-        {detail.totalScore != null && detail.maxTotalScore != null && (
-          <span className="text-white/50 text-xs">
-            Ball: {Math.round(detail.totalScore)} / {Math.round(detail.maxTotalScore)}
-          </span>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {detail.estimatedCefrLevel && (
+            <span className="px-3 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold">
+              CEFR {detail.estimatedCefrLevel}
+            </span>
+          )}
+          {detail.totalScore != null && detail.maxTotalScore != null && (
+            <span className="text-white/50 text-xs">
+              Ball: {Math.round(detail.totalScore)} / {Math.round(detail.maxTotalScore)}
+            </span>
+          )}
+        </div>
+
+        {/* Audio Download Button */}
+        {hasAudio && (
+          <button
+            type="button"
+            onClick={handleDownloadAudio}
+            disabled={isDownloading}
+            className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+            {isDownloading ? 'Converting...' : 'Download Audio (MP3)'}
+          </button>
         )}
       </div>
 
