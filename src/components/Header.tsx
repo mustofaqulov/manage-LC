@@ -4,6 +4,7 @@ import { useTranslation } from '../i18n';
 import { useAuth } from '../hooks/useAuth';
 import Logo from '../assets/images/logo.svg';
 import LanguageSwitcher from './LanguageSwitcher';
+import { BetaBadge } from './BetaBanner';
 
 const Header: React.FC = memo(() => {
   const { user, logout: onLogout } = useAuth();
@@ -30,19 +31,20 @@ const Header: React.FC = memo(() => {
   };
 
   return (
-    <div className="fixed top-4 sm:top-6 md:top-10 left-0 right-0 z-50 px-3 sm:px-4 md:px-8">
+    <div className="fixed top-[60px] sm:top-[64px] md:top-[68px] left-0 right-0 z-50 px-3 sm:px-4 md:px-8">
       <nav
         className={`max-w-[1540px] mx-auto pointer-events-auto flex justify-between items-center py-2.5 sm:py-3 px-4 sm:px-6 md:px-10 rounded-2xl sm:rounded-3xl border transition-all duration-500 ${
           isExamContext
             ? 'bg-black/60 backdrop-blur-xl border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.6)]'
             : 'bg-black/40 backdrop-blur-xl border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)]'
         }`}>
-        <Link to="/" className="flex items-center group">
+        <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
           <img
             src={Logo}
             alt="Manage LC Logo"
             className="w-20 h-8 sm:w-24 sm:h-9 md:w-28 md:h-10 transition-opacity duration-300 group-hover:opacity-80 drop-shadow-[0_0_12px_rgba(255,115,0,0.3)]"
           />
+          <BetaBadge className="hidden sm:inline-flex" />
         </Link>
 
         {/* Desktop Navigation */}
