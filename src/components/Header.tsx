@@ -31,7 +31,7 @@ const Header: React.FC = memo(() => {
   };
 
   return (
-    <div className="fixed top-12 sm:top-14 md:top-16 left-0 right-0 z-50 px-3 sm:px-4 md:px-8">
+    <div className="fixed top-10 sm:top-11 md:top-12 left-0 right-0 z-50 px-3 sm:px-4 md:px-8">
       <nav
         className={`max-w-[1540px] mx-auto pointer-events-auto flex justify-between items-center py-2.5 sm:py-3 px-4 sm:px-6 md:px-10 rounded-2xl sm:rounded-3xl border transition-all duration-500 ${
           isExamContext
