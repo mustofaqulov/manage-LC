@@ -300,6 +300,23 @@ const ExamFlow: React.FC = () => {
   };
 
   // ================= AUDIO UPLOAD =================
+  const resolveBucketFromUploadUrl = (uploadUrl: string) => {
+    try {
+      const url = new URL(uploadUrl);
+      const host = url.hostname;
+      const pathParts = url.pathname.split('/').filter(Boolean);
+      if (host.includes('.s3')) {
+        return host.split('.s3')[0] || null;
+      }
+      if (host.startsWith('s3') || host.startsWith('s3-')) {
+        return pathParts[0] || null;
+      }
+      return pathParts[0] || null;
+    } catch {
+      return null;
+    }
+  };
+
   const uploadAudioAndSubmitResponse = async (audioBlob: Blob, aId: string, questionId: string) => {
     try {
       console.log('📤 Uploading audio response...', {
@@ -317,6 +334,10 @@ const ExamFlow: React.FC = () => {
         questionId,
       });
 
+      const bucket = resolveBucketFromUploadUrl(presign.uploadUrl) ?? 'unknown';
+
+      const key = presign.s3Key ?? '';
+
       console.log('📋 Got presigned URL, uploading to S3...');
 
       // 2. Upload to S3
@@ -332,7 +353,7 @@ const ExamFlow: React.FC = () => {
       await upsertResponseMutation({
         attemptId: aId,
         questionId,
-        answer: { assetId: presign.assetId },
+        answer: { audio: { bucket, key } },
       });
 
       console.log('✅ Response saved successfully');
@@ -516,7 +537,7 @@ const ExamFlow: React.FC = () => {
         setStatus(ExamStatus.IDLE);
       } else {
         // Section complete - submit section
-        if (attemptIdRef.current && currentSectionId) {
+        if (!isRandomMode && attemptIdRef.current && currentSectionId) {
           try {
             await submitSectionMutation({
               attemptId: attemptIdRef.current,
@@ -538,10 +559,10 @@ const ExamFlow: React.FC = () => {
         } else {
           // All sections done - submit attempt
           console.log('🎉 All sections completed!');
-          setIsSubmittingAttempt(true);
           setStatus(ExamStatus.FINISHED);
 
-          if (attemptIdRef.current) {
+          if (!isRandomMode && attemptIdRef.current) {
+            setIsSubmittingAttempt(true);
             try {
               await submitAttemptMutation(attemptIdRef.current);
               await refetchAttempt();
@@ -549,8 +570,8 @@ const ExamFlow: React.FC = () => {
             } catch (error) {
               console.error('❌ Attempt submit failed:', error);
             }
+            setIsSubmittingAttempt(false);
           }
-          setIsSubmittingAttempt(false);
         }
       }
     } catch (error) {
@@ -622,7 +643,7 @@ const ExamFlow: React.FC = () => {
   // ================= FINISH (CUSTOM MODE) =================
   const handleFinishExam = useCallback(async () => {
     cleanupAll();
-    if (attemptIdRef.current) {
+    if (!isRandomMode && attemptIdRef.current) {
       try {
         // Submit current section if in progress
         if (currentSectionId) {
@@ -637,7 +658,7 @@ const ExamFlow: React.FC = () => {
       }
     }
     navigate('/mock-exam');
-  }, [cleanupAll, currentSectionId, submitSectionMutation, submitAttemptMutation, navigate]);
+  }, [cleanupAll, currentSectionId, submitSectionMutation, submitAttemptMutation, navigate, isRandomMode]);
 
   // ================= START EXAM =================
   const handleStartExam = useCallback(async () => {
@@ -856,6 +877,17 @@ const ExamFlow: React.FC = () => {
 };
 
 export default ExamFlow;
+
+
+
+
+
+
+
+
+
+
+
 
 
 

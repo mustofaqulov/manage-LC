@@ -39,7 +39,12 @@ export const useUpdateMe = () => {
       queryClient.setQueryData([QUERY_KEYS.USER], data);
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.USER] });
     },
-    onError: () => {
+    onError: (error) => {
+      const message = error?.response?.data?.message;
+      if (message === 'Attempt cannot be modified in status: SCORED') {
+        showToast.info('Imtihon baholandi');
+        return;
+      }
       showToast.error(t('errors.saveFailed'));
     },
   });
@@ -151,7 +156,12 @@ export const useUpsertResponse = () => {
         queryKey: [QUERY_KEYS.ATTEMPT, variables.attemptId]
       });
     },
-    onError: () => {
+    onError: (error) => {
+      const message = error?.response?.data?.message;
+      if (message === 'Attempt cannot be modified in status: SCORED') {
+        showToast.info('Imtihon baholandi');
+        return;
+      }
       showToast.error(t('errors.saveFailed'));
     },
   });
@@ -242,4 +252,5 @@ export const useUploadToS3 = () => {
     },
   });
 };
+
 
