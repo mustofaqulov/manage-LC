@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n';
 import { useLogin, useUpdateMe } from '../services/hooks';
-import { useAppDispatch } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setCredentials, setUser } from '../store/slices/authSlice';
 import type { UserResponse } from '../api/types';
+import { debugToken } from '../utils/jwtDebug';
 
 const TELEGRAM_BOT_USERNAME = 'managelcbot'; // Telegram bot username
 
@@ -12,8 +13,21 @@ const Login: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const [step, setStep] = useState<'PHONE' | 'CODE' | 'PROFILE'>('PHONE');
+
+  // Agar user allaqachon authenticated lekin profili to'liq emas bo'lsa,
+  // darhol PROFILE step'ga o'tkazamiz
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const hasIncompleteProfile = !user.firstName?.trim() || !user.lastName?.trim();
+      if (hasIncompleteProfile) {
+        console.log('📝 User has incomplete profile, showing PROFILE step');
+        setStep('PROFILE');
+      }
+    }
+  }, [isAuthenticated, user]);
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -92,6 +106,11 @@ const Login: React.FC = () => {
             lastLoginAt: null,
           };
 
+          // Token'ni darhol localStorage'ga saqlash (Redux'dan oldin)
+          localStorage.setItem('auth_token', result.token);
+          localStorage.setItem('user_data', JSON.stringify(mappedUser));
+
+          // Keyin Redux'ni yangilash
           dispatch(
             setCredentials({
               user: mappedUser,
@@ -136,6 +155,14 @@ const Login: React.FC = () => {
 
     setError(null);
 
+    // Debug: Token tekshirish
+    const token = localStorage.getItem('auth_token');
+    console.log('🔍 Token before updateMe:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
+    console.log('🔍 User data:', localStorage.getItem('user_data'));
+
+    // JWT tokenni decode qilib ko'rish
+    debugToken();
+
     updateMe(
       {
         firstName: firstName.trim(),
@@ -144,12 +171,15 @@ const Login: React.FC = () => {
       },
       {
         onSuccess: (updatedUser: UserResponse) => {
+          console.log('✅ Profile updated successfully:', updatedUser);
           // Redux'ni yangilangan user bilan yangilash
           dispatch(setUser(updatedUser));
           navigate('/mock-exam');
         },
         onError: (err: any) => {
-          console.error('Profile update error:', err);
+          console.error('❌ Profile update error:', err);
+          console.error('❌ Error response:', err.response?.data);
+          console.error('❌ Error status:', err.response?.status);
           setError("Profil saqlashda xatolik. Qaytadan urinib ko'ring.");
         },
       },

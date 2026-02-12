@@ -11,6 +11,7 @@ import type { RootState } from './store';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import ScrollToTop from './components/ScrollToTop';
+import { RequireProfile } from './components/RequireProfile';
 import { I18nProvider } from './i18n';
 import { toastConfig } from './utils/configs/toastConfig';
 import styles from './App.module.scss';
@@ -58,24 +59,26 @@ const App: React.FC = () => {
           <I18nProvider>
             <Router>
               <ScrollToTop />
-              <Layout>
-              <Suspense fallback={<div className={styles.suspenseFallback}>Loading...</div>}>
-                <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/mock-exam" element={<MockExam />} />
-                <Route path="/exam-flow/:testId" element={<ProtectedRoute><ExamFlow /></ProtectedRoute>} />
-                <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-                <Route path="/courses/english" element={<CourseDetail />} />
-                <Route path="/subscribe" element={<Subscribe />} />
-                <Route path="/api-test" element={<ApiTest />} />
-                <Route path="/custom-exam" element={<CustomExam />} />
-              </Routes>
-              </Suspense>
-            </Layout>
-          </Router>
+              <RequireProfile>
+                <Layout>
+                  <Suspense fallback={<div className={styles.suspenseFallback}>Loading...</div>}>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/mock-exam" element={<MockExam />} />
+                      <Route path="/exam-flow/:testId" element={<ProtectedRoute><ExamFlow /></ProtectedRoute>} />
+                      <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+                      <Route path="/leaderboard" element={<Leaderboard />} />
+                      <Route path="/courses/english" element={<CourseDetail />} />
+                      <Route path="/subscribe" element={<Subscribe />} />
+                      <Route path="/api-test" element={<ApiTest />} />
+                      <Route path="/custom-exam" element={<CustomExam />} />
+                    </Routes>
+                  </Suspense>
+                </Layout>
+              </RequireProfile>
+            </Router>
         </I18nProvider>
       </ErrorBoundary>
       <ToastContainer {...toastConfig} aria-label="Notifications" />
