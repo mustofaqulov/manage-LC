@@ -4,7 +4,6 @@ import { useTranslation } from '../i18n';
 import { useAuth } from '../hooks/useAuth';
 import Logo from '../assets/images/logo.svg';
 import LanguageSwitcher from './LanguageSwitcher';
-import { BetaBadge } from './BetaBanner';
 
 const Header: React.FC = memo(() => {
   const { user, logout: onLogout } = useAuth();
@@ -44,7 +43,6 @@ const Header: React.FC = memo(() => {
             alt="Manage LC Logo"
             className="w-20 h-8 sm:w-24 sm:h-9 md:w-28 md:h-10 transition-opacity duration-300 group-hover:opacity-80 drop-shadow-[0_0_12px_rgba(255,115,0,0.3)]"
           />
-          <BetaBadge className="hidden sm:inline-flex" />
         </Link>
 
         {/* Desktop Navigation */}
