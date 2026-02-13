@@ -41,6 +41,8 @@ const Header: React.FC = memo(() => {
           <img
             src={Logo}
             alt="Manage LC Logo"
+            width="112"
+            height="40"
             className="w-20 h-8 sm:w-24 sm:h-9 md:w-28 md:h-10 transition-opacity duration-300 group-hover:opacity-80 drop-shadow-[0_0_12px_rgba(255,115,0,0.3)]"
           />
         </Link>

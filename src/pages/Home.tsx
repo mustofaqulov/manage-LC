@@ -105,7 +105,10 @@ const Home: React.FC = () => {
                   <img
                     src={img}
                     alt={`Student IELTS speaking test result ${i + 1} - Manage LC success story`}
-                    loading="lazy"
+                    width="1080"
+                    height="1920"
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={i === 0 ? 'high' : undefined}
                     decoding="async"
                     className="absolute inset-0 w-full h-full object-cover rounded-[24px] sm:rounded-[32px] lg:rounded-[40px]"
                   />

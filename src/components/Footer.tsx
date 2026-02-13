@@ -20,6 +20,8 @@ const Footer: React.FC = memo(() => {
           <img
             src={LogoLight}
             alt="Manage LC Logo"
+            width="160"
+            height="64"
             className="w-40 mb-6 drop-shadow-[0_0_40px_rgba(255,115,0,0.6)]"
           />
           <div className="flex gap-4">
