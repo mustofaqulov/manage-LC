@@ -80,6 +80,12 @@ const MockExam: React.FC = () => {
   }, [isAuthenticated, hasAccess]);
 
   const handleModeSelect = (mode: ExamMode | 'custom') => {
+    // Random mode - coming soon
+    if (mode === 'random') {
+      showToast.info('Bu funksiya tez orada qo\'shiladi');
+      return;
+    }
+
     // Access yo'q bo'lsa toast ko'rsatib, return qilamiz
     if (!hasAccess) {
       showToast.warning('Imtihon topshirish uchun premium obuna sotib oling');
@@ -157,16 +163,28 @@ const MockExam: React.FC = () => {
               <button
                 key={card.mode}
                 onClick={() => handleModeSelect(card.mode)}
-                disabled={!hasAccess}
-                className={`group relative text-left ${!hasAccess ? 'cursor-not-allowed opacity-50' : ''}`}>
+                disabled={!hasAccess || card.mode === 'random'}
+                className={`group relative text-left ${!hasAccess || card.mode === 'random' ? 'cursor-not-allowed opacity-50' : ''}`}>
                 <div
                   className={`absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] opacity-0 blur-2xl transition-all duration-700 ${hasAccess ? 'group-hover:opacity-100' : ''}`}
                   style={{ background: `radial-gradient(circle, ${card.glow}, transparent 70%)` }}
                 />
                 <div className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-6 sm:p-8 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)] transition-all duration-500 flex flex-col items-center text-center min-h-[280px] sm:min-h-[300px] ${hasAccess ? 'group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03]' : ''}`}>
 
-                  {/* Premium Badge - faqat access yo'q bo'lsa */}
-                  {!hasAccess && (
+                  {/* Coming Soon Badge - random mode uchun */}
+                  {card.mode === 'random' && (
+                    <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-500/30 backdrop-blur-sm">
+                      <span className="text-xs font-bold text-sky-400 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                        </svg>
+                        Coming Soon
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Premium Badge - faqat access yo'q bo'lsa va random mode emas */}
+                  {!hasAccess && card.mode !== 'random' && (
                     <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 backdrop-blur-sm">
                       <span className="text-xs font-bold text-orange-400 flex items-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -178,8 +196,12 @@ const MockExam: React.FC = () => {
                   )}
 
                   {/* Icon */}
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-white mb-5 shadow-lg transition-transform duration-500 ${hasAccess ? 'group-hover:scale-110' : ''}`}>
-                    {!hasAccess ? (
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-white mb-5 shadow-lg transition-transform duration-500 ${hasAccess && card.mode !== 'random' ? 'group-hover:scale-110' : ''}`}>
+                    {card.mode === 'random' ? (
+                      <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      </svg>
+                    ) : !hasAccess ? (
                       <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
