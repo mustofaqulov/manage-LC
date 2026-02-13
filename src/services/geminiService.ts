@@ -92,20 +92,16 @@ export const playBeep = async (): Promise<void> => {
 // Beep'ni to'xtatish funksiyasi
 export const stopBeep = (): void => {
   try {
-    console.log('🛑 Stopping beep...');
 
     if (beepTimeoutId) {
       clearTimeout(beepTimeoutId);
       beepTimeoutId = null;
-      console.log('  - Cleared beep timeout');
     }
 
     if (currentOscillator) {
       try {
         currentOscillator.stop();
-        console.log('  - Stopped oscillator');
       } catch (e) {
-        console.log('  - Oscillator already stopped:', (e as Error).message);
       }
       currentOscillator = null;
     }
@@ -117,12 +113,10 @@ export const stopBeep = (): void => {
 // Barcha audio resurslarni to'xtatish
 export const stopAllAudio = (): void => {
   try {
-    console.log('🛑 Stopping all audio...');
 
     // TTS ni to'xtatish
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
-      console.log('  - Cancelled speech synthesis');
     }
 
     // Beep'ni to'xtatish
@@ -133,11 +127,9 @@ export const stopAllAudio = (): void => {
       try {
         if (audioCtx.state === 'running') {
           audioCtx.suspend();
-          console.log('  - Suspended AudioContext');
         }
         if (audioCtx.state !== 'closed') {
           audioCtx.close();
-          console.log('  - Closed AudioContext');
         }
       } catch (e) {
         console.warn('  - Error with AudioContext:', (e as Error).message);
@@ -145,7 +137,6 @@ export const stopAllAudio = (): void => {
       audioCtx = null;
     }
 
-    console.log('✅ All audio stopped');
   } catch (error) {
     console.warn('⚠️ Error stopping all audio:', error);
   }

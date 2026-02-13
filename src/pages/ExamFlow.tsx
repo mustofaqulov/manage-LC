@@ -233,7 +233,6 @@ const ExamFlow: React.FC = () => {
   // ================= CLEANUP =================
   const cleanupAll = useCallback(() => {
     try {
-      console.log('🧹 Starting cleanup...');
       stopAllAudio();
 
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -256,7 +255,6 @@ const ExamFlow: React.FC = () => {
       }
 
       runningRef.current = false;
-      console.log('✅ All audio and resources cleaned up');
     } catch (error) {
       console.warn('⚠️ Cleanup error:', error);
     }
@@ -332,12 +330,6 @@ const ExamFlow: React.FC = () => {
 
   const uploadAudioAndSubmitResponse = async (audioBlob: Blob, aId: string, questionId: string) => {
     try {
-      console.log('📤 Uploading audio response...', {
-        attemptId: aId,
-        questionId,
-        size: audioBlob.size,
-      });
-
       // 1. Get presigned upload URL
       const presign = await presignUploadMutation({
         assetType: 'AUDIO',
@@ -351,7 +343,6 @@ const ExamFlow: React.FC = () => {
 
       const key = presign.s3Key ?? '';
 
-      console.log('📋 Got presigned URL, uploading to S3...');
 
       // 2. Upload to S3
       await uploadToS3Mutation({
@@ -360,7 +351,6 @@ const ExamFlow: React.FC = () => {
         headers: presign.headers,
       });
 
-      console.log('✅ Uploaded to S3, saving response...');
 
       // 3. Save response
       await upsertResponseMutation({
@@ -369,7 +359,6 @@ const ExamFlow: React.FC = () => {
         answer: { audio: { bucket, key } },
       });
 
-      console.log('✅ Response saved successfully');
     } catch (error) {
       console.error('❌ Failed to upload/save response:', error);
       // Don't block exam flow on upload failure
@@ -477,7 +466,6 @@ const ExamFlow: React.FC = () => {
 
       // Barcha audio'larni bitta MP3 ga birlashtirish
       const combinedMp3 = await combineAudioToMp3(audioBlobs, (progress) => {
-        console.log(`🔄 Conversion progress: ${Math.round(progress * 100)}%`);
       });
 
       // Fayl nomini yaratish
@@ -539,20 +527,17 @@ const ExamFlow: React.FC = () => {
 
           recorder.onstop = () => {
             const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-            console.log('🔊 Recording completed:', { size: audioBlob.size, chunks: chunks.length });
             resolve(audioBlob);
           };
         });
 
         recorder.start();
-        console.log('🎙️ Recording started');
 
         await startTimer(recordTime);
         await playBeep();
 
         if (recorder.state === 'recording') {
           recorder.stop();
-          console.log('🎙️ Recording stopped');
         }
 
         // Wait for the blob and upload
@@ -591,7 +576,6 @@ const ExamFlow: React.FC = () => {
               attemptId: attemptIdRef.current,
               sectionId: currentSectionId,
             });
-            console.log('✅ Section submitted');
           } catch (error) {
             console.error('❌ Section submit failed:', error);
           }
@@ -599,14 +583,12 @@ const ExamFlow: React.FC = () => {
 
         if (currentSectionIdx < sections.length - 1) {
           // More sections to go - automatically move to next section
-          console.log(`✅ Section ${currentSectionIdx + 1} completed, moving to next`);
           setCurrentSectionIdx((i) => i + 1);
           setCurrentQuestionIdx(0);
           setSectionDetail(null);
           setStatus(ExamStatus.IDLE);
         } else {
           // All sections done - submit attempt
-          console.log('🎉 All sections completed!');
           setStatus(ExamStatus.FINISHED);
 
           if (!isRandomMode && attemptIdRef.current) {
@@ -614,7 +596,6 @@ const ExamFlow: React.FC = () => {
             try {
               await submitAttemptMutation(attemptIdRef.current);
               await refetchAttempt();
-              console.log('✅ Attempt submitted');
             } catch (error) {
               console.error('❌ Attempt submit failed:', error);
             }
@@ -719,7 +700,6 @@ const ExamFlow: React.FC = () => {
       setAttemptId(result.attemptId);
       attemptIdRef.current = result.attemptId;
       setIsStarted(true);
-      console.log('✅ Attempt started:', result.attemptId);
     } catch (error: any) {
       console.error('❌ Failed to start attempt:', error);
       // Backend 403 qaytarsa — obuna yo'q
@@ -756,9 +736,7 @@ const ExamFlow: React.FC = () => {
   // ================= MIC PERMISSION =================
   const requestMic = async () => {
     try {
-      console.log('🎤 Requesting microphone permission...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log('✅ Microphone access granted');
 
       micStreamRef.current = stream;
       setIsMicAllowed(true);

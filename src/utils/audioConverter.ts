@@ -79,7 +79,6 @@ export const combineAudioToMp3 = async (
   blobs: Blob[],
   onProgress?: (progress: number) => void,
 ): Promise<Blob> => {
-  console.log(`🔊 Converting ${blobs.length} audio files to MP3...`);
 
   if (blobs.length === 0) {
     throw new Error('No audio blobs provided');
@@ -118,11 +117,6 @@ export const combineAudioToMp3 = async (
   if (onProgress) {
     onProgress(1);
   }
-
-  console.log(`✅ MP3 conversion complete:`, {
-    inputFiles: blobs.length,
-    outputSize: `${(mp3Blob.size / 1024 / 1024).toFixed(2)} MB`,
-  });
 
   return mp3Blob;
 };

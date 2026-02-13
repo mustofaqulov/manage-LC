@@ -23,7 +23,6 @@ const Login: React.FC = () => {
     if (isAuthenticated && user) {
       const hasIncompleteProfile = !user.firstName?.trim() || !user.lastName?.trim();
       if (hasIncompleteProfile) {
-        console.log('📝 User has incomplete profile, showing PROFILE step');
         setStep('PROFILE');
       }
     }
@@ -157,8 +156,6 @@ const Login: React.FC = () => {
 
     // Debug: Token tekshirish
     const token = localStorage.getItem('auth_token');
-    console.log('🔍 Token before updateMe:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
-    console.log('🔍 User data:', localStorage.getItem('user_data'));
 
     // JWT tokenni decode qilib ko'rish
     debugToken();
@@ -171,7 +168,6 @@ const Login: React.FC = () => {
       },
       {
         onSuccess: (updatedUser: UserResponse) => {
-          console.log('✅ Profile updated successfully:', updatedUser);
           // Redux'ni yangilangan user bilan yangilash
           dispatch(setUser(updatedUser));
           navigate('/mock-exam');

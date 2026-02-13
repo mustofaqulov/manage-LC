@@ -39,17 +39,9 @@ export const debugToken = () => {
     return;
   }
 
-  console.log('🔍 Token Debug:');
-  console.log('Token (first 50 chars):', token.substring(0, 50) + '...');
 
   const decoded = decodeJWT(token);
   if (decoded) {
-    console.log('📦 Decoded JWT Payload:', decoded);
-    console.log('👤 User ID (sub):', decoded.sub);
-    console.log('🎭 Role:', decoded.role || decoded.roles || decoded.authorities);
-    console.log('⏰ Issued At:', decoded.iat ? new Date(decoded.iat * 1000).toISOString() : 'N/A');
-    console.log('⌛ Expires At:', decoded.exp ? new Date(decoded.exp * 1000).toISOString() : 'N/A');
-    console.log('🕐 Is Expired:', decoded.exp ? decoded.exp * 1000 < Date.now() : 'Unknown');
 
     if (decoded.exp && decoded.exp * 1000 < Date.now()) {
       console.error('❌ TOKEN IS EXPIRED!');

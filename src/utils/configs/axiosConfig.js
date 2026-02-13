@@ -16,7 +16,6 @@ axiosClient.interceptors.request.use(
     const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log(`🌐 [${config.method?.toUpperCase()}] ${config.url} - Token: ${token.substring(0, 20)}...`);
     } else {
       console.warn(`⚠️ [${config.method?.toUpperCase()}] ${config.url} - NO TOKEN!`);
     }
