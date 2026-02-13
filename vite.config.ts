@@ -1,52 +1,68 @@
 import path from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import viteImagemin from 'vite-plugin-imagemin';
 
-export default defineConfig({
-  plugins: [
-    react(),
-    viteImagemin({
-      gifsicle: {
-        optimizationLevel: 7,
-        interlaced: false,
-      },
-      optipng: {
-        optimizationLevel: 7,
-      },
-      mozjpeg: {
-        quality: 80,
-      },
-      pngquant: {
-        quality: [0.8, 0.9],
-        speed: 4,
-      },
-      svgo: {
-        plugins: [
-          {
-            name: 'removeViewBox',
-            active: false,
+// Detect CI environment (GitHub Actions, Vercel, Netlify, etc.)
+const isCI = process.env.CI === 'true' || process.env.VERCEL || process.env.NETLIFY;
+
+export default defineConfig(async () => {
+  const plugins = [react()];
+
+  // Only load imagemin in local development to avoid CI build issues
+  // Images are pre-optimized, so this is optional
+  if (!isCI) {
+    try {
+      const viteImagemin = (await import('vite-plugin-imagemin')).default;
+      plugins.push(
+        viteImagemin({
+          gifsicle: {
+            optimizationLevel: 7,
+            interlaced: false,
           },
-          {
-            name: 'removeEmptyAttrs',
-            active: true,
+          optipng: {
+            optimizationLevel: 7,
           },
-        ],
-      },
-      webp: {
-        quality: 85,
-      },
-    }),
-  ],
-  define: {
-    __VITE_GEMINI_API_KEY__: JSON.stringify(process.env.VITE_GEMINI_API_KEY || ''),
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
+          mozjpeg: {
+            quality: 80,
+          },
+          pngquant: {
+            quality: [0.8, 0.9],
+            speed: 4,
+          },
+          svgo: {
+            plugins: [
+              {
+                name: 'removeViewBox',
+                active: false,
+              },
+              {
+                name: 'removeEmptyAttrs',
+                active: true,
+              },
+            ],
+          },
+          webp: {
+            quality: 85,
+          },
+        }),
+      );
+    } catch (e) {
+      console.log('⚠️  vite-plugin-imagemin not available, skipping image optimization');
+    }
+  }
+
+  return {
+    plugins,
+    define: {
+      __VITE_GEMINI_API_KEY__: JSON.stringify(process.env.VITE_GEMINI_API_KEY || ''),
     },
-  },
-  server: {
-    port: 4173,
-  },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+      },
+    },
+    server: {
+      port: 4173,
+    },
+  };
 });
