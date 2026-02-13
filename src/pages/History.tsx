@@ -3,7 +3,6 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useGetAttemptHistory, useGetAttempt } from '../services/hooks';
 import type { AttemptListResponse, AttemptStatus } from '../api/types';
 import ScoreChart from '../components/ScoreChart';
-import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
 import { showToast } from '../utils/configs/toastConfig';
 import * as queries from '../services/queries';
 
@@ -70,6 +69,9 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
       }
 
       showToast.info('Audio MP3 formatga konvertatsiya qilinmoqda...');
+
+      // Lazy load audioConverter module for better performance
+      const { combineAudioToMp3, downloadMp3 } = await import('../utils/audioConverter');
 
       // Barcha audio'larni bitta MP3 ga birlashtirish
       const combinedMp3 = await combineAudioToMp3(audioBlobs);

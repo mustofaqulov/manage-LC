@@ -4,7 +4,6 @@ import { ExamStatus } from '../types';
 import { showToast } from '../utils/configs/toastConfig';
 import { playTTS, playBeep, stopAllAudio } from '../services/geminiService';
 import { useHasExamAccess } from '../hooks/useHasExamAccess';
-import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
 import {
   useGetTest,
   useGetSection,
@@ -472,6 +471,9 @@ const ExamFlow: React.FC = () => {
       }
 
       showToast.info('Audio MP3 formatga konvertatsiya qilinmoqda...');
+
+      // Lazy load audioConverter module for better performance
+      const { combineAudioToMp3, downloadMp3 } = await import('../utils/audioConverter');
 
       // Barcha audio'larni bitta MP3 ga birlashtirish
       const combinedMp3 = await combineAudioToMp3(audioBlobs, (progress) => {

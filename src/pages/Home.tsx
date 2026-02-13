@@ -104,7 +104,7 @@ const Home: React.FC = () => {
                 <div className="relative w-full h-full overflow-hidden rounded-[24px] sm:rounded-[32px] lg:rounded-[40px]">
                   <img
                     src={img}
-                    alt=""
+                    alt={`Student IELTS speaking test result ${i + 1} - Manage LC success story`}
                     loading="lazy"
                     decoding="async"
                     className="absolute inset-0 w-full h-full object-cover rounded-[24px] sm:rounded-[32px] lg:rounded-[40px]"
@@ -140,11 +140,14 @@ const Home: React.FC = () => {
         </div>
 
         {/* Custom dots */}
-        <div className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-10">
+        <div className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-10" role="tablist" aria-label="Carousel navigation">
           {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => swiperInstance?.slideToLoop(i)}
+              role="tab"
+              aria-selected={i === activeIndex}
+              aria-label={`Go to slide ${i + 1} of ${slides.length}`}
               className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
                 i === activeIndex
                   ? 'w-8 sm:w-10 bg-orange-500 shadow-[0_0_10px_rgba(255,115,0,0.8)] sm:shadow-[0_0_15px_rgba(255,115,0,0.8)]'
