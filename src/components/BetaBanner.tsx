@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
+const STORAGE_KEY = 'beta_banner_dismissed';
 
 /**
  * Beta versiya banner komponenti
@@ -6,6 +8,25 @@ import React from 'react';
  * Animatsiya va liquid glass effect bilan
  */
 export const BetaBanner: React.FC = () => {
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  // Check localStorage on mount
+  useEffect(() => {
+    const dismissed = localStorage.getItem(STORAGE_KEY);
+    if (dismissed === 'true') {
+      setIsDismissed(true);
+    }
+  }, []);
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    localStorage.setItem(STORAGE_KEY, 'true');
+  };
+
+  if (isDismissed) {
+    return null;
+  }
+
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] overflow-hidden">
       {/* Animated gradient background */}
@@ -24,7 +45,27 @@ export const BetaBanner: React.FC = () => {
 
       {/* Content */}
       <div className="relative backdrop-blur-sm bg-gradient-to-r from-white/5 to-white/10 border-b border-white/20 shadow-lg">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 flex-wrap px-4 py-2 text-white">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 flex-wrap px-4 py-2 text-white relative">
+          {/* Close button */}
+          <button
+            onClick={handleDismiss}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm flex items-center justify-center transition-all duration-300 hover:scale-110 group"
+            aria-label="Close beta banner"
+          >
+            <svg
+              className="w-4 h-4 text-white/70 group-hover:text-white transition-colors"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
           {/* Animated Beta Badge */}
           <span className="px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-black uppercase tracking-wider animate-pulse shadow-lg">
             BETA
