@@ -340,9 +340,8 @@ const ExamFlow: React.FC = () => {
       });
 
       const bucket = resolveBucketFromUploadUrl(presign.uploadUrl) ?? 'unknown';
-
       const key = presign.s3Key ?? '';
-
+      const assetId = presign.assetId;
 
       // 2. Upload to S3
       await uploadToS3Mutation({
@@ -351,12 +350,11 @@ const ExamFlow: React.FC = () => {
         headers: presign.headers,
       });
 
-
-      // 3. Save response
+      // 3. Save response with assetId for future downloads
       await upsertResponseMutation({
         attemptId: aId,
         questionId,
-        answer: { audio: { bucket, key } },
+        answer: { audio: { assetId, bucket, key } },
       });
 
     } catch (error) {

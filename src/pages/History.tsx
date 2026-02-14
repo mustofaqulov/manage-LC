@@ -55,8 +55,15 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
       const audioBlobs: Blob[] = [];
       for (const response of audioResponses) {
         const audioData = (response.answer as any).audio;
-        if (audioData.bucket && audioData.key) {
-          const downloadData = await queries.getDownloadUrl({ bucket: audioData.bucket, s3Key: audioData.key });
+        // Use assetId if available (new format), fallback to presign-download API for old format
+        if (audioData.assetId) {
+          const downloadData = await queries.getDownloadUrl(audioData.assetId);
+          const res = await fetch(downloadData.downloadUrl);
+          const blob = await res.blob();
+          audioBlobs.push(blob);
+        } else if (audioData.bucket && audioData.key) {
+          // Legacy format - use presign-download endpoint
+          const downloadData = await queries.presignDownload({ bucket: audioData.bucket, s3Key: audioData.key });
           const res = await fetch(downloadData.downloadUrl);
           const blob = await res.blob();
           audioBlobs.push(blob);

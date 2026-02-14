@@ -76,9 +76,9 @@ export const presignUpload = ({ assetType, mimeType, contextType, attemptId, que
     });
 };
 
-export const presignDownload = ({ assetId }) => {
+export const presignDownload = ({ assetId, bucket, s3Key }) => {
   return axiosClient
-    .post('/assets/presign-download', { assetId })
+    .post('/assets/presign-download', { assetId, bucket, s3Key })
     .then((response) => {
       return response.data;
     });
