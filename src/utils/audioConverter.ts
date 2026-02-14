@@ -69,7 +69,7 @@ const encodeToMp3 = (audioBuffer: AudioBuffer): Blob => {
     offset += buf.length;
   }
 
-  return new Blob([mp3Buffer], { type: 'audio/mp3' });
+  return new Blob([mp3Buffer], { type: 'audio/mpeg' });
 };
 
 /**
