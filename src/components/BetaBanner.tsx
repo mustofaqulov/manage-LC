@@ -15,12 +15,14 @@ export const BetaBanner: React.FC = () => {
     const dismissed = localStorage.getItem(STORAGE_KEY);
     if (dismissed === 'true') {
       setIsDismissed(true);
+      document.body.classList.add('beta-banner-dismissed');
     }
   }, []);
 
   const handleDismiss = () => {
     setIsDismissed(true);
     localStorage.setItem(STORAGE_KEY, 'true');
+    document.body.classList.add('beta-banner-dismissed');
   };
 
   if (isDismissed) {
