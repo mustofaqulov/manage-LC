@@ -835,7 +835,10 @@ const ExamFlow: React.FC = () => {
   if (status === ExamStatus.FINISHED) {
     return (
       <FinishedScreen
-        onGoToResults={() => navigate('/history')}
+        onGoToResults={() => {
+          cleanupAll();
+          navigate('/history', { replace: true });
+        }}
         attempt={attemptDetail}
         isSubmitting={isSubmittingAttempt}
         recordings={recordingItems}
