@@ -37,6 +37,19 @@ const ExamBody: React.FC<ExamBodyProps> = ({
   const isPart2 = sectionTitle.toUpperCase().includes('PART_2') || sectionTitle.toUpperCase().includes('PART 2');
   const isPart3 = sectionTitle.toUpperCase().includes('PART_3') || sectionTitle.toUpperCase().includes('PART 3');
 
+  // Part 3 uchun options'ni For/Against bo'yicha guruhlash
+  const forOptions = options.filter(opt =>
+    opt.label?.toUpperCase().includes('FOR') ||
+    opt.label?.toUpperCase().includes('BENEFIT') ||
+    opt.label?.toUpperCase().includes('ADVANTAGE')
+  );
+  const againstOptions = options.filter(opt =>
+    opt.label?.toUpperCase().includes('AGAINST') ||
+    opt.label?.toUpperCase().includes('DRAWBACK') ||
+    opt.label?.toUpperCase().includes('DISADVANTAGE')
+  );
+  const hasGroupedOptions = isPart3 && (forOptions.length > 0 || againstOptions.length > 0);
+
   return (
     <div className="relative group">
       <div className="absolute -inset-2 bg-gradient-to-br from-orange-500/5 via-red-500/5 to-amber-500/5 rounded-[40px] blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
@@ -113,24 +126,48 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               </div>
             )}
 
-            {/* Part 3 Options - Kartochkalar (label + content) */}
-            {hasOptions && isPart3 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 w-full max-w-3xl mx-auto">
-                {options.map((option, index) => (
-                  <div
-                    key={option.id}
-                    className="bg-white/[0.02] border border-white/10 rounded-2xl p-5 backdrop-blur-sm hover:bg-white/[0.04] transition-all duration-300 text-left">
+            {/* Part 3 Options - For/Against guruhlangan kartochkalar */}
+            {hasGroupedOptions && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 w-full max-w-3xl mx-auto text-left">
+                {/* For / Benefits */}
+                {forOptions.length > 0 && (
+                  <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-5 backdrop-blur-sm">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/20 flex items-center justify-center border border-orange-500/30">
-                        <span className="text-xs font-bold text-orange-400">{index + 1}</span>
-                      </div>
-                      <h4 className="text-sm font-bold text-orange-400 uppercase tracking-wider">
-                        {option.label}
-                      </h4>
+                      <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <h4 className="text-sm font-bold text-green-400 uppercase tracking-wider">For</h4>
                     </div>
-                    <p className="text-white/70 text-sm leading-relaxed">{option.content}</p>
+                    <ul className="space-y-2">
+                      {forOptions.map((item, i) => (
+                        <li key={item.id} className="flex items-start gap-2 text-white/70 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400/60 mt-1.5 flex-shrink-0" />
+                          {item.content}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                ))}
+                )}
+
+                {/* Against / Drawbacks */}
+                {againstOptions.length > 0 && (
+                  <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-5 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      <h4 className="text-sm font-bold text-red-400 uppercase tracking-wider">Against</h4>
+                    </div>
+                    <ul className="space-y-2">
+                      {againstOptions.map((item, i) => (
+                        <li key={item.id} className="flex items-start gap-2 text-white/70 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-400/60 mt-1.5 flex-shrink-0" />
+                          {item.content}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 
