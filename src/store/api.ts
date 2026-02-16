@@ -4,6 +4,7 @@ import type {
   LoginResponse,
   UserRequest,
   UserResponse,
+  SubscriptionResponse,
   TestListResponse,
   TestDetailResponse,
   SectionDetailResponse,
@@ -65,6 +66,11 @@ export const api = createApi({
         body: data,
       }),
       invalidatesTags: ['User'],
+    }),
+
+    getSubscription: builder.query<SubscriptionResponse, void>({
+      query: () => '/users/me/subscription',
+      providesTags: ['User'],
     }),
 
     // ==================== TESTS ====================
@@ -180,6 +186,7 @@ export const {
   // User
   useGetMeQuery,
   useUpdateMeMutation,
+  useGetSubscriptionQuery,
 
   // Tests
   useGetTestsQuery,

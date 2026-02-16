@@ -110,6 +110,13 @@ export interface UserResponse {
   endDate?: Instant | null;
 }
 
+// Subscription
+export interface SubscriptionResponse {
+  isSubscribed: boolean;
+  startDate: Instant | null;
+  endDate: Instant | null;
+}
+
 // Test
 export interface TestListResponse {
   id: UUID;

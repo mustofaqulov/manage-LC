@@ -2,6 +2,7 @@ import React, { useState, memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../i18n';
 import { useAuth } from '../hooks/useAuth';
+import { useGetSubscriptionQuery } from '../store/api';
 import Logo from '../assets/images/logo.svg';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -12,6 +13,11 @@ const Header: React.FC = memo(() => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isBannerDismissed, setIsBannerDismissed] = useState(false);
   const isActive = (path: string) => location.pathname === path;
+
+  // Subscription status
+  const { data: subscription } = useGetSubscriptionQuery(undefined, {
+    skip: !user, // Faqat login qilgan bo'lsa chaqir
+  });
 
   // Check if beta banner is dismissed
   React.useEffect(() => {
@@ -123,11 +129,17 @@ const Header: React.FC = memo(() => {
                     <p className="text-xs font-semibold text-white leading-none">{user.phone}</p>
                     <div className="flex items-center gap-1 mt-0.5">
                       <span
-                        className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_6px_rgba(34,197,94,0.6)]"
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          subscription?.isSubscribed
+                            ? 'bg-green-400 shadow-[0_0_6px_rgba(34,197,94,0.6)]'
+                            : 'bg-orange-400 shadow-[0_0_6px_rgba(255,140,0,0.6)]'
+                        }`}
                       />
                       <span
-                        className="text-[9px] font-bold uppercase tracking-wider text-green-400/90">
-                        {'firstName' in user && user.firstName ? `${user.firstName}` : t('common.pro')}
+                        className={`text-[9px] font-bold uppercase tracking-wider ${
+                          subscription?.isSubscribed ? 'text-green-400/90' : 'text-orange-400/90'
+                        }`}>
+                        {subscription?.isSubscribed ? t('common.pro') : 'Free'}
                       </span>
                     </div>
                   </div>

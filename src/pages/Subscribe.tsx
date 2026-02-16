@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/i18n';
 import { useAuth } from '../hooks/useAuth';
+import { useGetSubscriptionQuery } from '../store/api';
 
 interface Plan {
   id: string;
@@ -21,6 +22,21 @@ const Subscribe: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<string>('6month');
+
+  // Subscription status
+  const { data: subscription, isLoading: subscriptionLoading } = useGetSubscriptionQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('uz-UZ', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
 
   const plans: Plan[] = [
     {
@@ -119,6 +135,75 @@ const Subscribe: React.FC = () => {
           </p>
           <div className="w-20 sm:w-24 h-1 sm:h-1.5 bg-gradient-to-r from-orange-500 via-yellow-400 to-orange-500 mx-auto rounded-full mt-4 sm:mt-6" />
         </div>
+
+        {/* Current Subscription Status */}
+        {isAuthenticated && subscription && !subscriptionLoading && (
+          <div className="mb-12 sm:mb-16 max-w-3xl mx-auto">
+            <div
+              className={`relative rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 backdrop-blur-xl border shadow-[0_15px_50px_rgba(0,0,0,0.8)] ${
+                subscription.isSubscribed
+                  ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30'
+                  : 'bg-white/5 border-white/10'
+              }`}>
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center ${
+                      subscription.isSubscribed
+                        ? 'bg-gradient-to-br from-green-500 to-emerald-500'
+                        : 'bg-gradient-to-br from-gray-600 to-gray-700'
+                    }`}>
+                    {subscription.isSubscribed ? (
+                      <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <h3
+                      className={`text-xl sm:text-2xl font-bold ${
+                        subscription.isSubscribed ? 'text-green-400' : 'text-gray-400'
+                      }`}>
+                      {subscription.isSubscribed ? 'Premium Aktiv' : 'Bepul Reja'}
+                    </h3>
+                    <p className="text-white/60 text-sm sm:text-base mt-1">
+                      {subscription.isSubscribed
+                        ? 'Barcha imtihonlarga cheksiz kirish'
+                        : 'Premium obuna sotib oling'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {subscription.isSubscribed && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                  <div>
+                    <p className="text-white/50 text-xs sm:text-sm mb-1">Boshlanish sanasi</p>
+                    <p className="text-white font-semibold text-sm sm:text-base">
+                      {formatDate(subscription.startDate)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-white/50 text-xs sm:text-sm mb-1">Tugash sanasi</p>
+                    <p className="text-white font-semibold text-sm sm:text-base">
+                      {formatDate(subscription.endDate)}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {!subscription.isSubscribed && (
+                <p className="text-white/70 text-sm sm:text-base mt-4 pt-4 border-t border-white/10">
+                  Quyidagi rejalardan birini tanlang va barcha imtihonlarga kirish huquqiga ega bo'ling
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Plan Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 md:gap-8 mb-12 sm:mb-16 md:mb-20">
