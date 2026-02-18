@@ -457,18 +457,17 @@ const ExamFlow: React.FC = () => {
         return;
       }
 
-      showToast.info('Audio MP3 formatga konvertatsiya qilinmoqda...');
+      showToast.info('Audio tayyorlanmoqda...');
 
       // Lazy load audioConverter module for better performance
       const { combineAudioToMp3, downloadMp3 } = await import('../utils/audioConverter');
 
-      // Barcha audio'larni bitta MP3 ga birlashtirish
-      const combinedMp3 = await combineAudioToMp3(audioBlobs, (progress) => {
-      });
+      // Barcha audio'larni bitta faylga birlashtirish
+      const combinedMp3 = await combineAudioToMp3(audioBlobs);
 
       // Fayl nomini yaratish
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const filename = `exam-recording-${timestamp}.mp3`;
+      const filename = `exam-recording-${timestamp}.webm`;
 
       // Yuklab olish
       downloadMp3(combinedMp3, filename);
