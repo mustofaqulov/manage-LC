@@ -2,9 +2,10 @@
  * Audio Converter Utility
  * Bir nechta WebM audio blob'larni decode qilib MP3 ga birlashtirish
  */
+import { Mp3Encoder } from 'lamejs';
 
 /**
- * Float32Array PCM ma'lumotlarini Int16Array ga aylantirish (lamejs uchun)
+ * Float32Array PCM ma'lumotlarini Int16Array ga aylantirish
  */
 const floatToInt16 = (float32: Float32Array): Int16Array => {
   const int16 = new Int16Array(float32.length);
@@ -16,36 +17,8 @@ const floatToInt16 = (float32: Float32Array): Int16Array => {
 };
 
 /**
- * Bitta Blob'ni AudioContext orqali decode qilish
- */
-const decodeBlob = async (blob: Blob, audioCtx: AudioContext): Promise<AudioBuffer> => {
-  const arrayBuffer = await blob.arrayBuffer();
-  return audioCtx.decodeAudioData(arrayBuffer);
-};
-
-/**
- * AudioBuffer'larni birlashtirish
- */
-const mergeAudioBuffers = (buffers: AudioBuffer[], sampleRate: number): Float32Array[] => {
-  const channels = Math.max(...buffers.map((b) => b.numberOfChannels));
-  const totalLength = buffers.reduce((sum, b) => sum + b.length, 0);
-
-  const result: Float32Array[] = [];
-  for (let c = 0; c < channels; c++) {
-    const merged = new Float32Array(totalLength);
-    let offset = 0;
-    for (const buf of buffers) {
-      const channelData = c < buf.numberOfChannels ? buf.getChannelData(c) : buf.getChannelData(0);
-      merged.set(channelData, offset);
-      offset += buf.length;
-    }
-    result.push(merged);
-  }
-  return result;
-};
-
-/**
- * Bir nechta WebM audio blob'larni bitta MP3 ga birlashtirish
+ * Bir nechta WebM audio blob'larni bitta MP3 ga birlashtirish.
+ * Agar MP3 conversion ishlamasa, WebM blob'lar birlashtiriladi (fallback).
  */
 export const combineAudioToMp3 = async (
   blobs: Blob[],
@@ -55,74 +28,100 @@ export const combineAudioToMp3 = async (
     throw new Error('No audio blobs provided');
   }
 
-  const { Mp3Encoder } = await import('lamejs');
-
   if (onProgress) onProgress(0.05);
 
-  // Barcha bloblarni decode qilish
-  const audioCtx = new AudioContext();
-  const audioBuffers: AudioBuffer[] = [];
+  let audioCtx: AudioContext | null = null;
 
-  for (let i = 0; i < blobs.length; i++) {
-    try {
-      const buffer = await decodeBlob(blobs[i], audioCtx);
-      audioBuffers.push(buffer);
-    } catch {
-      console.warn(`Audio blob ${i + 1} decode failed, skipping`);
+  try {
+    audioCtx = new AudioContext();
+    const audioBuffers: AudioBuffer[] = [];
+
+    for (let i = 0; i < blobs.length; i++) {
+      try {
+        const arrayBuffer = await blobs[i].arrayBuffer();
+        if (arrayBuffer.byteLength === 0) {
+          console.warn(`Blob ${i + 1} is empty, skipping`);
+          continue;
+        }
+        // slice(0) creates a copy — decodeAudioData consumes the buffer
+        const decoded = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
+        audioBuffers.push(decoded);
+      } catch (err) {
+        console.warn(`Blob ${i + 1} decode failed, skipping:`, err);
+      }
+      if (onProgress) onProgress(0.05 + ((i + 1) / blobs.length) * 0.55);
     }
-    if (onProgress) onProgress(0.05 + (i + 1) / blobs.length * 0.5);
-  }
 
-  await audioCtx.close();
-
-  if (audioBuffers.length === 0) {
-    throw new Error('No audio could be decoded');
-  }
-
-  const sampleRate = audioBuffers[0].sampleRate;
-  const channelCount = Math.min(2, Math.max(...audioBuffers.map((b) => b.numberOfChannels)));
-
-  // PCM ma'lumotlarini birlashtirish
-  const mergedChannels = mergeAudioBuffers(audioBuffers, sampleRate);
-
-  if (onProgress) onProgress(0.6);
-
-  // MP3 encode qilish (128kbps)
-  const encoder = new Mp3Encoder(channelCount, sampleRate, 128);
-  const chunkSize = 1152;
-  const mp3Chunks: Int8Array[] = [];
-
-  const leftPcm = floatToInt16(mergedChannels[0]);
-  const rightPcm = channelCount > 1 ? floatToInt16(mergedChannels[1]) : leftPcm;
-
-  const totalSamples = leftPcm.length;
-  for (let i = 0; i < totalSamples; i += chunkSize) {
-    const left = leftPcm.subarray(i, i + chunkSize);
-    const right = rightPcm.subarray(i, i + chunkSize);
-    const encoded = encoder.encodeBuffer(left, right);
-    if (encoded.length > 0) mp3Chunks.push(encoded);
-
-    if (onProgress && i % (chunkSize * 100) === 0) {
-      onProgress(0.6 + (i / totalSamples) * 0.38);
+    if (audioBuffers.length === 0) {
+      throw new Error('No audio buffers could be decoded');
     }
+
+    const sampleRate = audioBuffers[0].sampleRate;
+    const channelCount = Math.min(2, Math.max(...audioBuffers.map((b) => b.numberOfChannels)));
+
+    // Barcha audio'larni birlashtirish
+    const totalLength = audioBuffers.reduce((sum, b) => sum + b.length, 0);
+    const leftPcmRaw = new Float32Array(totalLength);
+    const rightPcmRaw = new Float32Array(totalLength);
+    let offset = 0;
+    for (const buf of audioBuffers) {
+      leftPcmRaw.set(buf.getChannelData(0), offset);
+      rightPcmRaw.set(channelCount > 1 ? buf.getChannelData(1) : buf.getChannelData(0), offset);
+      offset += buf.length;
+    }
+
+    await audioCtx.close();
+    audioCtx = null;
+
+    if (onProgress) onProgress(0.65);
+
+    // MP3 encode (128kbps)
+    const encoder = new Mp3Encoder(channelCount, sampleRate, 128);
+    const chunkSize = 1152;
+    const mp3Chunks: Int8Array[] = [];
+    const leftPcm = floatToInt16(leftPcmRaw);
+    const rightPcm = floatToInt16(rightPcmRaw);
+
+    for (let i = 0; i < leftPcm.length; i += chunkSize) {
+      const left = leftPcm.subarray(i, i + chunkSize);
+      const right = rightPcm.subarray(i, i + chunkSize);
+      const encoded = encoder.encodeBuffer(left, right);
+      if (encoded.length > 0) mp3Chunks.push(encoded);
+
+      if (onProgress && i % (chunkSize * 50) === 0) {
+        onProgress(0.65 + (i / leftPcm.length) * 0.33);
+      }
+    }
+
+    const flushed = encoder.flush();
+    if (flushed.length > 0) mp3Chunks.push(flushed);
+
+    if (onProgress) onProgress(1);
+
+    return new Blob(mp3Chunks, { type: 'audio/mpeg' });
+  } catch (err) {
+    if (audioCtx) {
+      try { await audioCtx.close(); } catch { /* ignore */ }
+    }
+    // Fallback: WebM blob'larni birlashtirish
+    console.warn('MP3 conversion failed, falling back to WebM concat:', err);
+    const mimeType = blobs.find((b) => b.type)?.type || 'audio/webm';
+    if (onProgress) onProgress(1);
+    return new Blob(blobs, { type: mimeType });
   }
-
-  const finalChunk = encoder.flush();
-  if (finalChunk.length > 0) mp3Chunks.push(finalChunk);
-
-  if (onProgress) onProgress(1);
-
-  return new Blob(mp3Chunks, { type: 'audio/mpeg' });
 };
 
 /**
- * MP3 faylni yuklab olish
+ * Audio faylni yuklab olish
  */
 export const downloadMp3 = (blob: Blob, filename: string) => {
+  // Agar fallback WebM bo'lsa, extension'ni o'zgartirish
+  const finalFilename =
+    blob.type === 'audio/mpeg' ? filename : filename.replace(/\.mp3$/, '.webm');
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = filename;
+  a.download = finalFilename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

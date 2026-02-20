@@ -61,6 +61,9 @@ export default defineConfig(async () => {
         '@': path.resolve(__dirname, 'src'),
       },
     },
+    optimizeDeps: {
+      include: ['lamejs'],
+    },
     server: {
       port: 4173,
     },
