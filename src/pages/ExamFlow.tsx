@@ -23,6 +23,7 @@ import type {
   AttemptDetailResponse,
 } from '../api/types';
 import * as queries from '../services/queries';
+import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
 import MicPermissionScreen from '../components/examflow/MicPermissionScreen';
 import StartExamScreen from '../components/examflow/StartExamScreen';
 import FinishedScreen from '../components/examflow/FinishedScreen';
@@ -458,9 +459,6 @@ const ExamFlow: React.FC = () => {
       }
 
       showToast.info('Audio tayyorlanmoqda...');
-
-      // Lazy load audioConverter module for better performance
-      const { combineAudioToMp3, downloadMp3 } = await import('../utils/audioConverter');
 
       // Barcha audio'larni bitta faylga birlashtirish
       const combinedMp3 = await combineAudioToMp3(audioBlobs);

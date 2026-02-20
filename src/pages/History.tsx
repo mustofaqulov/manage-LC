@@ -5,6 +5,7 @@ import type { AttemptListResponse, AttemptStatus } from '../api/types';
 import ScoreChart from '../components/ScoreChart';
 import { showToast } from '../utils/configs/toastConfig';
 import * as queries from '../services/queries';
+import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
 
 const STATUS_STYLES: Record<AttemptStatus, { bg: string; text: string; label: string }> = {
   IN_PROGRESS: { bg: 'from-blue-500 to-cyan-500', text: 'text-blue-400', label: 'Jarayonda' },
@@ -75,10 +76,7 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
         return;
       }
 
-      showToast.info('Audio MP3 formatga konvertatsiya qilinmoqda...');
-
-      // Lazy load audioConverter module for better performance
-      const { combineAudioToMp3, downloadMp3 } = await import('../utils/audioConverter');
+      showToast.info('Audio MP3 formatga tayyorlanmoqda...');
 
       // Barcha audio'larni bitta MP3 ga birlashtirish
       const combinedMp3 = await combineAudioToMp3(audioBlobs);
