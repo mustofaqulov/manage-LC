@@ -5,16 +5,15 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
-const CORE_BASE = 'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist/esm';
-
 let ffInstance: FFmpeg | null = null;
 
 const loadFFmpeg = async (): Promise<FFmpeg> => {
   if (ffInstance?.loaded) return ffInstance;
   const ff = new FFmpeg();
+  // public/ papkasidagi fayllar — xuddi shu origin, CORS muammo yo'q
   await ff.load({
-    coreURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
-    wasmURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
+    coreURL: await toBlobURL('/ffmpeg-core.js', 'text/javascript'),
+    wasmURL: await toBlobURL('/ffmpeg-core.wasm', 'application/wasm'),
   });
   ffInstance = ff;
   return ff;
