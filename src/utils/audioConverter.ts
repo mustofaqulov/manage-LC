@@ -1,127 +1,82 @@
 /**
- * Audio Converter Utility
- * Bir nechta WebM audio blob'larni decode qilib MP3 ga birlashtirish
+ * Audio Converter — FFmpeg.wasm orqali WebM → MP3
+ * Core WASM CDN'dan yuklanadi (birinchi marta ~25MB, keyin brauzer cache'da)
  */
-import { Mp3Encoder } from 'lamejs';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
-/**
- * Float32Array PCM ma'lumotlarini Int16Array ga aylantirish
- */
-const floatToInt16 = (float32: Float32Array): Int16Array => {
-  const int16 = new Int16Array(float32.length);
-  for (let i = 0; i < float32.length; i++) {
-    const clamped = Math.max(-1, Math.min(1, float32[i]));
-    int16[i] = clamped < 0 ? clamped * 32768 : clamped * 32767;
-  }
-  return int16;
+const CORE_BASE = 'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist/esm';
+
+let ffInstance: FFmpeg | null = null;
+
+const loadFFmpeg = async (): Promise<FFmpeg> => {
+  if (ffInstance?.loaded) return ffInstance;
+  const ff = new FFmpeg();
+  await ff.load({
+    coreURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
+    wasmURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
+  });
+  ffInstance = ff;
+  return ff;
 };
 
 /**
- * Bir nechta WebM audio blob'larni bitta MP3 ga birlashtirish.
- * Agar MP3 conversion ishlamasa, WebM blob'lar birlashtiriladi (fallback).
+ * Bir nechta WebM blob'larni bitta MP3 ga birlashtirish
  */
 export const combineAudioToMp3 = async (
   blobs: Blob[],
   onProgress?: (progress: number) => void,
 ): Promise<Blob> => {
-  if (blobs.length === 0) {
-    throw new Error('No audio blobs provided');
-  }
+  if (blobs.length === 0) throw new Error('No audio blobs provided');
 
   if (onProgress) onProgress(0.05);
 
-  let audioCtx: AudioContext | null = null;
+  const ff = await loadFFmpeg();
 
-  try {
-    audioCtx = new AudioContext();
-    const audioBuffers: AudioBuffer[] = [];
+  if (onProgress) onProgress(0.3);
 
-    for (let i = 0; i < blobs.length; i++) {
-      try {
-        const arrayBuffer = await blobs[i].arrayBuffer();
-        if (arrayBuffer.byteLength === 0) {
-          console.warn(`Blob ${i + 1} is empty, skipping`);
-          continue;
-        }
-        // slice(0) creates a copy — decodeAudioData consumes the buffer
-        const decoded = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
-        audioBuffers.push(decoded);
-      } catch (err) {
-        console.warn(`Blob ${i + 1} decode failed, skipping:`, err);
-      }
-      if (onProgress) onProgress(0.05 + ((i + 1) / blobs.length) * 0.55);
-    }
-
-    if (audioBuffers.length === 0) {
-      throw new Error('No audio buffers could be decoded');
-    }
-
-    const sampleRate = audioBuffers[0].sampleRate;
-    const channelCount = Math.min(2, Math.max(...audioBuffers.map((b) => b.numberOfChannels)));
-
-    // Barcha audio'larni birlashtirish
-    const totalLength = audioBuffers.reduce((sum, b) => sum + b.length, 0);
-    const leftPcmRaw = new Float32Array(totalLength);
-    const rightPcmRaw = new Float32Array(totalLength);
-    let offset = 0;
-    for (const buf of audioBuffers) {
-      leftPcmRaw.set(buf.getChannelData(0), offset);
-      rightPcmRaw.set(channelCount > 1 ? buf.getChannelData(1) : buf.getChannelData(0), offset);
-      offset += buf.length;
-    }
-
-    await audioCtx.close();
-    audioCtx = null;
-
-    if (onProgress) onProgress(0.65);
-
-    // MP3 encode (128kbps)
-    const encoder = new Mp3Encoder(channelCount, sampleRate, 128);
-    const chunkSize = 1152;
-    const mp3Chunks: Int8Array[] = [];
-    const leftPcm = floatToInt16(leftPcmRaw);
-    const rightPcm = floatToInt16(rightPcmRaw);
-
-    for (let i = 0; i < leftPcm.length; i += chunkSize) {
-      const left = leftPcm.subarray(i, i + chunkSize);
-      const right = rightPcm.subarray(i, i + chunkSize);
-      const encoded = encoder.encodeBuffer(left, right);
-      if (encoded.length > 0) mp3Chunks.push(encoded);
-
-      if (onProgress && i % (chunkSize * 50) === 0) {
-        onProgress(0.65 + (i / leftPcm.length) * 0.33);
-      }
-    }
-
-    const flushed = encoder.flush();
-    if (flushed.length > 0) mp3Chunks.push(flushed);
-
-    if (onProgress) onProgress(1);
-
-    return new Blob(mp3Chunks, { type: 'audio/mpeg' });
-  } catch (err) {
-    if (audioCtx) {
-      try { await audioCtx.close(); } catch { /* ignore */ }
-    }
-    // Fallback: WebM blob'larni birlashtirish
-    console.warn('MP3 conversion failed, falling back to WebM concat:', err);
-    const mimeType = blobs.find((b) => b.type)?.type || 'audio/webm';
-    if (onProgress) onProgress(1);
-    return new Blob(blobs, { type: mimeType });
+  // Input fayllarni yozish
+  for (let i = 0; i < blobs.length; i++) {
+    await ff.writeFile(`in${i}.webm`, await fetchFile(blobs[i]));
   }
+
+  if (onProgress) onProgress(0.5);
+
+  if (blobs.length === 1) {
+    await ff.exec(['-i', 'in0.webm', '-codec:a', 'libmp3lame', '-q:a', '2', 'out.mp3']);
+  } else {
+    // Concat demuxer — bir nechta WebM'ni ketma-ket birlashtirish
+    const list = blobs.map((_, i) => `file 'in${i}.webm'`).join('\n');
+    await ff.writeFile('list.txt', list);
+    await ff.exec([
+      '-f', 'concat', '-safe', '0', '-i', 'list.txt',
+      '-codec:a', 'libmp3lame', '-q:a', '2',
+      'out.mp3',
+    ]);
+    ff.deleteFile('list.txt').catch(() => {});
+  }
+
+  if (onProgress) onProgress(0.9);
+
+  const data = await ff.readFile('out.mp3') as Uint8Array;
+
+  // Cleanup
+  for (let i = 0; i < blobs.length; i++) ff.deleteFile(`in${i}.webm`).catch(() => {});
+  ff.deleteFile('out.mp3').catch(() => {});
+
+  if (onProgress) onProgress(1);
+
+  return new Blob([data], { type: 'audio/mpeg' });
 };
 
 /**
- * Audio faylni yuklab olish
+ * MP3 faylni yuklab olish
  */
-export const downloadMp3 = (blob: Blob, filename: string) => {
-  // Agar fallback WebM bo'lsa, extension'ni o'zgartirish
-  const finalFilename =
-    blob.type === 'audio/mpeg' ? filename : filename.replace(/\.mp3$/, '.webm');
+export const downloadMp3 = (blob: Blob, filename: string): void => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = finalFilename;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
