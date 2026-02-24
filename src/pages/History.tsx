@@ -4,8 +4,8 @@ import { useGetAttemptHistory, useGetAttempt } from '../services/hooks';
 import type { AttemptListResponse, AttemptStatus } from '../api/types';
 import ScoreChart from '../components/ScoreChart';
 import { showToast } from '../utils/configs/toastConfig';
-import * as queries from '../services/queries';
 import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
+import { getRecordingsForAttempt } from '../utils/audioStore';
 
 const STATUS_STYLES: Record<AttemptStatus, { bg: string; text: string; label: string }> = {
   IN_PROGRESS: { bg: 'from-blue-500 to-cyan-500', text: 'text-blue-400', label: 'Jarayonda' },
@@ -34,58 +34,32 @@ const formatDate = (dateStr: string) => {
 const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
   const { data: detail, isLoading } = useGetAttempt(attemptId);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [hasLocalAudio, setHasLocalAudio] = useState(false);
+
+  React.useEffect(() => {
+    getRecordingsForAttempt(attemptId).then((rows) => {
+      setHasLocalAudio(rows.some((r) => r.blob.size > 0));
+    }).catch(() => {});
+  }, [attemptId]);
 
   const handleDownloadAudio = async () => {
     if (!detail || isDownloading) return;
-
-    const responses = detail.responses ?? [];
-    const audioResponses = responses.filter(
-      (r) => r.answer && typeof r.answer === 'object' && 'audio' in r.answer && r.answer.audio
-    );
-
-    if (audioResponses.length === 0) {
-      showToast.warning('Audio topilmadi');
-      return;
-    }
-
     setIsDownloading(true);
     try {
-      showToast.info('Audio yuklanmoqda...');
-
-      // Har bir audio'ni yuklab olish
-      const audioBlobs: Blob[] = [];
-      for (const response of audioResponses) {
-        const audioData = (response.answer as any).audio;
-        // Use assetId if available (new format), fallback to presign-download API for old format
-        if (audioData.assetId) {
-          const downloadData = await queries.getDownloadUrl(audioData.assetId);
-          const res = await fetch(downloadData.downloadUrl);
-          const blob = await res.blob();
-          audioBlobs.push(blob);
-        } else if (audioData.bucket && audioData.key) {
-          // Legacy format - use presign-download endpoint
-          const downloadData = await queries.presignDownload({ bucket: audioData.bucket, s3Key: audioData.key });
-          const res = await fetch(downloadData.downloadUrl);
-          const blob = await res.blob();
-          audioBlobs.push(blob);
-        }
-      }
+      // Avval IndexedDB'dan qidirish (backend'siz)
+      const stored = await getRecordingsForAttempt(attemptId);
+      const audioBlobs: Blob[] = stored.map((r) => r.blob).filter((b) => b.size > 0);
 
       if (audioBlobs.length === 0) {
-        showToast.error('Audio yuklanmadi');
+        showToast.warning('Audio topilmadi. Imtihon shu brauzerda topshirilgan bo\'lishi kerak.');
         return;
       }
 
       showToast.info('Audio MP3 formatga tayyorlanmoqda...');
 
-      // Barcha audio'larni bitta MP3 ga birlashtirish
       const combinedMp3 = await combineAudioToMp3(audioBlobs);
-
-      // Fayl nomini yaratish
       const timestamp = new Date(detail.startedAt).toISOString().slice(0, 10);
       const filename = `exam-${detail.testTitle?.replace(/\s+/g, '-') || 'recording'}-${timestamp}.mp3`;
-
-      // Yuklab olish
       downloadMp3(combinedMp3, filename);
 
       showToast.success('Audio muvaffaqiyatli yuklab olindi');
@@ -110,10 +84,6 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
   }
 
   const sections = detail.sections ?? [];
-  const responses = detail.responses ?? [];
-  const hasAudio = responses.some(
-    (r) => r.answer && typeof r.answer === 'object' && 'audio' in r.answer && r.answer.audio
-  );
 
   return (
     <div className="space-y-5 py-2">
@@ -132,8 +102,8 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
           )}
         </div>
 
-        {/* Audio Download Button */}
-        {hasAudio && (
+        {/* Audio Download Button — faqat IndexedDB'da mavjud bo'lsa ko'rinadi */}
+        {hasLocalAudio && (
           <button
             type="button"
             onClick={handleDownloadAudio}

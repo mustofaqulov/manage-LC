@@ -24,6 +24,7 @@ import type {
 } from '../api/types';
 import * as queries from '../services/queries';
 import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
+import { saveRecording } from '../utils/audioStore';
 import MicPermissionScreen from '../components/examflow/MicPermissionScreen';
 import StartExamScreen from '../components/examflow/StartExamScreen';
 import FinishedScreen from '../components/examflow/FinishedScreen';
@@ -532,6 +533,10 @@ const ExamFlow: React.FC = () => {
             ...prev,
             { id: `${q.id}-${localIndex}`, blob: audioBlob, index: localIndex },
           ]);
+          // IndexedDB'ga saqlash — History sahifasi backend'siz yuklasin
+          if (attemptIdRef.current) {
+            saveRecording(attemptIdRef.current, localIndex, audioBlob).catch(() => {});
+          }
         }
 
         if (audioBlob.size > 0 && attemptIdRef.current) {
