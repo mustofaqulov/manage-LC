@@ -4,6 +4,7 @@ import { useGetAttemptHistory, useGetAttempt } from '../services/hooks';
 import type { AttemptListResponse, AttemptStatus } from '../api/types';
 import ScoreChart from '../components/ScoreChart';
 import { showToast } from '../utils/configs/toastConfig';
+import * as queries from '../services/queries';
 import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
 import { getRecordingsForAttempt } from '../utils/audioStore';
 
@@ -34,34 +35,49 @@ const formatDate = (dateStr: string) => {
 const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
   const { data: detail, isLoading } = useGetAttempt(attemptId);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [hasLocalAudio, setHasLocalAudio] = useState(false);
-
-  React.useEffect(() => {
-    getRecordingsForAttempt(attemptId).then((rows) => {
-      setHasLocalAudio(rows.some((r) => r.blob.size > 0));
-    }).catch(() => {});
-  }, [attemptId]);
 
   const handleDownloadAudio = async () => {
     if (!detail || isDownloading) return;
     setIsDownloading(true);
     try {
-      // Avval IndexedDB'dan qidirish (backend'siz)
+      // 1. Avval IndexedDB'dan qidirish (backend'siz, tez)
       const stored = await getRecordingsForAttempt(attemptId);
-      const audioBlobs: Blob[] = stored.map((r) => r.blob).filter((b) => b.size > 0);
+      let audioBlobs: Blob[] = stored.map((r) => r.blob).filter((b) => b.size > 0);
+
+      // 2. IndexedDB bo'sh bo'lsa — S3'dan yuklab olish
+      if (audioBlobs.length === 0) {
+        showToast.info('Audio yuklanmoqda...');
+        const audioResponses = (detail.responses ?? []).filter(
+          (r) => r.answer && typeof r.answer === 'object' && 'audio' in r.answer && (r.answer as any).audio
+        );
+        for (const response of audioResponses) {
+          const audioData = (response.answer as any).audio;
+          try {
+            if (audioData.assetId) {
+              const { downloadUrl } = await queries.getDownloadUrl(audioData.assetId);
+              const res = await fetch(downloadUrl);
+              audioBlobs.push(await res.blob());
+            } else if (audioData.bucket && audioData.key) {
+              const { downloadUrl } = await queries.presignDownload({ bucket: audioData.bucket, s3Key: audioData.key });
+              const res = await fetch(downloadUrl);
+              audioBlobs.push(await res.blob());
+            }
+          } catch {
+            // bitta fayl yuklanmasa o'tkazib yuboramiz
+          }
+        }
+      }
 
       if (audioBlobs.length === 0) {
-        showToast.warning('Audio topilmadi. Imtihon shu brauzerda topshirilgan bo\'lishi kerak.');
+        showToast.warning('Audio topilmadi');
         return;
       }
 
-      showToast.info('Audio MP3 formatga tayyorlanmoqda...');
-
+      showToast.info('MP3 tayyorlanmoqda...');
       const combinedMp3 = await combineAudioToMp3(audioBlobs);
       const timestamp = new Date(detail.startedAt).toISOString().slice(0, 10);
       const filename = `exam-${detail.testTitle?.replace(/\s+/g, '-') || 'recording'}-${timestamp}.mp3`;
       downloadMp3(combinedMp3, filename);
-
       showToast.success('Audio muvaffaqiyatli yuklab olindi');
     } catch (error) {
       console.error('Audio download failed:', error);
@@ -103,8 +119,7 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
           )}
         </div>
 
-        {/* Audio Download Button — faqat IndexedDB'da mavjud bo'lsa ko'rinadi */}
-        {hasLocalAudio && (
+        {responses.some((r) => r.answer && typeof r.answer === 'object' && 'audio' in r.answer) && (
           <button
             type="button"
             onClick={handleDownloadAudio}
