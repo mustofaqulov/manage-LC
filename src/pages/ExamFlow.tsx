@@ -434,42 +434,29 @@ const ExamFlow: React.FC = () => {
   }, [downloadRecordingItem, isDownloading]);
 
   const handleDownloadAll = useCallback(async () => {
-    if (isDownloading || recordingItems.length === 0) return;
+    if (isDownloading) return;
+
+    // Faqat xotiradagi local blob'larni ishlatish — backend'ga zapros yo'q
+    const audioBlobs = [...localRecordings]
+      .sort((a, b) => a.index - b.index)
+      .map((r) => r.blob)
+      .filter((b) => b.size > 0);
+
+    if (audioBlobs.length === 0) {
+      showToast.warning('Hech qanday audio topilmadi');
+      return;
+    }
+
     setIsDownloading(true);
     try {
-      // Barcha audio blob'larni yig'ish
-      const audioBlobs: Blob[] = [];
-
-      for (const recording of recordingItems) {
-        if (recording.blob) {
-          // Local blob mavjud
-          audioBlobs.push(recording.blob);
-        } else if (recording.assetId) {
-          // Server'dan yuklab olish kerak
-          const downloadData = await queries.getDownloadUrl(recording.assetId);
-          const response = await fetch(downloadData.downloadUrl);
-          const blob = await response.blob();
-          audioBlobs.push(blob);
-        }
-      }
-
-      if (audioBlobs.length === 0) {
-        showToast.warning('Hech qanday audio topilmadi');
-        return;
-      }
-
       showToast.info('Audio tayyorlanmoqda...');
 
-      // Barcha audio'larni bitta faylga birlashtirish
       const combinedMp3 = await combineAudioToMp3(audioBlobs);
 
-      // Fayl nomini yaratish
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const filename = `exam-recording-${timestamp}.mp3`;
 
-      // Yuklab olish
       downloadMp3(combinedMp3, filename);
-
       showToast.success('Audio muvaffaqiyatli yuklab olindi');
     } catch (error) {
       console.error('MP3 conversion failed:', error);
@@ -477,7 +464,7 @@ const ExamFlow: React.FC = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, [isDownloading, recordingItems]);
+  }, [isDownloading, localRecordings]);
 
   // ================= QUESTION FLOW =================
   const runQuestion = async (q: QuestionResponse) => {
@@ -836,7 +823,7 @@ const ExamFlow: React.FC = () => {
         }}
         attempt={attemptDetail}
         isSubmitting={isSubmittingAttempt}
-        recordings={recordingItems}
+        recordings={localRecordings.map((r) => ({ id: r.id, label: `Recording ${r.index}`, blob: r.blob }))}
         onDownloadRecording={handleDownloadRecording}
         onDownloadAll={handleDownloadAll}
         isDownloading={isDownloading}
