@@ -84,6 +84,7 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
   }
 
   const sections = detail.sections ?? [];
+  const responses = detail.responses ?? [];
 
   return (
     <div className="space-y-5 py-2">
