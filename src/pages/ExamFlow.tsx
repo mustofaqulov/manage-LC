@@ -18,6 +18,7 @@ import {
   useGetDownloadUrl,
 } from '../services/hooks';
 import type {
+  CefrLevel,
   TestDetailResponse,
   SectionDetailResponse,
   QuestionResponse,
@@ -53,10 +54,22 @@ const ExamFlow: React.FC = () => {
   }, [hasAccess, roles, navigate]);
 
   // Mode support
-  const routeState = location.state as { selectedSectionIds?: string[]; mode?: string } | null;
+  const routeState = location.state as {
+    selectedSectionIds?: string[];
+    mode?: string;
+    randomConfig?: {
+      cefrLevel?: CefrLevel;
+      sectionCount?: number;
+      skills?: string[];
+      sourceTestIds?: string[];
+    };
+  } | null;
   const isCustomMode = routeState?.mode === 'custom';
-  const isRandomMode = routeState?.mode === 'random';
+  const isRandomMode = routeState?.mode === 'random' || testId === 'random';
   const selectedSectionIds = routeState?.selectedSectionIds;
+  const randomConfig = routeState?.randomConfig;
+  const resolvedRouteTestId = testId && testId !== 'random' ? testId : null;
+  const [resolvedTestId, setResolvedTestId] = useState<string | null>(resolvedRouteTestId);
 
   // ================= API DATA =================
   const {
@@ -64,7 +77,7 @@ const ExamFlow: React.FC = () => {
     isLoading: isLoadingTest,
     isError: isTestError,
     error: testError,
-  } = useGetTest(testId);
+  } = useGetTest(resolvedTestId, { enabled: !!resolvedTestId });
 
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [currentSectionIdx, setCurrentSectionIdx] = useState(0);
@@ -88,8 +101,8 @@ const ExamFlow: React.FC = () => {
     isLoading: isLoadingSection,
     refetch: refetchSection,
   } = useGetSection(
-    { testId: testId!, sectionId: currentSectionId! },
-    { enabled: !!testId && !!currentSectionId },
+    { testId: resolvedTestId!, sectionId: currentSectionId! },
+    { enabled: !!resolvedTestId && !!currentSectionId },
   );
   const { data: fetchedAttempt, refetch: refetchAttempt } = useGetAttempt(attemptId);
 
@@ -106,16 +119,10 @@ const ExamFlow: React.FC = () => {
     }
   }, [fetchedAttempt]);
 
-  // Questions from current section (shuffled + limited in random mode)
+  // Questions from current section
   const questions = useMemo(() => {
-    const raw = sectionDetail?.questions ?? [];
-    if (raw.length === 0) return [];
-    if (isRandomMode) {
-      const shuffled = [...raw].sort(() => Math.random() - 0.5);
-      return shuffled.slice(0, 3);
-    }
-    return raw;
-  }, [sectionDetail, isRandomMode]);
+    return sectionDetail?.questions ?? [];
+  }, [sectionDetail]);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const currentQuestion = questions[currentQuestionIdx];
 
@@ -680,19 +687,46 @@ const ExamFlow: React.FC = () => {
 
   // ================= START EXAM =================
   const handleStartExam = useCallback(async () => {
-    if (!testId) return;
+    if (!isRandomMode && !resolvedTestId) return;
 
     try {
       setLocalRecordings([]);
       recordingIndexRef.current = 0;
       const result = isRandomMode
         ? await startRandomAttemptMutation({
-            cefrLevel: testDetail!.cefrLevel,
-            sectionCount: Math.max(1, Math.min(10, sections.length || 1)),
-            skills: Array.from(new Set(sections.map((section) => section.skill))),
-            sourceTestIds: [testId],
+            cefrLevel: randomConfig?.cefrLevel ?? testDetail?.cefrLevel ?? 'B1',
+            ...(typeof randomConfig?.sectionCount === 'number'
+              ? { sectionCount: Math.max(1, Math.min(10, randomConfig.sectionCount)) }
+              : {}),
+            ...(Array.isArray(randomConfig?.skills) && randomConfig.skills.length > 0
+              ? { skills: randomConfig.skills }
+              : {}),
+            ...(Array.isArray(randomConfig?.sourceTestIds) && randomConfig.sourceTestIds.length > 0
+              ? { sourceTestIds: randomConfig.sourceTestIds }
+              : {}),
           })
-        : await startAttemptMutation({ testId, sectionId: undefined });
+        : await startAttemptMutation({ testId: resolvedTestId!, sectionId: undefined });
+      if (isRandomMode) {
+        let randomTestId = result?.testId ?? randomConfig?.sourceTestIds?.[0] ?? null;
+        if (!randomTestId && result?.attemptId) {
+          try {
+            const startedAttempt = await queries.getAttempt(result.attemptId);
+            randomTestId = startedAttempt?.testId ?? null;
+            if (startedAttempt) {
+              setAttemptDetail(startedAttempt);
+            }
+          } catch (attemptError) {
+            console.error('Failed to resolve random testId from attempt:', attemptError);
+          }
+        }
+
+        if (!randomTestId) {
+          showToast.error("Random testni aniqlab bo'lmadi. Qayta urinib ko'ring.");
+          return;
+        }
+        setResolvedTestId(randomTestId);
+        showToast.success('Imtihon boshlandi');
+      }
       setAttemptId(result.attemptId);
       attemptIdRef.current = result.attemptId;
       setIsStarted(true);
@@ -704,12 +738,15 @@ const ExamFlow: React.FC = () => {
         navigate('/subscribe');
         return;
       }
-      alert("Imtihonni boshlashda xatolik yuz berdi. Qaytadan urinib ko'ring.");
+      const backendMessage = error?.response?.data?.message;
+      showToast.error(
+        backendMessage || "Imtihonni boshlashda xatolik yuz berdi. Qaytadan urinib ko'ring.",
+      );
     }
   }, [
-    testId,
     isRandomMode,
-    sections,
+    resolvedTestId,
+    randomConfig,
     testDetail,
     startAttemptMutation,
     startRandomAttemptMutation,
@@ -770,7 +807,8 @@ const ExamFlow: React.FC = () => {
   }, [isTestError, testError, navigate]);
 
   // ================= LOADING / ERROR STATES =================
-  if (isLoadingTest) {
+  const canStartRandomWithoutTest = isRandomMode && !resolvedTestId && !isStarted;
+  if (isLoadingTest && !canStartRandomWithoutTest) {
     return (
       <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
@@ -782,7 +820,7 @@ const ExamFlow: React.FC = () => {
     );
   }
 
-  if (isTestError || !testDetail) {
+  if ((isTestError || !testDetail) && !canStartRandomWithoutTest) {
     return (
       <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
@@ -823,12 +861,25 @@ const ExamFlow: React.FC = () => {
   }
 
   if (!isStarted) {
+    const startTitle = isRandomMode
+      ? (testDetail?.title ?? 'Random CEFR Mock Test')
+      : testDetail!.title;
+    const startLevel: CefrLevel = isRandomMode
+      ? (randomConfig?.cefrLevel ?? testDetail?.cefrLevel ?? 'B1')
+      : testDetail!.cefrLevel;
+    const startSectionCount = isRandomMode
+      ? (sections.length || Math.max(1, Math.min(10, randomConfig?.sectionCount ?? 3)))
+      : sections.length;
+    const startInstructions = isRandomMode
+      ? (testDetail?.instructions ?? 'Random API tanlagan test bo\'yicha imtihon boshlanadi.')
+      : testDetail!.instructions;
+
     return (
       <StartExamScreen
-        testTitle={testDetail.title}
-        cefrLevel={testDetail.cefrLevel}
-        sectionCount={sections.length}
-        instructions={testDetail.instructions}
+        testTitle={startTitle}
+        cefrLevel={startLevel}
+        sectionCount={startSectionCount}
+        instructions={startInstructions}
         onStart={handleStartExam}
         onBack={() => navigate('/mock-exam')}
       />

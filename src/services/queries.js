@@ -12,10 +12,19 @@ export const getMe = () => {
 
 // ==================== TESTS QUERIES ====================
 
-export const getTests = ({ level, page = 0, size = 20 }) => {
+export const getTests = ({
+  level,
+  page = 0,
+  size = 20,
+  popularity,
+  rating,
+  search,
+  sortBy = 'PUBLISHED_DATE',
+  sortOrder = 'DESC',
+} = {}) => {
   return axiosClient
     .get('/tests', {
-      params: { level, page, size },
+      params: { level, page, size, popularity, rating, search, sortBy, sortOrder },
     })
     .then((response) => {
       return response.data;

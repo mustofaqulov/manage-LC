@@ -36,8 +36,11 @@ export const startAttempt = ({ testId, sectionId }) => {
     });
 };
 
-export const startRandomAttempt = ({ cefrLevel, sectionCount = 3, skills, sourceTestIds }) => {
-  const payload = { cefrLevel, sectionCount };
+export const startRandomAttempt = ({ cefrLevel, sectionCount, skills, sourceTestIds }) => {
+  const payload = { cefrLevel };
+  if (typeof sectionCount === 'number') {
+    payload.sectionCount = sectionCount;
+  }
   if (Array.isArray(skills) && skills.length > 0) {
     payload.skills = skills;
   }

@@ -67,13 +67,23 @@ export const useLogin = () => {
 
 // ==================== TESTS HOOKS ====================
 
-export const useGetTests = ({ level, page, size } = {}) => {
+export const useGetTests = ({
+  level,
+  page,
+  size,
+  popularity,
+  rating,
+  search,
+  sortBy,
+  sortOrder,
+} = {}, options = {}) => {
   const { t } = useTranslation();
   return useQuery({
-    queryKey: [QUERY_KEYS.TESTS, { level, page, size }],
-    queryFn: () => queries.getTests({ level, page, size }),
+    queryKey: [QUERY_KEYS.TESTS, { level, page, size, popularity, rating, search, sortBy, sortOrder }],
+    queryFn: () => queries.getTests({ level, page, size, popularity, rating, search, sortBy, sortOrder }),
     staleTime: 10 * 60 * 1000, // 10 minutes
     meta: { errorMessage: t('errors.loadFailed') },
+    ...options,
   });
 };
 
@@ -129,7 +139,6 @@ export const useStartRandomAttempt = () => {
   return useMutation({
     mutationFn: mutations.startRandomAttempt,
     onSuccess: () => {
-      showToast.success(t('errors.examStarted'));
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ATTEMPTS] });
     },
     onError: (error) => {

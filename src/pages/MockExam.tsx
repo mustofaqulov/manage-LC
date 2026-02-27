@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/i18n';
 import { useAuth } from '../hooks/useAuth';
@@ -8,6 +8,9 @@ import { showToast } from '../utils/configs/toastConfig';
 import type { TestListResponse, CefrLevel } from '../api/types';
 
 type ExamMode = 'full' | 'random';
+type FullLevelFilter = CefrLevel | 'ALL';
+type TestSortBy = 'PUBLISHED_DATE' | 'NAME';
+type SortOrder = 'ASC' | 'DESC';
 
 const LEVEL_COLORS: Record<CefrLevel, { bg: string; text: string; glow: string }> = {
   A1: { bg: 'from-green-500/20 to-emerald-500/10', text: 'text-green-400', glow: 'rgba(34,197,94,0.45)' },
@@ -17,6 +20,8 @@ const LEVEL_COLORS: Record<CefrLevel, { bg: string; text: string; glow: string }
   C1: { bg: 'from-orange-500/20 to-amber-500/10', text: 'text-orange-400', glow: 'rgba(255,140,0,0.45)' },
   C2: { bg: 'from-red-500/20 to-rose-500/10', text: 'text-red-400', glow: 'rgba(239,68,68,0.45)' },
 };
+const CEFR_LEVELS: CefrLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const FULL_TESTS_PER_PAGE = 9;
 
 const MODE_CARDS = [
   {
@@ -66,10 +71,67 @@ const MockExam: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<ExamMode | null>(null);
+  const [selectedRandomLevel, setSelectedRandomLevel] = useState<CefrLevel>('B1');
+  const [selectedFullLevel, setSelectedFullLevel] = useState<FullLevelFilter>('ALL');
+  const [sortBy, setSortBy] = useState<TestSortBy>('PUBLISHED_DATE');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('DESC');
+  const [currentPage, setCurrentPage] = useState(1);
   const toastShownRef = useRef(false); // Toast faqat bir marta chiqishi uchun
 
-  const { data: testsData, isLoading, isError } = useGetTests({});
-  const tests: TestListResponse[] = testsData?.items ?? [];
+  const {
+    data: fullTestsData,
+    isLoading: isFullLoading,
+    isError: isFullError,
+  } = useGetTests(
+    {
+      level: selectedFullLevel === 'ALL' ? undefined : selectedFullLevel,
+      page: currentPage - 1,
+      size: FULL_TESTS_PER_PAGE,
+      sortBy,
+      sortOrder,
+    },
+    { enabled: selectedMode === 'full' },
+  );
+  const fullTests: TestListResponse[] = fullTestsData?.items ?? [];
+  const totalFullItems = fullTestsData?.totalCount ?? fullTestsData?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalFullItems / FULL_TESTS_PER_PAGE));
+
+  const {
+    data: randomTestsData,
+    isLoading: isRandomLoading,
+  } = useGetTests(
+    {
+      page: 0,
+      size: 200,
+      sortBy: 'PUBLISHED_DATE',
+      sortOrder: 'DESC',
+    },
+    { enabled: selectedMode === 'random' },
+  );
+  const randomTests: TestListResponse[] = randomTestsData?.items ?? [];
+  const availableRandomLevels = useMemo(
+    () => CEFR_LEVELS.filter((level) => randomTests.some((test) => test.cefrLevel === level)),
+    [randomTests],
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    if (randomTests.length === 0) return;
+    const hasCurrentLevel = randomTests.some((test) => test.cefrLevel === selectedRandomLevel);
+    if (hasCurrentLevel) return;
+
+    const firstAvailableLevel = CEFR_LEVELS.find((level) =>
+      randomTests.some((test) => test.cefrLevel === level),
+    );
+    if (firstAvailableLevel) {
+      setSelectedRandomLevel(firstAvailableLevel);
+    }
+  }, [randomTests, selectedRandomLevel]);
 
   // Har safar sahifaga kirganda premium obuna haqida ogohlantirish
   useEffect(() => {
@@ -91,6 +153,7 @@ const MockExam: React.FC = () => {
       return;
     }
     setSelectedMode(mode);
+    setCurrentPage(1);
   };
 
   const handleStartTest = (testId: string) => {
@@ -103,9 +166,39 @@ const MockExam: React.FC = () => {
     });
   };
 
+  const handleStartRandom = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    const filteredTestIds = randomTests
+      .filter((test) => test.cefrLevel === selectedRandomLevel)
+      .map((test) => test.id);
+
+    if (filteredTestIds.length === 0) {
+      showToast.warning(`CEFR ${selectedRandomLevel} daraja uchun test topilmadi`);
+      return;
+    }
+
+    const randomSourceTestId = filteredTestIds[Math.floor(Math.random() * filteredTestIds.length)];
+
+    navigate('/exam-flow/random', {
+      state: {
+        mode: 'random',
+        randomConfig: {
+          cefrLevel: selectedRandomLevel,
+          skills: ['SPEAKING'],
+          sourceTestIds: [randomSourceTestId],
+        },
+      },
+    });
+  };
+
   const handleBack = () => {
     if (selectedMode) {
       setSelectedMode(null);
+      setCurrentPage(1);
     } else {
       navigate('/');
     }
@@ -211,11 +304,171 @@ const MockExam: React.FC = () => {
           </div>
         )}
 
-        {/* Test List (shown after mode selection) */}
-        {selectedMode && (
+        {/* Random mode: user selects CEFR level, not a specific test */}
+        {selectedMode === 'random' && (
+          <div className="mb-12 sm:mb-16 md:mb-20">
+            <div className="max-w-3xl mx-auto rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-6 sm:p-8 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)]">
+              <h3 className="text-white text-xl sm:text-2xl font-black text-center mb-3">
+                CEFR darajani tanlang
+              </h3>
+              <p className="text-white/50 text-sm sm:text-base text-center mb-6 sm:mb-8">
+                Test backend tomonidan random tanlanadi, siz faqat darajani belgilaysiz.
+              </p>
+
+              {isRandomLoading && (
+                <p className="text-white/40 text-xs sm:text-sm text-center mb-5">Darajalar yuklanmoqda...</p>
+              )}
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
+                {CEFR_LEVELS.map((level) => {
+                  const levelStyle = LEVEL_COLORS[level];
+                  const selected = selectedRandomLevel === level;
+                  const isAvailable = availableRandomLevels.length === 0 || availableRandomLevels.includes(level);
+                  return (
+                    <button
+                      key={level}
+                      disabled={!isAvailable}
+                      onClick={() => setSelectedRandomLevel(level)}
+                      className={`rounded-2xl border px-4 py-4 sm:py-5 transition-all ${
+                        selected
+                          ? 'border-orange-400/70 bg-orange-500/15 shadow-[0_10px_35px_rgba(255,140,0,0.25)]'
+                          : 'border-white/10 bg-white/[0.03] hover:border-white/20'
+                      } ${!isAvailable ? 'opacity-35 cursor-not-allowed' : ''}`}>
+                      <div className={`text-xs font-bold uppercase tracking-wider ${levelStyle.text}`}>CEFR</div>
+                      <div className="text-white text-2xl sm:text-3xl font-black mt-1">{level}</div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {!isRandomLoading && availableRandomLevels.length === 0 && (
+                <p className="text-amber-300/80 text-sm text-center mb-6">
+                  Random uchun hozircha test topilmadi
+                </p>
+              )}
+
+              <button
+                onClick={handleStartRandom}
+                disabled={!hasAccess || isRandomLoading || availableRandomLevels.length === 0}
+                className={`w-full py-3.5 sm:py-4 rounded-2xl font-bold text-sm sm:text-base text-white transition-all duration-300 ${
+                  hasAccess && !isRandomLoading && availableRandomLevels.length > 0
+                    ? 'bg-gradient-to-r from-sky-500 to-blue-500 shadow-[0_8px_30px_rgba(56,189,248,0.35)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.5)] hover:scale-[1.01]'
+                    : 'bg-gray-600 cursor-not-allowed opacity-50'
+                }`}>
+                Random imtihonni boshlash
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Full mode: user selects a concrete test */}
+        {selectedMode === 'full' && (
           <>
+            <div className="mb-6 sm:mb-8 md:mb-10 space-y-4">
+              <div className="rounded-2xl p-4 sm:p-5 bg-white/[0.04] border border-white/10 backdrop-blur-xl">
+                <p className="text-white/55 text-xs uppercase tracking-wider mb-3">Filter Level</p>
+                <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedFullLevel('ALL');
+                      setCurrentPage(1);
+                    }}
+                    className={`h-10 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                      selectedFullLevel === 'ALL'
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_8px_20px_rgba(255,140,0,0.35)]'
+                        : 'bg-white/[0.04] border border-white/10 text-white/70 hover:bg-white/[0.08]'
+                    }`}>
+                    ALL
+                  </button>
+                  {CEFR_LEVELS.map((level) => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => {
+                        setSelectedFullLevel(level);
+                        setCurrentPage(1);
+                      }}
+                      className={`h-10 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                        selectedFullLevel === level
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_8px_20px_rgba(255,140,0,0.35)]'
+                          : 'bg-white/[0.04] border border-white/10 text-white/70 hover:bg-white/[0.08]'
+                      }`}>
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="rounded-2xl p-4 sm:p-5 bg-white/[0.04] border border-white/10 backdrop-blur-xl">
+                  <p className="text-white/55 text-xs uppercase tracking-wider mb-3">Sort By</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortBy('PUBLISHED_DATE');
+                        setCurrentPage(1);
+                      }}
+                      className={`h-10 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                        sortBy === 'PUBLISHED_DATE'
+                          ? 'bg-sky-500/90 text-white shadow-[0_8px_20px_rgba(56,189,248,0.35)]'
+                          : 'bg-white/[0.04] border border-white/10 text-white/70 hover:bg-white/[0.08]'
+                      }`}>
+                      Published
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortBy('NAME');
+                        setCurrentPage(1);
+                      }}
+                      className={`h-10 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                        sortBy === 'NAME'
+                          ? 'bg-sky-500/90 text-white shadow-[0_8px_20px_rgba(56,189,248,0.35)]'
+                          : 'bg-white/[0.04] border border-white/10 text-white/70 hover:bg-white/[0.08]'
+                      }`}>
+                      Name
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl p-4 sm:p-5 bg-white/[0.04] border border-white/10 backdrop-blur-xl">
+                  <p className="text-white/55 text-xs uppercase tracking-wider mb-3">Sort Order</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortOrder('DESC');
+                        setCurrentPage(1);
+                      }}
+                      className={`h-10 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                        sortOrder === 'DESC'
+                          ? 'bg-emerald-500/90 text-white shadow-[0_8px_20px_rgba(16,185,129,0.35)]'
+                          : 'bg-white/[0.04] border border-white/10 text-white/70 hover:bg-white/[0.08]'
+                      }`}>
+                      Newest
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSortOrder('ASC');
+                        setCurrentPage(1);
+                      }}
+                      className={`h-10 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                        sortOrder === 'ASC'
+                          ? 'bg-emerald-500/90 text-white shadow-[0_8px_20px_rgba(16,185,129,0.35)]'
+                          : 'bg-white/[0.04] border border-white/10 text-white/70 hover:bg-white/[0.08]'
+                      }`}>
+                      Oldest
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Loading State */}
-            {isLoading && (
+            {isFullLoading && (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="w-12 h-12 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mb-4" />
                 <p className="text-white/50 text-sm">{t('common.loading')}</p>
@@ -223,7 +476,7 @@ const MockExam: React.FC = () => {
             )}
 
             {/* Error State */}
-            {isError && (
+            {isFullError && (
               <div className="text-center py-20">
                 <div className="w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6">
                   <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,7 +493,7 @@ const MockExam: React.FC = () => {
             )}
 
             {/* Empty State */}
-            {!isLoading && !isError && tests.length === 0 && (
+            {!isFullLoading && !isFullError && fullTests.length === 0 && (
               <div className="text-center py-20">
                 <div className="w-20 h-20 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mx-auto mb-6">
                   <svg className="w-10 h-10 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,9 +505,9 @@ const MockExam: React.FC = () => {
             )}
 
             {/* Test Cards */}
-            {!isLoading && !isError && tests.length > 0 && (
+            {!isFullLoading && !isFullError && fullTests.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 md:gap-8 mb-12 sm:mb-16 md:mb-20">
-                {tests.map((test) => {
+                {fullTests.map((test) => {
                   const levelStyle = LEVEL_COLORS[test.cefrLevel] || LEVEL_COLORS.B1;
                   return (
                     <div key={test.id} className="group relative cursor-pointer">
@@ -311,7 +564,7 @@ const MockExam: React.FC = () => {
                               : 'bg-gray-600 cursor-not-allowed opacity-50'
                             }
                             transition-all duration-300 disabled:hover:scale-100`}>
-                          {hasAccess ? t('mockExam.startExam') : '🔒 Premium obuna kerak'}
+                          {hasAccess ? t('mockExam.startExam') : 'Premium obuna kerak'}
                         </button>
                       </div>
                     </div>
@@ -319,9 +572,36 @@ const MockExam: React.FC = () => {
                 })}
               </div>
             )}
+
+            {!isFullLoading && !isFullError && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 mb-12 sm:mb-16 md:mb-20">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
+                    currentPage === 1
+                      ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                      : 'bg-white/10 text-white/80 hover:bg-white/20'
+                  }`}>
+                  Oldingi
+                </button>
+                <span className="text-white/60 text-sm font-medium min-w-[110px] text-center">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
+                    currentPage === totalPages
+                      ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                      : 'bg-white/10 text-white/80 hover:bg-white/20'
+                  }`}>
+                  Keyingi
+                </button>
+              </div>
+            )}
           </>
         )}
-
         {/* Technical Requirements */}
         <div className="relative group">
           <div className="absolute -inset-1 sm:-inset-2 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] blur-xl opacity-20" />
