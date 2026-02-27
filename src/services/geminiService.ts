@@ -24,10 +24,24 @@ const getApiKey = (): string => {
 const apiKey = getApiKey();
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Global AudioContext va oscillator tracking
+// Global AudioContext va beep tracking
 let audioCtx: AudioContext | null = null;
-let currentOscillator: OscillatorNode | null = null;
-let beepTimeoutId: NodeJS.Timeout | null = null;
+const activeBeeps = new Map<OscillatorNode, GainNode>();
+let beepTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+const cleanupBeepNode = (oscillator: OscillatorNode): void => {
+  const gainNode = activeBeeps.get(oscillator);
+  if (!gainNode) return;
+
+  try {
+    oscillator.disconnect();
+  } catch {}
+  try {
+    gainNode.disconnect();
+  } catch {}
+
+  activeBeeps.delete(oscillator);
+};
 
 const getAudioContext = (): AudioContext => {
   if (!audioCtx) {
@@ -67,6 +81,10 @@ export const playBeep = async (): Promise<void> => {
   stopBeep();
 
   const ctx = getAudioContext();
+  if (ctx.state === 'suspended') {
+    await ctx.resume().catch(() => {});
+  }
+
   const oscillator = ctx.createOscillator();
   const gainNode = ctx.createGain();
 
@@ -74,18 +92,38 @@ export const playBeep = async (): Promise<void> => {
   gainNode.connect(ctx.destination);
   oscillator.type = 'sine';
   oscillator.frequency.setValueAtTime(440, ctx.currentTime);
-  gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+  // Soft envelope to avoid audio clicks and stuck tone edge-cases
+  gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.30);
 
-  currentOscillator = oscillator;
-  oscillator.start();
-  oscillator.stop(ctx.currentTime + 0.3);
+  activeBeeps.set(oscillator, gainNode);
 
   return new Promise((resolve) => {
-    beepTimeoutId = setTimeout(() => {
-      currentOscillator = null;
-      beepTimeoutId = null;
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      if (beepTimeoutId) {
+        clearTimeout(beepTimeoutId);
+        beepTimeoutId = null;
+      }
       resolve();
-    }, 400);
+    };
+
+    oscillator.onended = () => {
+      cleanupBeepNode(oscillator);
+      finish();
+    };
+
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.32);
+
+    // Fallback in case `onended` is not fired by browser
+    beepTimeoutId = setTimeout(() => {
+      cleanupBeepNode(oscillator);
+      finish();
+    }, 600);
   });
 };
 
@@ -98,13 +136,19 @@ export const stopBeep = (): void => {
       beepTimeoutId = null;
     }
 
-    if (currentOscillator) {
+    activeBeeps.forEach((gainNode, oscillator) => {
       try {
-        currentOscillator.stop();
-      } catch (e) {
-      }
-      currentOscillator = null;
-    }
+        oscillator.onended = null;
+        oscillator.stop();
+      } catch {}
+      try {
+        oscillator.disconnect();
+      } catch {}
+      try {
+        gainNode.disconnect();
+      } catch {}
+    });
+    activeBeeps.clear();
   } catch (error) {
     console.warn('⚠️ Error stopping beep:', error);
   }
@@ -114,27 +158,25 @@ export const stopBeep = (): void => {
 export const stopAllAudio = (): void => {
   try {
 
+    // Beep'ni to'xtatish
+    stopBeep();
+
     // TTS ni to'xtatish
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
 
-    // Beep'ni to'xtatish
-    stopBeep();
-
-    // AudioContext'ni suspend qilish va close qilish
-    if (audioCtx) {
+    // AudioContext'ni close qilish
+    const ctx = audioCtx;
+    audioCtx = null;
+    if (ctx) {
       try {
-        if (audioCtx.state === 'running') {
-          audioCtx.suspend();
-        }
-        if (audioCtx.state !== 'closed') {
-          audioCtx.close();
+        if (ctx.state !== 'closed') {
+          void ctx.close().catch(() => {});
         }
       } catch (e) {
         console.warn('  - Error with AudioContext:', (e as Error).message);
       }
-      audioCtx = null;
     }
 
   } catch (error) {
