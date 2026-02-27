@@ -8,6 +8,7 @@ import {
   useGetTest,
   useGetSection,
   useStartAttempt,
+  useStartRandomAttempt,
   useUpsertResponse,
   useSubmitSection,
   useSubmitAttempt,
@@ -226,6 +227,7 @@ const ExamFlow: React.FC = () => {
 
   // ================= MUTATIONS =================
   const { mutateAsync: startAttemptMutation } = useStartAttempt();
+  const { mutateAsync: startRandomAttemptMutation } = useStartRandomAttempt();
   const { mutateAsync: upsertResponseMutation } = useUpsertResponse();
   const { mutateAsync: submitSectionMutation } = useSubmitSection();
   const { mutateAsync: submitAttemptMutation } = useSubmitAttempt();
@@ -683,7 +685,14 @@ const ExamFlow: React.FC = () => {
     try {
       setLocalRecordings([]);
       recordingIndexRef.current = 0;
-      const result = await startAttemptMutation({ testId, sectionId: undefined });
+      const result = isRandomMode
+        ? await startRandomAttemptMutation({
+            cefrLevel: testDetail!.cefrLevel,
+            sectionCount: Math.max(1, Math.min(10, sections.length || 1)),
+            skills: Array.from(new Set(sections.map((section) => section.skill))),
+            sourceTestIds: [testId],
+          })
+        : await startAttemptMutation({ testId, sectionId: undefined });
       setAttemptId(result.attemptId);
       attemptIdRef.current = result.attemptId;
       setIsStarted(true);
@@ -697,7 +706,14 @@ const ExamFlow: React.FC = () => {
       }
       alert("Imtihonni boshlashda xatolik yuz berdi. Qaytadan urinib ko'ring.");
     }
-  }, [testId, startAttemptMutation]);
+  }, [
+    testId,
+    isRandomMode,
+    sections,
+    testDetail,
+    startAttemptMutation,
+    startRandomAttemptMutation,
+  ]);
 
   // ================= TRIGGER QUESTION =================
   useEffect(() => {

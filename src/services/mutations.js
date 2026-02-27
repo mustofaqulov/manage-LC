@@ -36,6 +36,22 @@ export const startAttempt = ({ testId, sectionId }) => {
     });
 };
 
+export const startRandomAttempt = ({ cefrLevel, sectionCount = 3, skills, sourceTestIds }) => {
+  const payload = { cefrLevel, sectionCount };
+  if (Array.isArray(skills) && skills.length > 0) {
+    payload.skills = skills;
+  }
+  if (Array.isArray(sourceTestIds) && sourceTestIds.length > 0) {
+    payload.sourceTestIds = sourceTestIds;
+  }
+
+  return axiosClient
+    .post('/attempts/random', payload)
+    .then((response) => {
+      return response.data;
+    });
+};
+
 export const upsertResponse = ({ attemptId, questionId, answer }) => {
   return axiosClient
     .put(`/attempts/${attemptId}/responses`, { questionId, answer })

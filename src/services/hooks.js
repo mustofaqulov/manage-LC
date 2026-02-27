@@ -122,6 +122,23 @@ export const useStartAttempt = () => {
   });
 };
 
+export const useStartRandomAttempt = () => {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: mutations.startRandomAttempt,
+    onSuccess: () => {
+      showToast.success(t('errors.examStarted'));
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ATTEMPTS] });
+    },
+    onError: (error) => {
+      if (error?.response?.status === 403) return;
+      showToast.error(t('errors.examStartFailed'));
+    },
+  });
+};
+
 export const useGetAttemptHistory = ({ page, size } = {}) => {
   const { t } = useTranslation();
   return useQuery({
