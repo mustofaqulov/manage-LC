@@ -55,7 +55,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
       <div className="absolute -inset-1 sm:-inset-2 bg-gradient-to-br from-orange-500/5 via-red-500/5 to-amber-500/5 rounded-3xl sm:rounded-[40px] blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
 
       {/* Main glassmorphic container */}
-      <div className="relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl md:rounded-[36px] p-4 sm:p-6 md:p-10 lg:p-14 shadow-[0_30px_80px_rgba(0,0,0,0.9)] flex flex-col items-center justify-center text-center min-h-[360px] sm:min-h-[430px] md:min-h-[500px]">
+      <div className="relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl md:rounded-[36px] p-3 sm:p-5 md:p-8 lg:p-10 shadow-[0_30px_80px_rgba(0,0,0,0.9)] flex flex-col items-center justify-center text-center min-h-[250px] sm:min-h-[340px] md:min-h-[430px]">
         {/* READING state - Listening prompt */}
         {status === ExamStatus.READING && (
           <div className="space-y-5 sm:space-y-8 animate-in fade-in duration-700">
@@ -113,7 +113,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
             {/* Part 2 Options - Oddiy bullet points (faqat content) */}
             {hasOptions && isPart2 && (
               <div className="w-full max-w-2xl mx-auto text-left pt-2 sm:pt-4">
-                <div className="bg-white/[0.02] border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 backdrop-blur-sm">
+                <div className="bg-white/[0.02] border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-5 backdrop-blur-sm">
                   <ul className="space-y-3">
                     {options.map((option) => (
                       <li key={option.id} className="flex items-start gap-2.5 sm:gap-3 text-white/70 text-sm sm:text-base">
@@ -131,7 +131,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 pt-2 sm:pt-4 w-full max-w-3xl mx-auto text-left">
                 {/* For / Benefits */}
                 {forOptions.length > 0 && (
-                  <div className="bg-green-500/5 border border-green-500/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 backdrop-blur-sm">
+                  <div className="bg-green-500/5 border border-green-500/20 rounded-xl sm:rounded-2xl p-3 sm:p-5 backdrop-blur-sm">
                     <div className="flex items-center gap-2 mb-2.5 sm:mb-3">
                       <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -151,7 +151,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
 
                 {/* Against / Drawbacks */}
                 {againstOptions.length > 0 && (
-                  <div className="bg-red-500/5 border border-red-500/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 backdrop-blur-sm">
+                  <div className="bg-red-500/5 border border-red-500/20 rounded-xl sm:rounded-2xl p-3 sm:p-5 backdrop-blur-sm">
                     <div className="flex items-center gap-2 mb-2.5 sm:mb-3">
                       <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -179,7 +179,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
                     <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/20 to-amber-500/20 blur-xl opacity-0 group-hover/img:opacity-100 transition-opacity duration-500" />
                     <img
                       src={url}
-                      className="relative w-full h-[180px] sm:h-[240px] md:h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
+                      className="relative w-full h-[140px] sm:h-[200px] md:h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
                       alt={`Image ${i + 1}`}
                     />
                   </div>
@@ -195,7 +195,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
                     <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/20 to-amber-500/20 blur-xl opacity-0 group-hover/img:opacity-100 transition-opacity duration-500" />
                     <img
                       src={promptImageUrl}
-                      className="relative w-full h-[180px] sm:h-[240px] md:h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
+                      className="relative w-full h-[140px] sm:h-[200px] md:h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
                       alt="Image 1"
                     />
                   </div>
@@ -205,7 +205,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
                     <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/20 to-amber-500/20 blur-xl opacity-0 group-hover/img:opacity-100 transition-opacity duration-500" />
                     <img
                       src={promptImage2Url}
-                      className="relative w-full h-[180px] sm:h-[240px] md:h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
+                      className="relative w-full h-[140px] sm:h-[200px] md:h-auto object-cover transition-transform duration-700 group-hover/img:scale-105"
                       alt="Image 2"
                     />
                   </div>
@@ -218,7 +218,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 pt-2 sm:pt-4 w-full max-w-3xl mx-auto text-left">
                 {/* Benefits */}
                 {benefits.length > 0 && (
-                  <div className="bg-green-500/5 border border-green-500/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 backdrop-blur-sm">
+                  <div className="bg-green-500/5 border border-green-500/20 rounded-xl sm:rounded-2xl p-3 sm:p-5 backdrop-blur-sm">
                     <div className="flex items-center gap-2 mb-2.5 sm:mb-3">
                       <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -238,7 +238,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
 
                 {/* Drawbacks */}
                 {drawbacks.length > 0 && (
-                  <div className="bg-red-500/5 border border-red-500/20 rounded-xl sm:rounded-2xl p-4 sm:p-5 backdrop-blur-sm">
+                  <div className="bg-red-500/5 border border-red-500/20 rounded-xl sm:rounded-2xl p-3 sm:p-5 backdrop-blur-sm">
                     <div className="flex items-center gap-2 mb-2.5 sm:mb-3">
                       <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

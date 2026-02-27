@@ -917,7 +917,7 @@ const ExamFlow: React.FC = () => {
   }
 
   return (
-    <div className="relative min-h-screen pt-24 sm:pt-28 md:pt-32 px-4 md:px-10 pb-4 md:pb-10 flex items-center justify-center overflow-hidden">
+    <div className="relative min-h-screen pt-20 sm:pt-24 md:pt-32 px-4 md:px-10 pb-4 sm:pb-6 md:pb-10 flex items-start md:items-center justify-center overflow-hidden">
       {/* Dark immersive background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#141414] to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,140,0,0.10),transparent_60%)]" />
