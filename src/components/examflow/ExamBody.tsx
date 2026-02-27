@@ -55,7 +55,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
       <div className="absolute -inset-1 sm:-inset-2 bg-gradient-to-br from-orange-500/5 via-red-500/5 to-amber-500/5 rounded-3xl sm:rounded-[40px] blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
 
       {/* Main glassmorphic container */}
-      <div className="relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl md:rounded-[36px] p-3 sm:p-5 md:p-8 lg:p-10 shadow-[0_30px_80px_rgba(0,0,0,0.9)] flex flex-col items-center justify-center text-center min-h-[250px] sm:min-h-[340px] md:min-h-[430px]">
+      <div className="relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-2xl sm:rounded-3xl md:rounded-[36px] p-3 sm:p-6 md:p-10 lg:p-14 shadow-[0_30px_80px_rgba(0,0,0,0.9)] flex flex-col items-center justify-center text-center min-h-[250px] sm:min-h-[430px] md:min-h-[500px]">
         {/* READING state - Listening prompt */}
         {status === ExamStatus.READING && (
           <div className="space-y-5 sm:space-y-8 animate-in fade-in duration-700">

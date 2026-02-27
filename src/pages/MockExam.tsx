@@ -516,7 +516,7 @@ const MockExam: React.FC = () => {
                       />
 
                       <div
-                        className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-6 sm:p-8 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)] md:shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03] transition-all duration-500 flex flex-col items-center text-center min-h-[320px] sm:min-h-[340px] md:min-h-[330px]`}
+                        className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-6 sm:p-8 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)] md:shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03] transition-all duration-500 flex flex-col items-center text-center min-h-[320px] sm:min-h-[400px] md:min-h-[370px]`}
                         style={{ '--hover-glow': levelStyle.glow } as React.CSSProperties}
                       >
                         {/* CEFR Level Badge */}
@@ -537,7 +537,7 @@ const MockExam: React.FC = () => {
                         )}
 
                         {/* Info badges */}
-                        <div className="flex items-center gap-3 mt-4 mb-5">
+                        <div className="flex items-center gap-3 mt-4 sm:mt-auto mb-5 sm:mb-6">
                           <span className="flex items-center gap-1.5 text-white/40 text-xs">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
