@@ -14,18 +14,31 @@ Manage LC is a React/TypeScript web application for language learning mock exams
 - React Router DOM 7.12.0
 - Google Generative AI (Gemini) 0.21.0
 - Tailwind CSS 3 (PostCSS plugin) + SCSS modules
+- lamejs 1.2.1 (WebM → MP3 encoding)
+- lucide-react 0.562.0 (icons)
+- swiper 12.0.3 (carousels)
 - i18n: 3 languages (uz, en, ru) via custom context
 
 ## Development Commands
 
 ```bash
 npm install           # Install dependencies
-npm run dev           # Dev server at http://localhost:5173
+npm run dev           # Dev server at http://localhost:4173
 npm run build         # Production build (vite build)
 npm run preview       # Preview production build
 ```
 
 No test runner or linter is configured.
+
+## Docker Deployment
+
+```bash
+VITE_GEMINI_API_KEY=your_key docker compose up --build
+```
+
+Uses multi-stage build (`node:22-alpine` → `nginx:alpine`). `nginx.conf` in project root handles SPA routing. Runs on port 80.
+
+> **Note**: `vite-plugin-imagemin` is in `optionalDependencies` — it's skipped in Docker/CI builds automatically. The vite config already detects CI and skips it at runtime too.
 
 ## Environment Configuration
 
@@ -47,19 +60,21 @@ Vite config injects `VITE_GEMINI_API_KEY` as `__VITE_GEMINI_API_KEY__` at build 
 - **src/index.tsx**: Mounts app, wraps with `I18nProvider`, disables `console.log` in production
 - **src/App.tsx**: Redux Provider + QueryClientProvider + React Router with lazy-loaded routes + ErrorBoundary
 - **src/components/Layout.tsx**: Wraps all pages with Header, Footer, and PhoneFloating widget
+- **types/**: Root-level type declarations (`images.d.ts`, `styles.d.ts`, `globals.d.ts`)
 
 ### State Management (Dual System)
 
 The app uses two parallel state management systems:
 
 1. **Redux Toolkit + RTK Query** (`src/store/`):
-   - `authSlice.ts`: Auth state (user, token, isAuthenticated, legacyUser for backward compat)
-   - `api.ts`: RTK Query endpoints for all backend API calls (base URL: `https://api.managelc.uz`)
+   - `src/store/slices/authSlice.ts`: Auth state (user, token, isAuthenticated, legacyUser for backward compat)
+   - `src/store/api.ts`: RTK Query endpoints for all backend API calls (base URL: `https://api.managelc.uz`)
+   - `src/store/hooks.ts`: Typed Redux hooks
    - localStorage keys: `auth_token`, `user_data`, `manage_lc_user`
 
 2. **TanStack React Query** (`src/services/hooks.js`, `src/services/queries.js`, `src/services/mutations.js`):
    - Query hooks for tests, attempts, sections, assets with configured stale times
-   - Upload hooks for S3 presigned URLs
+   - Upload/download hooks for S3 presigned URLs
 
 3. **Local state**: `src/pages/ExamFlow.tsx` uses React state + refs for timer/audio orchestration
 
@@ -69,7 +84,8 @@ The app uses two parallel state management systems:
 2. App opens Telegram bot (`@managelcbot`) with `?start=login_+998{phone}`
 3. User receives 5-digit code from Telegram
 4. Code submitted → API login → Redux stores JWT token
-5. Protected routes (`/exam-flow/*`, `/history`) check `isAuthenticated || legacyUser`
+5. Protected routes (`/exam-flow/:testId`, `/history`) check `isAuthenticated || legacyUser`
+6. Premium access check via `src/hooks/useHasExamAccess.ts` — redirects to `/subscribe` if no access
 
 ### Audio System Architecture
 
@@ -82,19 +98,37 @@ The app uses two parallel state management systems:
    - PREPARING → countdown timer (prepTime) → beep
    - RECORDING → MediaRecorder captures → countdown timer (recordTime) → beep
    - Auto-advances to next question or ends exam
-4. **Cleanup**: `cleanupAll()` stops all audio, MediaRecorder, microphone stream, and RAF timers. Called on unmount, `beforeunload`, and `visibilitychange`.
+4. **Upload Flow**: After recording, audio blob is presign-uploaded to S3, then response saved with `answer: { audio: { assetId, bucket, key } }`
+5. **Cleanup**: `cleanupAll()` stops all audio, MediaRecorder, microphone stream, and RAF timers. Called on unmount, `beforeunload`, `visibilitychange`, and before navigating to `/history`.
 
-**Critical**: Audio/timer resources MUST be cleaned up properly. Any new audio feature must integrate with `cleanupAll()`.
+**Critical**: Audio/timer resources MUST be cleaned up properly. Any new audio feature must integrate with `cleanupAll()`. Always call `cleanupAll()` before navigating away from ExamFlow.
 
 ### Audio Services
 
 - **src/services/geminiService.ts**: Native browser TTS (`SpeechSynthesis` API, rate 0.9), beep via Web Audio API `OscillatorNode` (440Hz, 300ms). `stopAllAudio()` cancels speech, stops oscillator, closes AudioContext.
+- **src/utils/audioConverter.ts**: Combines multiple WebM audio blobs into a single MP3 using lamejs. MIME type: `audio/mpeg`.
+
+### Audio Download (History page)
+
+Audio responses stored as `answer.audio = { assetId, bucket, key }`. Download flow:
+- If `assetId` present: `GET /assets/{assetId}/download-url` → fetch presigned URL
+- Legacy fallback (no assetId): `POST /assets/presign-download` with `{ bucket, s3Key }`
 
 ### Exam Modes
 
 - **FULL**: All parts sequentially (PART_1_1, PART_1_2, PART_2, PART_3)
 - **RANDOM**: Shuffles questions from all parts, limits to 3 per part
 - **CUSTOM**: Not implemented (placeholder route)
+
+### ExamBody — Part-specific Option Rendering
+
+`src/components/examflow/ExamBody.tsx` renders options differently per part (detected via `sectionTitle`):
+
+- **Part 2**: ONE card with all `option.content` as bullet points (vocabulary words for monologue)
+- **Part 3**: Options grouped into TWO cards by label:
+  - Labels containing "FOR/BENEFIT/ADVANTAGE" → green "For" card
+  - Labels containing "AGAINST/DRAWBACK/DISADVANTAGE" → red "Against" card
+- **Part 3** also supports `question.settings.benefits[]` / `question.settings.drawbacks[]` as an alternative data format (separate Benefits/Drawbacks cards)
 
 ### API Layer (`src/store/api.ts`)
 
@@ -103,7 +137,9 @@ RTK Query endpoints with auto-injected Bearer token:
 - **Users**: `getMe()`, `updateMe()`
 - **Tests**: `getTests()`, `getTest(id)`, `getSection(testId, sectionId)`
 - **Attempts**: `startAttempt()`, `getAttemptHistory()`, `upsertResponse()`, `submitSection()`, `submitAttempt()`
-- **Assets**: `presignUpload()`, `presignDownload()`, `getDownloadUrl()` (S3 presigned URL flow)
+- **Assets**: `presignUpload()`, `presignDownload()`, `getDownloadUrl(assetId)` (S3 presigned URL flow)
+
+`presignDownload` in `src/services/mutations.js` accepts `{ assetId?, bucket?, s3Key? }` matching the `PresignDownloadRequest` type.
 
 ### Data Structure
 
@@ -126,7 +162,7 @@ RTK Query endpoints with auto-injected Bearer token:
 - Uzbek comments throughout codebase (mixed with English)
 - Primary color: `#ff7300` (orange brand color), secondary: `#222222`
 - Lazy-loaded routes via `React.lazy` with `Suspense` + simple loading div fallback
-- ErrorBoundary wraps entire app
+- ErrorBoundary wraps entire app — "Oops!" screen shown on uncaught JS errors
 - MediaRecorder exposed on `window.mediaRecorder` for debugging
 - Verbose console logs with emoji prefixes in exam flow
 - Services mix `.ts` and `.js` files (hooks.js, queries.js, mutations.js are plain JS)
@@ -168,6 +204,3 @@ All routes are lazy-loaded via `React.lazy` with `Suspense` + simple loading div
 - Subscription validation is client-side only
 - Gemini API key is exposed client-side (should use backend proxy in production)
 - No TypeScript type-checking in the build script (only `vite build`, no `tsc`)
-
-
-
