@@ -14,7 +14,7 @@ Manage LC is a React/TypeScript web application for language learning mock exams
 - React Router DOM 7.12.0
 - Google Generative AI (Gemini) 0.21.0
 - Tailwind CSS 3 (PostCSS plugin) + SCSS modules
-- lamejs 1.2.1 (WebM → MP3 encoding)
+- @ffmpeg/ffmpeg 0.12.15 + @ffmpeg/core + @ffmpeg/util (WebM → MP3 encoding via FFmpeg WASM)
 - lucide-react 0.562.0 (icons)
 - swiper 12.0.3 (carousels)
 - i18n: 3 languages (uz, en, ru) via custom context
@@ -59,7 +59,7 @@ Vite config injects `VITE_GEMINI_API_KEY` as `__VITE_GEMINI_API_KEY__` at build 
 
 - **src/index.tsx**: Mounts app, wraps with `I18nProvider`, disables `console.log` in production
 - **src/App.tsx**: Redux Provider + QueryClientProvider + React Router with lazy-loaded routes + ErrorBoundary
-- **src/components/Layout.tsx**: Wraps all pages with Header, Footer, and PhoneFloating widget
+- **src/components/Layout.tsx**: Wraps all pages with Header, Footer, and PhoneFloating widget. Calls `stopAllAudio()` automatically when navigating away from `/exam-flow`
 - **types/**: Root-level type declarations (`images.d.ts`, `styles.d.ts`, `globals.d.ts`)
 
 ### State Management (Dual System)
@@ -106,7 +106,7 @@ The app uses two parallel state management systems:
 ### Audio Services
 
 - **src/services/geminiService.ts**: Native browser TTS (`SpeechSynthesis` API, rate 0.9), beep via Web Audio API `OscillatorNode` (440Hz, 300ms). `stopAllAudio()` cancels speech, stops oscillator, closes AudioContext.
-- **src/utils/audioConverter.ts**: Combines multiple WebM audio blobs into a single MP3 using lamejs. MIME type: `audio/mpeg`.
+- **src/utils/audioConverter.ts**: Combines multiple WebM audio blobs into a single MP3 using FFmpeg WASM. MIME type: `audio/mpeg`. FFmpeg core files are copied via `scripts/copy-ffmpeg.cjs` (runs on `postinstall` and before `build`).
 
 ### Audio Download (History page)
 
