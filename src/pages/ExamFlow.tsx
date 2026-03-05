@@ -215,12 +215,14 @@ const ExamFlow: React.FC = () => {
   const [isStarted, setIsStarted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmittingAttempt, setIsSubmittingAttempt] = useState(false);
+  const [transcript, setTranscript] = useState('');
 
   // ================= REFS =================
   const rafRef = useRef<number | null>(null);
   const runningRef = useRef(false);
   const micStreamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
   const waveformAnimationRef = useRef<number | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -245,6 +247,11 @@ const ExamFlow: React.FC = () => {
   const cleanupAll = useCallback(() => {
     try {
       stopAllAudio();
+
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+        recognitionRef.current = null;
+      }
 
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();

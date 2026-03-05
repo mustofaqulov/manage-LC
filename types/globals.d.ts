@@ -27,6 +27,11 @@ declare global {
      * Webkit-prefixed AudioContext for Safari compatibility
      */
     webkitAudioContext?: typeof AudioContext;
+
+    /**
+     * Webkit-prefixed SpeechRecognition for Chrome compatibility
+     */
+    webkitSpeechRecognition?: typeof SpeechRecognition;
   }
 }
 
