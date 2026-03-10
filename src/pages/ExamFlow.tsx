@@ -749,7 +749,8 @@ const ExamFlow: React.FC = () => {
         if (!randomTestId && startedAttempt?.sections?.length > 0) {
           try {
             const sectionIds: string[] = startedAttempt.sections.map((s: any) => s.sectionId);
-            const testsData = await queries.getTests({ page: 0, size: 100 });
+            const cefrLevel = randomConfig?.cefrLevel ?? startedAttempt?.cefrLevel ?? undefined;
+            const testsData = await queries.getTests({ page: 0, size: 100, level: cefrLevel });
             const testList: any[] = testsData?.items ?? [];
             const testDetails = await Promise.all(
               testList.map((t: any) => queries.getTest(t.id).catch(() => null))
