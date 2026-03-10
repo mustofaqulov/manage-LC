@@ -181,15 +181,12 @@ const MockExam: React.FC = () => {
       return;
     }
 
-    const randomSourceTestId = filteredTestIds[Math.floor(Math.random() * filteredTestIds.length)];
-
     navigate('/exam-flow/random', {
       state: {
         mode: 'random',
         randomConfig: {
           cefrLevel: selectedRandomLevel,
           skills: ['SPEAKING'],
-          sourceTestIds: [randomSourceTestId],
         },
       },
     });
@@ -516,7 +513,7 @@ const MockExam: React.FC = () => {
                       />
 
                       <div
-                        className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-6 sm:p-8 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)] md:shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03] transition-all duration-500 flex flex-col items-center text-center min-h-[320px] sm:min-h-[400px] md:min-h-[370px]`}
+                        className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-5 sm:p-7 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)] md:shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03] transition-all duration-500 flex flex-col items-center text-center min-h-[260px] sm:min-h-[320px] md:min-h-[370px]`}
                         style={{ '--hover-glow': levelStyle.glow } as React.CSSProperties}
                       >
                         {/* CEFR Level Badge */}

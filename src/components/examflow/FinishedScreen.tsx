@@ -49,13 +49,13 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
         <div className="absolute -inset-6 bg-gradient-to-br from-green-500/15 via-orange-500/10 to-amber-500/10 rounded-[56px] blur-3xl opacity-70" />
 
         {/* Glassmorphic card */}
-        <div className="relative bg-white/5 backdrop-blur-2xl rounded-[48px] p-12 md:p-16 border border-white/10 shadow-[0_50px_120px_rgba(0,0,0,0.9)] text-center">
+        <div className="relative bg-white/5 backdrop-blur-2xl rounded-[24px] sm:rounded-[36px] md:rounded-[48px] p-6 sm:p-10 md:p-16 border border-white/10 shadow-[0_50px_120px_rgba(0,0,0,0.9)] text-center">
           {/* Success icon */}
-          <div className="relative inline-flex items-center justify-center w-32 h-32 mb-8">
+          <div className="relative inline-flex items-center justify-center w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 mb-5 sm:mb-8">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-emerald-500/30 blur-3xl rounded-full animate-pulse" />
-            <div className="relative w-32 h-32 rounded-3xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-white/10 flex items-center justify-center">
+            <div className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-white/10 flex items-center justify-center">
               <svg
-                className="w-16 h-16 text-green-400"
+                className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 text-green-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24">
@@ -70,17 +70,17 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4">Exam Complete</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-3 sm:mb-4">Exam Complete</h1>
 
           {/* Status */}
           {attempt?.status === 'SUBMITTED' || attempt?.status === 'SCORING' ? (
-            <p className="text-white/50 text-lg mb-10">
+            <p className="text-white/50 text-sm sm:text-base md:text-lg mb-6 sm:mb-10">
               Your responses have been submitted and will be evaluated shortly.
             </p>
           ) : attempt?.status === 'SCORED' && hasScore ? (
-            <p className="text-white/50 text-lg mb-10">Your performance has been evaluated</p>
+            <p className="text-white/50 text-sm sm:text-base md:text-lg mb-6 sm:mb-10">Your performance has been evaluated</p>
           ) : (
-            <p className="text-white/50 text-lg mb-10">
+            <p className="text-white/50 text-sm sm:text-base md:text-lg mb-6 sm:mb-10">
               Your responses have been submitted successfully.
             </p>
           )}
@@ -95,7 +95,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
                   <p className="text-white/40 text-xs font-bold uppercase tracking-wider mb-3">
                     Overall Score
                   </p>
-                  <p className="text-4xl sm:text-5xl md:text-6xl font-black bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+                  <p className="text-3xl sm:text-4xl md:text-6xl font-black bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                     {scorePercent !== null ? `${scorePercent}%` : attempt.totalScore}
                   </p>
                   {attempt.maxTotalScore && (
@@ -107,7 +107,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
               {/* CEFR Level */}
               {attempt.estimatedCefrLevel && (
                 <div className="flex justify-center">
-                  <span className="px-6 py-3 rounded-2xl bg-orange-500/10 border border-orange-500/30 text-orange-400 text-lg font-black uppercase">
+                  <span className="px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl bg-orange-500/10 border border-orange-500/30 text-orange-400 text-sm sm:text-lg font-black uppercase">
                     Estimated: CEFR {attempt.estimatedCefrLevel}
                   </span>
                 </div>
@@ -119,7 +119,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
                   {attempt.sections.map((section) => (
                     <div key={section.id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
                       <p className="text-orange-400 text-xs font-bold uppercase mb-2 truncate">{section.sectionTitle}</p>
-                      <p className="text-3xl font-black text-white">
+                      <p className="text-xl sm:text-2xl md:text-3xl font-black text-white">
                         {section.sectionScore != null
                           ? `${section.sectionScore}${section.maxSectionScore ? `/${section.maxSectionScore}` : ''}`
                           : '—'}
@@ -171,7 +171,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
           {/* Button */}
           <button
             onClick={onGoToResults}
-            className="w-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white py-6 rounded-2xl font-black text-xl uppercase shadow-[0_10px_50px_rgba(255,140,0,0.6)] hover:shadow-[0_15px_60px_rgba(255,140,0,0.8)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 mt-4">
+            className="w-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white py-3.5 sm:py-5 md:py-6 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg md:text-xl uppercase shadow-[0_10px_50px_rgba(255,140,0,0.6)] hover:shadow-[0_15px_60px_rgba(255,140,0,0.8)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 mt-4">
             View History
           </button>
         </div>

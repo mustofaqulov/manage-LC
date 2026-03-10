@@ -70,7 +70,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
+              <h3 className="text-xl sm:text-2xl md:text-4xl font-black text-white tracking-tight">
                 Listen to the prompt
               </h3>
               <p className="text-white/50 text-base font-medium">Test continues automatically</p>
@@ -310,7 +310,7 @@ const ExamBody: React.FC<ExamBodyProps> = ({
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white">
+              <h3 className="text-base sm:text-xl md:text-3xl font-black text-white">
                 {isSaving ? 'Saving your response...' : 'Preparing next question...'}
               </h3>
               <p className="text-white/40 text-sm font-medium">
@@ -342,15 +342,15 @@ const ExamBody: React.FC<ExamBodyProps> = ({
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-2xl sm:text-4xl md:text-5xl font-black text-white">Section Complete</h3>
-              <p className="text-white/50 text-sm sm:text-lg font-medium">
+              <h3 className="text-xl sm:text-3xl md:text-5xl font-black text-white">Section Complete</h3>
+              <p className="text-white/50 text-xs sm:text-sm md:text-lg font-medium">
                 Ready to continue to the next part?
               </p>
             </div>
 
             <button
               onClick={onNextPart}
-              className="group/btn inline-flex items-center gap-3 sm:gap-4 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white px-7 sm:px-12 py-3.5 sm:py-5 rounded-xl sm:rounded-2xl font-black text-sm sm:text-xl uppercase shadow-[0_10px_40px_rgba(255,140,0,0.4)] hover:shadow-[0_15px_50px_rgba(255,140,0,0.6)] hover:scale-105 active:scale-95 transition-all duration-300">
+              className="group/btn inline-flex items-center gap-2 sm:gap-4 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white px-6 sm:px-12 py-3 sm:py-5 rounded-xl sm:rounded-2xl font-black text-sm sm:text-lg md:text-xl uppercase shadow-[0_10px_40px_rgba(255,140,0,0.4)] hover:shadow-[0_15px_50px_rgba(255,140,0,0.6)] hover:scale-105 active:scale-95 transition-all duration-300">
               <span>Continue</span>
               <svg
                 className="w-5 h-5 sm:w-6 sm:h-6 group-hover/btn:translate-x-1 transition-transform"

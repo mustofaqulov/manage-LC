@@ -192,7 +192,7 @@ const Login: React.FC = () => {
       <div className="relative z-10 w-full max-w-md">
         <div
           className="
-            relative p-10 rounded-[2.8rem]
+            relative p-6 sm:p-10 rounded-[1.8rem] sm:rounded-[2.8rem]
             bg-white/5 backdrop-blur-2xl
             border border-white/10
             shadow-[0_30px_120px_rgba(0,0,0,0.9)]
@@ -200,8 +200,8 @@ const Login: React.FC = () => {
           <div className="absolute -inset-1 rounded-[3rem] blur-2xl bg-gradient-to-br from-orange-500/30 via-amber-400/20 to-transparent opacity-60" />
 
           <div className="relative">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl sm:text-4xl font-black mb-3 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
+            <div className="text-center mb-6 sm:mb-10">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                 {t('login.title')}
               </h2>
               <p className="text-white/55 text-sm">{t('login.subtitle')}</p>
@@ -247,8 +247,8 @@ const Login: React.FC = () => {
                 <button
                   onClick={handleSendCode}
                   disabled={phone.length < 9}
-                  className="w-full py-4 rounded-2xl font-black text-lg bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-[0_15px_50px_rgba(255,115,0,0.45)] hover:shadow-[0_25px_80px_rgba(255,115,0,0.65)] hover:scale-[1.04] disabled:opacity-40 disabled:hover:scale-100 transition-all flex items-center justify-center gap-3">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  className="w-full py-3.5 sm:py-4 rounded-2xl font-black text-sm sm:text-base bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-[0_15px_50px_rgba(255,115,0,0.45)] hover:shadow-[0_25px_80px_rgba(255,115,0,0.65)] hover:scale-[1.04] disabled:opacity-40 disabled:hover:scale-100 transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                   </svg>
                   Telegram botdan kod olish
@@ -449,7 +449,7 @@ const Login: React.FC = () => {
               </div>
             )}
 
-            <div className="mt-10 pt-8 border-t border-white/10 text-center">
+            <div className="mt-6 sm:mt-10 pt-5 sm:pt-8 border-t border-white/10 text-center">
               <p className="text-xs text-white/35">{t('loginExtended.termsOfService')}</p>
             </div>
           </div>

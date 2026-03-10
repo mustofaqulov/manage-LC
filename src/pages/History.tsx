@@ -275,7 +275,7 @@ const History: React.FC = () => {
   }, [attempts]);
 
   return (
-    <div className="relative min-h-screen py-24 sm:py-28 md:py-36 px-6 md:px-12 overflow-hidden bg-[#050505]">
+    <div className="relative min-h-screen py-20 sm:py-28 md:py-36 px-4 sm:px-6 md:px-12 overflow-hidden bg-[#050505]">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#120e08] to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,115,0,0.18),transparent_60%)]" />
@@ -284,11 +284,11 @@ const History: React.FC = () => {
 
       <div className="relative z-10 max-w-6xl mx-auto text-white">
         {/* Header */}
-        <div className="mb-10 sm:mb-16">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-3">
+        <div className="mb-8 sm:mb-16">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-black mb-2 sm:mb-3">
             {t('history.title')} <span className="text-orange-400"></span>
           </h1>
-          <p className="text-white/60 text-lg">{t('history.subtitle')}</p>
+          <p className="text-white/60 text-sm sm:text-base md:text-lg">{t('history.subtitle')}</p>
         </div>
 
         {/* Loading */}
@@ -302,7 +302,7 @@ const History: React.FC = () => {
         {/* Error */}
         {isError && (
           <div className="text-center py-20">
-            <p className="text-white/60 text-lg mb-4">Tarixni yuklashda xatolik yuz berdi</p>
+            <p className="text-white/60 text-sm sm:text-lg mb-4">Tarixni yuklashda xatolik yuz berdi</p>
             <button
               onClick={() => window.location.reload()}
               className="px-6 py-2 rounded-xl bg-white/10 text-white/70 hover:bg-white/20 transition">
@@ -314,26 +314,26 @@ const History: React.FC = () => {
         {!isLoading && !isError && (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
               {/* Total Exams */}
               <div className="group relative">
-                <div className="absolute -inset-1 bg-white/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition" />
-                <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 hover:-translate-y-2 transition">
+                <div className="absolute -inset-1 bg-white/5 rounded-2xl sm:rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition" />
+                <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 hover:-translate-y-2 transition">
                   <p className="text-white/50 text-xs font-bold uppercase mb-2">
                     {t('history.totalExams')}
                   </p>
-                  <p className="text-3xl sm:text-4xl md:text-5xl font-black">{stats.totalExams}</p>
+                  <p className="text-2xl sm:text-3xl md:text-5xl font-black">{stats.totalExams}</p>
                 </div>
               </div>
 
               {/* Avg Score */}
               <div className="group relative">
-                <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/40 to-amber-400/40 rounded-3xl blur-xl" />
-                <div className="relative bg-gradient-to-br from-orange-500 to-amber-500 rounded-3xl p-8 shadow-[0_20px_70px_rgba(255,115,0,0.45)] hover:-translate-y-2 transition">
+                <div className="absolute -inset-1 bg-gradient-to-br from-orange-500/40 to-amber-400/40 rounded-2xl sm:rounded-3xl blur-xl" />
+                <div className="relative bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 shadow-[0_20px_70px_rgba(255,115,0,0.45)] hover:-translate-y-2 transition">
                   <p className="text-orange-100 text-xs font-bold uppercase mb-2">
                     {t('history.avgScore')}
                   </p>
-                  <p className="text-3xl sm:text-4xl md:text-5xl font-black text-white">
+                  <p className="text-2xl sm:text-3xl md:text-5xl font-black text-white">
                     {stats.avgScore > 0 ? `${stats.avgScore}%` : '—'}
                   </p>
                 </div>
@@ -341,12 +341,12 @@ const History: React.FC = () => {
 
               {/* Best Score */}
               <div className="group relative">
-                <div className="absolute -inset-1 bg-green-500/30 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition" />
-                <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 hover:-translate-y-2 transition">
+                <div className="absolute -inset-1 bg-green-500/30 rounded-2xl sm:rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition" />
+                <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 hover:-translate-y-2 transition">
                   <p className="text-white/50 text-xs font-bold uppercase mb-2">
                     {t('history.bestScore')}
                   </p>
-                  <p className="text-3xl sm:text-4xl md:text-5xl font-black text-green-400">
+                  <p className="text-2xl sm:text-3xl md:text-5xl font-black text-green-400">
                     {stats.bestScore > 0 ? `${stats.bestScore}%` : '—'}
                   </p>
                 </div>
@@ -371,8 +371,8 @@ const History: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </div>
-                <p className="text-white/60 text-lg mb-2">Hali imtihon topshirmagansiz</p>
-                <p className="text-white/40 text-sm">Test topshirib, natijalaringizni bu yerda ko'ring</p>
+                <p className="text-white/60 text-sm sm:text-lg mb-2">Hali imtihon topshirmagansiz</p>
+                <p className="text-white/40 text-xs sm:text-sm">Test topshirib, natijalaringizni bu yerda ko'ring</p>
               </div>
             )}
 
