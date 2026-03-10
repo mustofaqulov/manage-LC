@@ -92,8 +92,16 @@ const ExamFlow: React.FC = () => {
     isCustomMode && selectedSectionIds
       ? allSections.filter((s) => selectedSectionIds.includes(s.id))
       : allSections;
-  const currentSectionInfo = sections[currentSectionIdx];
-  const currentSectionId = currentSectionInfo?.id;
+
+  // For random mode: use attempt's selected sections (not all test sections).
+  // AttemptSectionResponse.sectionId is the actual section UUID needed for API calls.
+  // We must wait for attemptDetail before fetching any sections, to avoid using the
+  // wrong (full-test) section list from testDetail.
+  const randomAttemptSections = isRandomMode ? (attemptDetail?.sections ?? null) : null;
+  const effectiveSectionCount = randomAttemptSections ? randomAttemptSections.length : sections.length;
+  const currentSectionId = isRandomMode
+    ? (randomAttemptSections?.[currentSectionIdx]?.sectionId ?? null)
+    : (sections[currentSectionIdx]?.id ?? null);
 
   // Fetch section detail
   const {
@@ -573,7 +581,7 @@ const ExamFlow: React.FC = () => {
         setStatus(ExamStatus.IDLE);
       } else {
         // Section complete - submit section
-        if (!isRandomMode && attemptIdRef.current && currentSectionId) {
+        if (attemptIdRef.current && currentSectionId) {
           try {
             await submitSectionMutation({
               attemptId: attemptIdRef.current,
@@ -584,7 +592,7 @@ const ExamFlow: React.FC = () => {
           }
         }
 
-        if (currentSectionIdx < sections.length - 1) {
+        if (currentSectionIdx < effectiveSectionCount - 1) {
           // More sections to go - automatically move to next section
           setCurrentSectionIdx((i) => i + 1);
           setCurrentQuestionIdx(0);
@@ -594,7 +602,7 @@ const ExamFlow: React.FC = () => {
           // All sections done - submit attempt
           setStatus(ExamStatus.FINISHED);
 
-          if (!isRandomMode && attemptIdRef.current) {
+          if (attemptIdRef.current) {
             setIsSubmittingAttempt(true);
             try {
               await submitAttemptMutation(attemptIdRef.current);
@@ -661,7 +669,7 @@ const ExamFlow: React.FC = () => {
 
   // ================= NEXT SECTION HANDLER =================
   const handleNextSection = useCallback(() => {
-    if (currentSectionIdx < sections.length - 1) {
+    if (currentSectionIdx < effectiveSectionCount - 1) {
       setCurrentSectionIdx((i) => i + 1);
       setCurrentQuestionIdx(0);
       setSectionDetail(null);
@@ -670,7 +678,7 @@ const ExamFlow: React.FC = () => {
     } else {
       setStatus(ExamStatus.FINISHED);
     }
-  }, [currentSectionIdx, sections.length]);
+  }, [currentSectionIdx, effectiveSectionCount]);
 
   // ================= FINISH (CUSTOM MODE) =================
   const handleFinishExam = useCallback(async () => {
@@ -875,7 +883,7 @@ const ExamFlow: React.FC = () => {
       ? (randomConfig?.cefrLevel ?? testDetail?.cefrLevel ?? 'B1')
       : testDetail!.cefrLevel;
     const startSectionCount = isRandomMode
-      ? (sections.length || Math.max(1, Math.min(10, randomConfig?.sectionCount ?? 3)))
+      ? (effectiveSectionCount || Math.max(1, Math.min(10, randomConfig?.sectionCount ?? 3)))
       : sections.length;
     const startInstructions = isRandomMode
       ? (testDetail?.instructions ?? 'Random API tanlagan test bo\'yicha imtihon boshlanadi.')
@@ -936,7 +944,7 @@ const ExamFlow: React.FC = () => {
         <ExamHeader
           sectionTitle={sectionDetail.title}
           currentSectionIdx={currentSectionIdx}
-          totalSections={sections.length}
+          totalSections={effectiveSectionCount}
           currentQuestionIdx={currentQuestionIdx}
           questionsCount={questions.length}
           status={status}
