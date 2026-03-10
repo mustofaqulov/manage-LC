@@ -85,6 +85,8 @@ const ExamFlow: React.FC = () => {
   const [attemptDetail, setAttemptDetail] = useState<AttemptDetailResponse | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [localRecordings, setLocalRecordings] = useState<{ id: string; blob: Blob; index: number }[]>([]);
+  // Maps sectionId → testId for RANDOM_SECTIONS attempts (when backend returns testId: null)
+  const [sectionToTestIdMap, setSectionToTestIdMap] = useState<Record<string, string>>({});
 
   // Current section ID derived from test detail (filtered for custom mode)
   const allSections = testDetail?.sections ?? [];
@@ -103,14 +105,20 @@ const ExamFlow: React.FC = () => {
     ? (randomAttemptSections?.[currentSectionIdx]?.sectionId ?? null)
     : (sections[currentSectionIdx]?.id ?? null);
 
+  // For RANDOM_SECTIONS (testId: null), each section may belong to a different test.
+  // Use the sectionToTestIdMap to resolve the correct testId per section.
+  const currentSectionTestId = (isRandomMode && currentSectionId && sectionToTestIdMap[currentSectionId])
+    ? sectionToTestIdMap[currentSectionId]
+    : resolvedTestId;
+
   // Fetch section detail
   const {
     data: fetchedSection,
     isLoading: isLoadingSection,
     refetch: refetchSection,
   } = useGetSection(
-    { testId: resolvedTestId!, sectionId: currentSectionId! },
-    { enabled: !!resolvedTestId && !!currentSectionId },
+    { testId: currentSectionTestId!, sectionId: currentSectionId! },
+    { enabled: !!currentSectionTestId && !!currentSectionId },
   );
   const { data: fetchedAttempt, refetch: refetchAttempt } = useGetAttempt(attemptId);
 
@@ -722,16 +730,47 @@ const ExamFlow: React.FC = () => {
           })
         : await startAttemptMutation({ testId: resolvedTestId!, sectionId: undefined });
       if (isRandomMode) {
-        let randomTestId = result?.testId ?? randomConfig?.sourceTestIds?.[0] ?? null;
-        if (!randomTestId && result?.attemptId) {
+        let randomTestId = result?.testId ?? null;
+        let startedAttempt: any = null;
+
+        // Fetch attempt detail to get selected sections
+        if (result?.attemptId) {
           try {
-            const startedAttempt = await queries.getAttempt(result.attemptId);
-            randomTestId = startedAttempt?.testId ?? null;
-            if (startedAttempt) {
-              setAttemptDetail(startedAttempt);
-            }
+            startedAttempt = await queries.getAttempt(result.attemptId);
+            if (!randomTestId) randomTestId = startedAttempt?.testId ?? null;
+            if (startedAttempt) setAttemptDetail(startedAttempt);
           } catch (attemptError) {
-            console.error('Failed to resolve random testId from attempt:', attemptError);
+            console.error('Failed to fetch attempt detail:', attemptError);
+          }
+        }
+
+        // If testId still null (RANDOM_SECTIONS across multiple tests),
+        // build a sectionId→testId map by fetching all available tests.
+        if (!randomTestId && startedAttempt?.sections?.length > 0) {
+          try {
+            const sectionIds: string[] = startedAttempt.sections.map((s: any) => s.sectionId);
+            const testsData = await queries.getTests({ page: 0, size: 100 });
+            const testList: any[] = testsData?.items ?? [];
+            const testDetails = await Promise.all(
+              testList.map((t: any) => queries.getTest(t.id).catch(() => null))
+            );
+            const map: Record<string, string> = {};
+            for (const td of testDetails) {
+              if (td) {
+                for (const section of td.sections ?? []) {
+                  if (sectionIds.includes(section.id)) {
+                    map[section.id] = td.id;
+                  }
+                }
+              }
+            }
+            if (Object.keys(map).length > 0) {
+              setSectionToTestIdMap(map);
+              // Use any resolved testId as a fallback for test info display
+              randomTestId = map[sectionIds[0]] ?? null;
+            }
+          } catch (lookupError) {
+            console.error('Failed to resolve sectionId→testId map:', lookupError);
           }
         }
 
