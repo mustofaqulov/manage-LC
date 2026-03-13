@@ -53,12 +53,20 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
         for (const response of audioResponses) {
           const audioData = (response.answer as any).audio;
           try {
+            let downloadUrl: string | null = null;
             if (audioData.assetId) {
-              const { downloadUrl } = await queries.getDownloadUrl(audioData.assetId);
-              const res = await fetch(downloadUrl);
-              audioBlobs.push(await res.blob());
-            } else if (audioData.bucket && audioData.key) {
-              const { downloadUrl } = await queries.presignDownload({ bucket: audioData.bucket, s3Key: audioData.key });
+              try {
+                const result = await queries.getDownloadUrl(audioData.assetId);
+                downloadUrl = result.downloadUrl;
+              } catch {
+                // assetId orqali topilmadi, bucket+key bilan urinamiz
+              }
+            }
+            if (!downloadUrl && audioData.bucket && audioData.key) {
+              const result = await queries.presignDownload({ bucket: audioData.bucket, s3Key: audioData.key });
+              downloadUrl = result.downloadUrl;
+            }
+            if (downloadUrl) {
               const res = await fetch(downloadUrl);
               audioBlobs.push(await res.blob());
             }
