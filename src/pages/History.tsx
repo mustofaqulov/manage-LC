@@ -5,6 +5,7 @@ import type { AttemptListResponse, AttemptStatus } from '../api/types';
 import ScoreChart from '../components/ScoreChart';
 import { showToast } from '../utils/configs/toastConfig';
 import * as queries from '../services/queries';
+import * as mutations from '../services/mutations';
 import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
 import { getRecordingsForAttempt } from '../utils/audioStore';
 
@@ -54,16 +55,14 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
           const audioData = (response.answer as any).audio;
           try {
             let downloadUrl: string | null = null;
-            if (audioData.assetId) {
-              try {
-                const result = await queries.getDownloadUrl(audioData.assetId);
-                downloadUrl = result.downloadUrl;
-              } catch {
-                // assetId orqali topilmadi, bucket+key bilan urinamiz
-              }
-            }
-            if (!downloadUrl && audioData.bucket && audioData.key) {
-              const result = await queries.presignDownload({ bucket: audioData.bucket, s3Key: audioData.key });
+            if (audioData.bucket && audioData.key) {
+              const result = await mutations.presignDownload({
+                bucket: audioData.bucket,
+                s3Key: audioData.key,
+              });
+              downloadUrl = result.downloadUrl;
+            } else if (audioData.assetId) {
+              const result = await queries.getDownloadUrl(audioData.assetId);
               downloadUrl = result.downloadUrl;
             }
             if (downloadUrl) {
@@ -81,11 +80,11 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
         return;
       }
 
-      showToast.info('MP3 tayyorlanmoqda...');
-      const combinedMp3 = await combineAudioToMp3(audioBlobs);
+      showToast.info('Audio tayyorlanmoqda...');
+      const combined = await combineAudioToMp3(audioBlobs);
       const timestamp = new Date(detail.startedAt).toISOString().slice(0, 10);
       const filename = `exam-${detail.testTitle?.replace(/\s+/g, '-') || 'recording'}-${timestamp}.mp3`;
-      downloadMp3(combinedMp3, filename);
+      downloadMp3(combined, filename);
       showToast.success('Audio muvaffaqiyatli yuklab olindi');
     } catch (error) {
       console.error('Audio download failed:', error);

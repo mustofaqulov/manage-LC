@@ -1,76 +1,86 @@
 /**
- * Audio Converter — FFmpeg.wasm orqali WebM → MP3
- * Core WASM CDN'dan yuklanadi (birinchi marta ~25MB, keyin brauzer cache'da)
+ * Audio Converter — WebM → MP3
+ * AudioContext (native) orqali decode + lamejs Worker orqali encode.
+ * FFmpeg kerak emas. 1 daqiqalik audio ~1-2s ichida tayyor.
  */
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
-let ffInstance: FFmpeg | null = null;
+async function decodeToPcm(blobs: Blob[]): Promise<{
+  channelData: Float32Array[];
+  sampleRate: number;
+  numChannels: number;
+}> {
+  const ctx = new AudioContext();
 
-const loadFFmpeg = async (): Promise<FFmpeg> => {
-  if (ffInstance?.loaded) return ffInstance;
-  const ff = new FFmpeg();
-  // public/ papkasidagi fayllar — xuddi shu origin, CORS muammo yo'q
-  await ff.load({
-    coreURL: await toBlobURL('/ffmpeg-core.js', 'text/javascript'),
-    wasmURL: await toBlobURL('/ffmpeg-core.wasm', 'application/wasm'),
+  const buffers = await Promise.all(
+    blobs.map(async (blob) => {
+      const ab = await blob.arrayBuffer();
+      return ctx.decodeAudioData(ab);
+    }),
+  );
+
+  await ctx.close();
+
+  if (buffers.length === 1) {
+    const b = buffers[0];
+    const channelData: Float32Array[] = [];
+    for (let i = 0; i < b.numberOfChannels; i++) channelData.push(b.getChannelData(i));
+    return { channelData, sampleRate: b.sampleRate, numChannels: b.numberOfChannels };
+  }
+
+  // Ko'p buffer — OfflineAudioContext da birlashtirish
+  const totalLength = buffers.reduce((s, b) => s + b.length, 0);
+  const { sampleRate, numberOfChannels } = buffers[0];
+  const offline = new OfflineAudioContext(numberOfChannels, totalLength, sampleRate);
+
+  let startSample = 0;
+  for (const buf of buffers) {
+    const src = offline.createBufferSource();
+    src.buffer = buf;
+    src.connect(offline.destination);
+    src.start(startSample / sampleRate);
+    startSample += buf.length;
+  }
+
+  const rendered = await offline.startRendering();
+  const channelData: Float32Array[] = [];
+  for (let i = 0; i < rendered.numberOfChannels; i++) channelData.push(rendered.getChannelData(i));
+  return { channelData, sampleRate, numChannels: numberOfChannels };
+}
+
+function encodeMp3InWorker(
+  channelData: Float32Array[],
+  sampleRate: number,
+  numChannels: number,
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(
+      new URL('./mp3Encoder.worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+
+    worker.onmessage = (e: MessageEvent) => {
+      const { mp3Data } = e.data as { mp3Data: Uint8Array[] };
+      worker.terminate();
+      resolve(new Blob(mp3Data, { type: 'audio/mpeg' }));
+    };
+
+    worker.onerror = (err) => {
+      worker.terminate();
+      reject(err);
+    };
+
+    // Transferable objects orqali — copy yo'q, tez
+    const transfers = channelData.map((ch) => ch.buffer);
+    worker.postMessage({ channelData, sampleRate, numChannels }, transfers);
   });
-  ffInstance = ff;
-  return ff;
+}
+
+export const combineAudioToMp3 = async (blobs: Blob[]): Promise<Blob> => {
+  if (blobs.length === 0) throw new Error('No audio blobs');
+  const { channelData, sampleRate, numChannels } = await decodeToPcm(blobs);
+  return encodeMp3InWorker(channelData, sampleRate, numChannels);
 };
 
-/**
- * Bir nechta WebM blob'larni bitta MP3 ga birlashtirish
- */
-export const combineAudioToMp3 = async (
-  blobs: Blob[],
-  onProgress?: (progress: number) => void,
-): Promise<Blob> => {
-  if (blobs.length === 0) throw new Error('No audio blobs provided');
-
-  if (onProgress) onProgress(0.05);
-
-  const ff = await loadFFmpeg();
-
-  if (onProgress) onProgress(0.3);
-
-  // Input fayllarni yozish
-  for (let i = 0; i < blobs.length; i++) {
-    await ff.writeFile(`in${i}.webm`, await fetchFile(blobs[i]));
-  }
-
-  if (onProgress) onProgress(0.5);
-
-  if (blobs.length === 1) {
-    await ff.exec(['-i', 'in0.webm', '-codec:a', 'libmp3lame', '-q:a', '2', 'out.mp3']);
-  } else {
-    // Concat demuxer — bir nechta WebM'ni ketma-ket birlashtirish
-    const list = blobs.map((_, i) => `file 'in${i}.webm'`).join('\n');
-    await ff.writeFile('list.txt', list);
-    await ff.exec([
-      '-f', 'concat', '-safe', '0', '-i', 'list.txt',
-      '-codec:a', 'libmp3lame', '-q:a', '2',
-      'out.mp3',
-    ]);
-    ff.deleteFile('list.txt').catch(() => {});
-  }
-
-  if (onProgress) onProgress(0.9);
-
-  const data = await ff.readFile('out.mp3') as Uint8Array;
-
-  // Cleanup
-  for (let i = 0; i < blobs.length; i++) ff.deleteFile(`in${i}.webm`).catch(() => {});
-  ff.deleteFile('out.mp3').catch(() => {});
-
-  if (onProgress) onProgress(1);
-
-  return new Blob([data], { type: 'audio/mpeg' });
-};
-
-/**
- * MP3 faylni yuklab olish
- */
 export const downloadMp3 = (blob: Blob, filename: string): void => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

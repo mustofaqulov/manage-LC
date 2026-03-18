@@ -483,13 +483,11 @@ const ExamFlow: React.FC = () => {
     setIsDownloading(true);
     try {
       showToast.info('Audio tayyorlanmoqda...');
-
-      const combinedMp3 = await combineAudioToMp3(audioBlobs);
-
+      const combined = await combineAudioToMp3(audioBlobs);
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const filename = `exam-recording-${timestamp}.mp3`;
 
-      downloadMp3(combinedMp3, filename);
+      downloadMp3(combined, filename);
       showToast.success('Audio muvaffaqiyatli yuklab olindi');
     } catch (error) {
       console.error('MP3 conversion failed:', error);
