@@ -106,7 +106,7 @@ export interface UserResponse {
   address: string | null;
   roles: Role[];
   lastLoginAt: Instant | null;
-  freeAttemptAvailable?: boolean;
+  freeAttemptAvailable: boolean;
   // Premium subscription fields (to be added by backend in future)
   startDate?: Instant | null;
   endDate?: Instant | null;

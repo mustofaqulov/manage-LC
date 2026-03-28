@@ -103,6 +103,7 @@ const Login: React.FC = () => {
             address: null,
             roles: result.role ? [result.role] : [],
             lastLoginAt: null,
+            freeAttemptAvailable: result.freeAttemptAvailable,
           };
 
           // Token'ni darhol localStorage'ga saqlash (Redux'dan oldin)

@@ -101,12 +101,20 @@ const authSlice = createSlice({
       state.token = payload.token;
       state.isAuthenticated = true;
       state.missingInfo = payload.missingInfo;
+      if (payload.freeAttemptAvailable !== undefined) {
+        state.freeAttemptAvailable = payload.freeAttemptAvailable;
+        localStorage.setItem('free_attempt_available', String(payload.freeAttemptAvailable));
+      }
       localStorage.setItem('auth_token', payload.token);
     });
 
     // Get me query
     builder.addMatcher(api.endpoints.getMe.matchFulfilled, (state, { payload }) => {
       state.user = payload;
+      if (payload.freeAttemptAvailable !== undefined) {
+        state.freeAttemptAvailable = payload.freeAttemptAvailable;
+        localStorage.setItem('free_attempt_available', String(payload.freeAttemptAvailable));
+      }
       localStorage.setItem('user_data', JSON.stringify(payload));
     });
 
@@ -114,6 +122,10 @@ const authSlice = createSlice({
     builder.addMatcher(api.endpoints.updateMe.matchFulfilled, (state, { payload }) => {
       state.user = payload;
       state.missingInfo = false;
+      if (payload.freeAttemptAvailable !== undefined) {
+        state.freeAttemptAvailable = payload.freeAttemptAvailable;
+        localStorage.setItem('free_attempt_available', String(payload.freeAttemptAvailable));
+      }
       localStorage.setItem('user_data', JSON.stringify(payload));
     });
   },
