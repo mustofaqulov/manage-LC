@@ -14,7 +14,8 @@ Manage LC is a React/TypeScript web application for language learning mock exams
 - React Router DOM 7.12.0
 - Google Generative AI (Gemini) 0.21.0
 - Tailwind CSS 3 (PostCSS plugin) + SCSS modules
-- @ffmpeg/ffmpeg 0.12.15 + @ffmpeg/core + @ffmpeg/util (WebM → MP3 encoding via FFmpeg WASM)
+- @breezystack/lamejs 1.2.7 (MP3 encoding via Web Worker — replaced FFmpeg WASM)
+- @ffmpeg/ffmpeg 0.12.15 + @ffmpeg/core + @ffmpeg/util (still in deps + build script, but no longer used in source)
 - lucide-react 0.562.0 (icons)
 - swiper 12.0.3 (carousels)
 - i18n: 3 languages (uz, en, ru) via custom context
@@ -106,13 +107,17 @@ The app uses two parallel state management systems:
 ### Audio Services
 
 - **src/services/geminiService.ts**: Native browser TTS (`SpeechSynthesis` API, rate 0.9), beep via Web Audio API `OscillatorNode` (440Hz, 300ms). `stopAllAudio()` cancels speech, stops oscillator, closes AudioContext.
-- **src/utils/audioConverter.ts**: Combines multiple WebM audio blobs into a single MP3 using FFmpeg WASM. MIME type: `audio/mpeg`. FFmpeg core files are copied via `scripts/copy-ffmpeg.cjs` (runs on `postinstall` and before `build`).
+- **src/utils/audioConverter.ts**: Combines multiple WebM audio blobs into a single MP3. Uses native `AudioContext`/`OfflineAudioContext` to decode WebM → PCM, then sends PCM via transferable `Float32Array` buffers to `src/utils/mp3Encoder.worker.ts` (a Vite Web Worker). The worker uses `@breezystack/lamejs` to encode at 128kbps. ~1–2s for 1 min of audio. MIME type: `audio/mpeg`.
+- **src/utils/mp3Encoder.worker.ts**: Web Worker that receives `{ channelData, sampleRate, numChannels }`, converts Float32 → Int16, encodes with lamejs `Mp3Encoder`, and posts back `{ mp3Data: Uint8Array[] }`.
 
 ### Audio Download (History page)
 
-Audio responses stored as `answer.audio = { assetId, bucket, key }`. Download flow:
-- If `assetId` present: `GET /assets/{assetId}/download-url` → fetch presigned URL
-- Legacy fallback (no assetId): `POST /assets/presign-download` with `{ bucket, s3Key }`
+Audio responses stored as `answer.audio = { assetId, bucket, key }`. Download flow in `History.tsx`:
+1. **IndexedDB first**: `getRecordingsForAttempt(attemptId)` from `audioStore.ts` — instant, no network
+2. **S3 fallback** (if IndexedDB empty):
+   - If `bucket` + `key` present: `POST /assets/presign-download` → fetch presigned URL
+   - If only `assetId`: `GET /assets/{assetId}/download-url` → fetch presigned URL
+   - If `assetId` returns 404: falls back to `presignDownload` with `bucket`/`key`
 
 ### Exam Modes
 
@@ -154,6 +159,7 @@ RTK Query endpoints with auto-injected Bearer token:
 
 ### Utilities
 
+- **src/utils/audioStore.ts**: IndexedDB store (`manage-lc-audio` DB, `recordings` object store) for persisting recorded audio blobs locally. Keys are `${attemptId}-${index}`. Used by History page to retrieve recordings without hitting S3.
 - **src/utils/configs/axiosConfig.js**: Axios instance with base URL `https://api.managelc.uz` and auth interceptors
 - **src/utils/configs/toastConfig.js**: react-toastify configuration
 

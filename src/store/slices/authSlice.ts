@@ -8,6 +8,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   missingInfo: boolean;
+  freeAttemptAvailable: boolean | null;
   // Legacy user fields for backward compatibility
   legacyUser: {
     id: string;
@@ -36,11 +37,18 @@ const getInitialLegacyUser = () => {
   }
 };
 
+const getInitialFreeAttemptAvailable = (): boolean | null => {
+  const val = localStorage.getItem('free_attempt_available');
+  if (val === null) return null;
+  return val === 'true';
+};
+
 const initialState: AuthState = {
   user: getInitialUser(),
   token: localStorage.getItem('auth_token'),
   isAuthenticated: !!localStorage.getItem('auth_token') || !!getInitialLegacyUser(),
   missingInfo: false,
+  freeAttemptAvailable: getInitialFreeAttemptAvailable(),
   legacyUser: getInitialLegacyUser(),
 };
 
@@ -48,10 +56,14 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (state, action: PayloadAction<{ user: UserResponse; token: string }>) => {
+    setCredentials: (state, action: PayloadAction<{ user: UserResponse; token: string; freeAttemptAvailable?: boolean }>) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
+      if (action.payload.freeAttemptAvailable !== undefined) {
+        state.freeAttemptAvailable = action.payload.freeAttemptAvailable;
+        localStorage.setItem('free_attempt_available', String(action.payload.freeAttemptAvailable));
+      }
       localStorage.setItem('auth_token', action.payload.token);
       localStorage.setItem('user_data', JSON.stringify(action.payload.user));
     },
@@ -72,9 +84,12 @@ const authSlice = createSlice({
       state.legacyUser = null;
       state.isAuthenticated = false;
       state.missingInfo = false;
+      state.freeAttemptAvailable = null;
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_data');
       localStorage.removeItem('manage_lc_user');
+      localStorage.removeItem('free_attempt_available');
+      localStorage.removeItem('free_attempt_banner_dismissed');
     },
     setMissingInfo: (state, action: PayloadAction<boolean>) => {
       state.missingInfo = action.payload;

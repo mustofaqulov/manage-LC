@@ -82,6 +82,7 @@ export interface LoginResponse {
   role: Role;
   token: string;
   missingInfo: boolean;
+  freeAttemptAvailable: boolean;
 }
 
 // User
@@ -105,6 +106,7 @@ export interface UserResponse {
   address: string | null;
   roles: Role[];
   lastLoginAt: Instant | null;
+  freeAttemptAvailable?: boolean;
   // Premium subscription fields (to be added by backend in future)
   startDate?: Instant | null;
   endDate?: Instant | null;

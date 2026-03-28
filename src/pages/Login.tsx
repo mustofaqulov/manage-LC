@@ -114,6 +114,7 @@ const Login: React.FC = () => {
             setCredentials({
               user: mappedUser,
               token: result.token,
+              freeAttemptAvailable: result.freeAttemptAvailable,
             }),
           );
 

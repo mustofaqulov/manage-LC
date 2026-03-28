@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useGetSubscriptionQuery } from '../store/api';
 import Logo from '../assets/images/logo.svg';
 import LanguageSwitcher from './LanguageSwitcher';
+import FreeAttemptBanner from './FreeAttemptBanner';
 
 const Header: React.FC = memo(() => {
   const { user, logout: onLogout } = useAuth();
@@ -36,7 +37,9 @@ const Header: React.FC = memo(() => {
   };
 
   return (
-    <div className="fixed top-4 left-0 right-0 z-50 px-3 sm:px-4 md:px-8">
+    <div className="fixed top-0 left-0 right-0 z-50">
+      <FreeAttemptBanner />
+      <div className="px-3 sm:px-4 md:px-8 pt-4">
       <nav
         className={`max-w-[1540px] mx-auto pointer-events-auto flex justify-between items-center py-2.5 sm:py-3 px-4 sm:px-6 md:px-10 rounded-2xl sm:rounded-3xl border transition-all duration-500 ${
           isExamContext
@@ -154,6 +157,7 @@ const Header: React.FC = memo(() => {
           )}
         </div>
       </nav>
+      </div>
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (

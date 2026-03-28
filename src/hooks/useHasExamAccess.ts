@@ -12,7 +12,7 @@ import { hasExamAccess } from '../utils/auth';
  * @returns hasAccess - true/false imtihon topshirish huquqi, isLoading - yuklash holati
  */
 export const useHasExamAccess = () => {
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated, freeAttemptAvailable } = useAppSelector((state) => state.auth);
 
   // Subscription endpoint chaqiramiz (faqat authenticated bo'lsa)
   const { data: subscription, isLoading, isError } = useGetSubscriptionQuery(undefined, {
@@ -20,6 +20,9 @@ export const useHasExamAccess = () => {
   });
 
   const hasAccess = useMemo(() => {
+    // Bepul urinish mavjud bo'lsa — ruxsat beramiz
+    if (freeAttemptAvailable === true) return true;
+
     // Agar API'dan javob kelgan bo'lsa, subscription status'ni qaytaramiz
     if (subscription !== undefined && !isError) {
       return subscription.isSubscribed;
@@ -27,7 +30,7 @@ export const useHasExamAccess = () => {
 
     // Fallback: Agar API xato bo'lsa yoki yuklanmagan bo'lsa, role-based tekshiramiz
     return hasExamAccess(user?.roles);
-  }, [subscription, isError, user?.roles]);
+  }, [subscription, isError, user?.roles, freeAttemptAvailable]);
 
   return {
     hasAccess,

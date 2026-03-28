@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useHasExamAccess } from '../hooks/useHasExamAccess';
 import { useGetTests } from '../services/hooks';
 import { showToast } from '../utils/configs/toastConfig';
+import { useAppSelector } from '../store/hooks';
 import type { TestListResponse, CefrLevel } from '../api/types';
 
 type ExamMode = 'full' | 'random';
@@ -68,6 +69,8 @@ const MODE_CARDS = [
 const MockExam: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { hasAccess } = useHasExamAccess();
+  const { freeAttemptAvailable } = useAppSelector((state) => state.auth);
+  const showFreeAttemptBanner = isAuthenticated && freeAttemptAvailable === true;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<ExamMode | null>(null);
@@ -225,6 +228,38 @@ const MockExam: React.FC = () => {
             <span className="text-white text-sm sm:text-base">{t('common.back')}</span>
           </button>
         </div>
+
+        {/* Free Attempt Banner */}
+        {showFreeAttemptBanner && !selectedMode && (
+          <div className="mb-8 sm:mb-10">
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500" />
+              <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.12)_50%,transparent_60%)] bg-[length:200%_100%] animate-[shimmer_2.5s_infinite]" />
+              <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4 px-6 sm:px-8 py-5 sm:py-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-black text-lg sm:text-xl">Bepul imtihon sizni kutmoqda!</h3>
+                    <p className="text-white/80 text-sm mt-0.5">Birinchi imtihoningizni bepul topshiring va darajangizni bilib oling</p>
+                  </div>
+                </div>
+                <span className="px-5 py-2.5 bg-white text-orange-600 font-black text-sm rounded-full shadow-lg flex-shrink-0">
+                  1 ta FREE test
+                </span>
+              </div>
+            </div>
+            <style>{`
+              @keyframes shimmer {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+              }
+            `}</style>
+          </div>
+        )}
 
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16 md:mb-20">
