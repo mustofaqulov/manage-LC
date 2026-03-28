@@ -136,18 +136,21 @@ const MockExam: React.FC = () => {
     }
   }, [randomTests, selectedRandomLevel]);
 
-  // Har safar sahifaga kirganda premium obuna haqida ogohlantirish
+  // Obuna yo'q bo'lsa /subscribe ga yo'naltirish (freeAttempt bo'lmasa)
   useEffect(() => {
     if (isAuthenticated && !hasAccess && !toastShownRef.current) {
-      showToast.warning('Imtihon topshirish uchun premium obuna sotib oling');
-      toastShownRef.current = true; // Ikkinchi marta chiqmasligi uchun
+      toastShownRef.current = true;
+      navigate('/subscribe');
     }
-  }, [isAuthenticated, hasAccess]);
+  }, [isAuthenticated, hasAccess, navigate]);
 
   const handleModeSelect = (mode: ExamMode | 'custom') => {
-    // Access yo'q bo'lsa toast ko'rsatib, return qilamiz
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     if (!hasAccess) {
-      showToast.warning('Imtihon topshirish uchun premium obuna sotib oling');
+      navigate('/subscribe');
       return;
     }
 
