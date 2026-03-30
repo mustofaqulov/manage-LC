@@ -25,8 +25,17 @@ components:
       - testId
       - testTitle
       - userId
+      - userEmail
+      - userName
       - status
       - startedAt
+      - submittedAt
+      - scoredAt
+      - totalScore
+      - maxTotalScore
+      - scorePercentage
+      - estimatedCefrLevel
+      - aiSummary
       - sections
       - responses
       - scoringJobs
@@ -35,7 +44,9 @@ components:
         id:
           $ref: "#/components/schemas/UUID"
         testId:
-          $ref: "#/components/schemas/UUID"
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
         testTitle:
           type: string
         userId:
@@ -100,7 +111,10 @@ components:
       type: object
       required:
       - id
+      - answerKey
       - acceptedValues
+      - isCaseSensitive
+      - isRegex
       - scoreWeight
       properties:
         id:
@@ -125,7 +139,11 @@ components:
       - id
       - label
       - content
+      - contentImageAssetId
+      - orderIndex
+      - isCorrect
       - scoreWeight
+      - matchTarget
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -154,10 +172,15 @@ components:
       - id
       - sectionId
       - questionType
+      - orderIndex
       - prompt
+      - promptAudioAssetId
+      - promptImageAssetId
       - maxScore
       - settings
+      - explanation
       - createdAt
+      - updatedAt
       - options
       - expectedAnswers
       - rubrics
@@ -213,6 +236,7 @@ components:
       required:
       - rubricId
       - rubricName
+      - isPrimary
       properties:
         rubricId:
           $ref: "#/components/schemas/UUID"
@@ -225,8 +249,11 @@ components:
       required:
       - id
       - name
+      - description
       - maxScore
       - weight
+      - orderIndex
+      - levelDescriptors
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -254,9 +281,13 @@ components:
       required:
       - id
       - name
+      - description
       - skill
+      - cefrLevel
       - maxScore
+      - createdBy
       - createdAt
+      - updatedAt
       - criteria
       properties:
         id:
@@ -296,8 +327,13 @@ components:
       - testId
       - title
       - skill
+      - orderIndex
+      - instructions
+      - timeLimitMinutes
+      - maxScore
       - settings
       - createdAt
+      - updatedAt
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -349,10 +385,19 @@ components:
       required:
       - id
       - title
+      - description
       - cefrLevel
       - status
+      - version
+      - parentId
+      - timeLimitMinutes
+      - passingScore
+      - instructions
       - settings
+      - publishedAt
+      - createdBy
       - createdAt
+      - updatedAt
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -415,6 +460,7 @@ components:
       - id
       - phone
       - roles
+      - isActive
       - createdAt
       properties:
         id:
@@ -477,16 +523,30 @@ components:
       required:
       - id
       - testId
+      - sourceType
       - testTitle
       - cefrLevel
       - status
       - startedAt
+      - submittedAt
+      - scoredAt
+      - expiresAt
+      - totalScore
+      - maxTotalScore
+      - scorePercentage
+      - estimatedCefrLevel
+      - aiSummary
       - sections
+      - responses
       properties:
         id:
           $ref: "#/components/schemas/UUID"
         testId:
-          $ref: "#/components/schemas/UUID"
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        sourceType:
+          $ref: "#/components/schemas/AttemptSourceType"
         testTitle:
           type: string
         cefrLevel:
@@ -542,15 +602,26 @@ components:
       required:
       - id
       - testId
+      - sourceType
       - testTitle
       - cefrLevel
       - status
       - startedAt
+      - submittedAt
+      - scoredAt
+      - totalScore
+      - maxTotalScore
+      - scorePercentage
+      - estimatedCefrLevel
       properties:
         id:
           $ref: "#/components/schemas/UUID"
         testId:
-          $ref: "#/components/schemas/UUID"
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        sourceType:
+          $ref: "#/components/schemas/AttemptSourceType"
         testTitle:
           type: string
         cefrLevel:
@@ -591,6 +662,12 @@ components:
       - sectionTitle
       - skill
       - status
+      - startedAt
+      - submittedAt
+      - scoredAt
+      - sectionScore
+      - maxSectionScore
+      - aiFeedback
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -626,6 +703,11 @@ components:
           type:
           - string
           - "null"
+    AttemptSourceType:
+      type: string
+      enum:
+      - TEST
+      - RANDOM_SECTIONS
     AttemptStatus:
       type: string
       enum:
@@ -648,7 +730,6 @@ components:
       type: object
       required:
       - acceptedValues
-      - scoreWeight
       properties:
         answerKey:
           type:
@@ -669,7 +750,6 @@ components:
       required:
       - label
       - content
-      - scoreWeight
       properties:
         label:
           type: string
@@ -696,8 +776,6 @@ components:
       - sectionId
       - questionType
       - prompt
-      - maxScore
-      - settings
       properties:
         sectionId:
           $ref: "#/components/schemas/UUID"
@@ -748,7 +826,6 @@ components:
       required:
       - name
       - maxScore
-      - weight
       properties:
         name:
           type: string
@@ -801,7 +878,6 @@ components:
       - testId
       - title
       - skill
-      - settings
       properties:
         testId:
           $ref: "#/components/schemas/UUID"
@@ -831,7 +907,6 @@ components:
       required:
       - title
       - cefrLevel
-      - settings
       properties:
         title:
           type: string
@@ -887,7 +962,6 @@ components:
       required:
       - id
       - phone
-      - role
       - token
       properties:
         id:
@@ -903,10 +977,14 @@ components:
           - string
           - "null"
         role:
-          $ref: "#/components/schemas/Role"
+          type:
+          - string
+          - "null"
         token:
           type: string
         missingInfo:
+          type: boolean
+        freeAttemptAvailable:
           type: boolean
     OptionResponse:
       type: object
@@ -914,6 +992,9 @@ components:
       - id
       - label
       - content
+      - contentImageAssetId
+      - orderIndex
+      - matchTarget
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -958,8 +1039,10 @@ components:
     PagedAdminRubricResponse:
       type: object
       required:
+      - totalCount
+      - page
+      - size
       - items
-      - sortableFields
       properties:
         totalCount:
           type: integer
@@ -984,8 +1067,10 @@ components:
     PagedAdminTestResponse:
       type: object
       required:
+      - totalCount
+      - page
+      - size
       - items
-      - sortableFields
       properties:
         totalCount:
           type: integer
@@ -1010,8 +1095,10 @@ components:
     PagedAdminUserResponse:
       type: object
       required:
+      - totalCount
+      - page
+      - size
       - items
-      - sortableFields
       properties:
         totalCount:
           type: integer
@@ -1036,8 +1123,10 @@ components:
     PagedAttemptListResponse:
       type: object
       required:
+      - totalCount
+      - page
+      - size
       - items
-      - sortableFields
       properties:
         totalCount:
           type: integer
@@ -1062,8 +1151,10 @@ components:
     PagedTestListResponse:
       type: object
       required:
+      - totalCount
+      - page
+      - size
       - items
-      - sortableFields
       properties:
         totalCount:
           type: integer
@@ -1105,6 +1196,7 @@ components:
       required:
       - downloadUrl
       - method
+      - expiresAt
       properties:
         downloadUrl:
           type: string
@@ -1154,6 +1246,7 @@ components:
       - uploadUrl
       - method
       - headers
+      - expiresAt
       - s3Key
       properties:
         assetId:
@@ -1176,9 +1269,13 @@ components:
       required:
       - id
       - questionType
+      - orderIndex
       - prompt
+      - promptAudioAssetId
+      - promptImageAssetId
       - maxScore
       - settings
+      - options
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -1260,6 +1357,11 @@ components:
       - questionType
       - answer
       - answeredAt
+      - isCorrect
+      - scoreAwarded
+      - maxScore
+      - aiSummary
+      - rubricScores
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -1308,6 +1410,7 @@ components:
       - criterionName
       - score
       - maxScore
+      - feedback
       properties:
         criterionId:
           $ref: "#/components/schemas/UUID"
@@ -1327,8 +1430,10 @@ components:
       - id
       - targetType
       - targetId
+      - previousScore
       - newScore
       - reason
+      - overriddenBy
       - createdAt
       properties:
         id:
@@ -1355,8 +1460,15 @@ components:
       type: object
       required:
       - id
+      - sectionId
       - status
+      - attemptNo
+      - aiProvider
+      - aiModel
+      - processingTimeMs
+      - errorMessage
       - createdAt
+      - completedAt
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -1406,6 +1518,8 @@ components:
       - id
       - assetType
       - mimeType
+      - contextLabel
+      - orderIndex
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -1434,6 +1548,10 @@ components:
       - id
       - title
       - skill
+      - orderIndex
+      - instructions
+      - timeLimitMinutes
+      - maxScore
       - assets
       - questions
       properties:
@@ -1473,6 +1591,11 @@ components:
       - id
       - title
       - skill
+      - orderIndex
+      - instructions
+      - timeLimitMinutes
+      - questionCount
+      - maxScore
       - assets
       properties:
         id:
@@ -1511,6 +1634,11 @@ components:
       - LISTENING
       - WRITING
       - SPEAKING
+    SortOrder:
+      type: string
+      enum:
+      - ASC
+      - DESC
     StartAttemptRequest:
       type: object
       required:
@@ -1527,13 +1655,19 @@ components:
       required:
       - attemptId
       - testId
+      - sourceType
       - status
       - startedAt
+      - expiresAt
       properties:
         attemptId:
           $ref: "#/components/schemas/UUID"
         testId:
-          $ref: "#/components/schemas/UUID"
+          anyOf:
+          - $ref: "#/components/schemas/UUID"
+          - type: "null"
+        sourceType:
+          $ref: "#/components/schemas/AttemptSourceType"
         status:
           $ref: "#/components/schemas/AttemptStatus"
         startedAt:
@@ -1542,12 +1676,40 @@ components:
           anyOf:
           - $ref: "#/components/schemas/Instant"
           - type: "null"
+    StartRandomAttemptRequest:
+      type: object
+      required:
+      - cefrLevel
+      properties:
+        cefrLevel:
+          $ref: "#/components/schemas/CefrLevel"
+        sectionCount:
+          type: integer
+          format: int32
+          maximum: 10
+          minimum: 1
+        skills:
+          type:
+          - array
+          - "null"
+          items:
+            $ref: "#/components/schemas/SkillType"
+        sourceTestIds:
+          type:
+          - array
+          - "null"
+          items:
+            type: string
+            format: uuid
+            pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
     SubmitAttemptResponse:
       type: object
       required:
       - attemptId
       - status
       - submittedAt
+      - totalObjectiveScore
+      - maxObjectiveScore
       properties:
         attemptId:
           $ref: "#/components/schemas/UUID"
@@ -1577,6 +1739,8 @@ components:
       - sectionId
       - status
       - submittedAt
+      - objectiveScore
+      - maxObjectiveScore
       properties:
         attemptId:
           $ref: "#/components/schemas/UUID"
@@ -1594,13 +1758,33 @@ components:
           type:
           - number
           - "null"
+    SubscriptionResponse:
+      type: object
+      required:
+      - isSubscribed
+      properties:
+        isSubscribed:
+          type: boolean
+        startDate:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        endDate:
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
     TestDetailResponse:
       type: object
       required:
       - id
       - title
+      - description
       - cefrLevel
+      - timeLimitMinutes
+      - passingScore
+      - instructions
       - sections
+      - publishedAt
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -1638,7 +1822,11 @@ components:
       required:
       - id
       - title
+      - description
       - cefrLevel
+      - timeLimitMinutes
+      - sectionCount
+      - publishedAt
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -1662,6 +1850,11 @@ components:
           anyOf:
           - $ref: "#/components/schemas/Instant"
           - type: "null"
+    TestSortBy:
+      type: string
+      enum:
+      - PUBLISHED_DATE
+      - NAME
     TestStatus:
       type: string
       enum:
@@ -1801,6 +1994,7 @@ components:
       - responseId
       - questionId
       - answeredAt
+      - saved
       properties:
         responseId:
           $ref: "#/components/schemas/UUID"
@@ -1841,7 +2035,6 @@ components:
       required:
       - id
       - phone
-      - roles
       properties:
         id:
           $ref: "#/components/schemas/UUID"
@@ -1880,6 +2073,8 @@ components:
           anyOf:
           - $ref: "#/components/schemas/Instant"
           - type: "null"
+        freeAttemptAvailable:
+          type: boolean
   securitySchemes:
     SecurityScheme:
       type: http
@@ -1983,12 +2178,14 @@ paths:
           type: integer
           format: int32
           default: 0
+        required: true
       - name: size
         in: query
         schema:
           type: integer
           format: int32
           default: 20
+        required: true
       responses:
         "200":
           description: OK
@@ -2094,30 +2291,35 @@ paths:
           type: integer
           format: int32
           default: 0
+        required: true
       - name: size
         in: query
         schema:
           type: integer
           format: int32
           default: 20
+        required: true
       - name: status
         in: query
         schema:
           anyOf:
           - $ref: "#/components/schemas/AttemptStatus"
           - type: "null"
+        required: true
       - name: testId
         in: query
         schema:
           anyOf:
           - $ref: "#/components/schemas/UUID"
           - type: "null"
+        required: true
       - name: userId
         in: query
         schema:
           anyOf:
           - $ref: "#/components/schemas/UUID"
           - type: "null"
+        required: true
       responses:
         "200":
           description: OK
@@ -2239,18 +2441,21 @@ paths:
           type: integer
           format: int32
           default: 0
+        required: true
       - name: size
         in: query
         schema:
           type: integer
           format: int32
           default: 20
+        required: true
       - name: status
         in: query
         schema:
           anyOf:
           - $ref: "#/components/schemas/TestStatus"
           - type: "null"
+        required: true
       responses:
         "200":
           description: OK
@@ -2687,30 +2892,35 @@ paths:
           type:
           - boolean
           - "null"
+        required: true
       - name: page
         in: query
         schema:
           type: integer
           format: int32
           default: 0
+        required: true
       - name: role
         in: query
         schema:
           anyOf:
           - $ref: "#/components/schemas/Role"
           - type: "null"
+        required: true
       - name: search
         in: query
         schema:
           type:
           - string
           - "null"
+        required: true
       - name: size
         in: query
         schema:
           type: integer
           format: int32
           default: 20
+        required: true
       responses:
         "200":
           description: OK
@@ -2974,8 +3184,10 @@ paths:
       - Asset Resource
       security:
       - SecurityScheme:
-        - ADMIN
+        - USER
+        - GRADER
         - CONTENT_EDITOR
+        - ADMIN
   /assets/{assetId}/download-url:
     get:
       parameters:
@@ -3043,6 +3255,7 @@ paths:
           format: int32
           default: 0
           minimum: 0
+        required: true
       - name: size
         in: query
         schema:
@@ -3051,6 +3264,7 @@ paths:
           default: 20
           maximum: 100
           minimum: 1
+        required: true
       responses:
         "200":
           description: OK
@@ -3063,6 +3277,36 @@ paths:
         "403":
           description: Not Allowed
       summary: Get Attempt History
+      tags:
+      - Attempt Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /attempts/random:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartRandomAttemptRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StartAttemptResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+        "400":
+          description: Bad Request
+      summary: Start Random Attempt
       tags:
       - Attempt Resource
       security:
@@ -3219,6 +3463,23 @@ paths:
       summary: Login Or Signup
       tags:
       - Auth Resource
+  /auth/logout:
+    post:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Logout
+      tags:
+      - Auth Resource
+      security:
+      - SecurityScheme: []
   /tests:
     get:
       parameters:
@@ -3228,18 +3489,57 @@ paths:
           anyOf:
           - $ref: "#/components/schemas/CefrLevel"
           - type: "null"
+        required: true
       - name: page
         in: query
         schema:
           type: integer
           format: int32
           default: 0
+        required: true
+      - name: popularity
+        in: query
+        schema:
+          type:
+          - string
+          - "null"
+        required: true
+      - name: rating
+        in: query
+        schema:
+          type:
+          - number
+          - "null"
+          format: double
+        required: true
+      - name: search
+        in: query
+        schema:
+          type:
+          - string
+          - "null"
+        required: true
       - name: size
         in: query
         schema:
           type: integer
           format: int32
           default: 20
+        required: true
+      - name: sortBy
+        in: query
+        schema:
+          allOf:
+          - $ref: "#/components/schemas/TestSortBy"
+          - default: PUBLISHED_DATE
+        required: true
+      - name: sortOrder
+        in: query
+        schema:
+          allOf:
+          - $ref: "#/components/schemas/SortOrder"
+          - default: DESC
+        required: true
       responses:
         "200":
           description: OK
@@ -3346,11 +3646,7 @@ paths:
       tags:
       - User Resource
       security:
-      - SecurityScheme:
-        - USER
-        - GRADER
-        - CONTENT_EDITOR
-        - ADMIN
+      - SecurityScheme: []
     get:
       responses:
         "200":
@@ -3367,11 +3663,25 @@ paths:
       tags:
       - User Resource
       security:
-      - SecurityScheme:
-        - USER
-        - GRADER
-        - CONTENT_EDITOR
-        - ADMIN
+      - SecurityScheme: []
+  /users/me/subscription:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Is Subscribed
+      tags:
+      - User Resource
+      security:
+      - SecurityScheme: []
   /webhook/telegram:
     post:
       parameters:
@@ -3381,6 +3691,7 @@ paths:
           type:
           - string
           - "null"
+        required: true
       requestBody:
         content:
           application/json:
@@ -3400,5 +3711,3 @@ info:
   title: ManageLC CEFR Platform API
   version: 1.0.0
   description: CEFR Mock Test Platform API
-
-
