@@ -70,6 +70,10 @@ const authSlice = createSlice({
     // User ma'lumotlarini yangilash (updateMe javobidan)
     setUser: (state, action: PayloadAction<UserResponse>) => {
       state.user = action.payload;
+      if (action.payload.freeAttemptAvailable !== undefined) {
+        state.freeAttemptAvailable = action.payload.freeAttemptAvailable;
+        localStorage.setItem('free_attempt_available', String(action.payload.freeAttemptAvailable));
+      }
       localStorage.setItem('user_data', JSON.stringify(action.payload));
     },
     // Legacy user actions for backward compatibility
