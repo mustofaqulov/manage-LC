@@ -21,7 +21,7 @@ const Subscribe: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState<string>('6month');
+  const [selectedPlan, setSelectedPlan] = useState<string>('2month');
 
   // Subscription status
   const { data: subscription, isLoading: subscriptionLoading } = useGetSubscriptionQuery(undefined, {
@@ -40,11 +40,11 @@ const Subscribe: React.FC = () => {
 
   const plans: Plan[] = [
     {
-      id: '3month',
-      title: '3 oylik',
-      duration: '3 oy',
-      price: '39,900',
-      pricePerMonth: '13,300',
+      id: '1month',
+      title: '1 oylik',
+      duration: '1 oy',
+      price: '30,000',
+      pricePerMonth: null,
       saving: null,
       popular: false,
       gradient: 'from-blue-500/20 to-cyan-500/10',
@@ -56,12 +56,12 @@ const Subscribe: React.FC = () => {
       ),
     },
     {
-      id: '6month',
-      title: '6 oylik',
-      duration: '6 oy',
-      price: '59,900',
-      pricePerMonth: '9,983',
-      saving: '25%',
+      id: '2month',
+      title: '2 oylik',
+      duration: '2 oy',
+      price: '50,000',
+      pricePerMonth: '25,000',
+      saving: '17%',
       popular: true,
       gradient: 'from-orange-500/20 to-amber-500/10',
       glow: 'rgba(255,140,0,0.45)',
@@ -72,12 +72,12 @@ const Subscribe: React.FC = () => {
       ),
     },
     {
-      id: '1year',
-      title: '1 yillik',
-      duration: '12 oy',
-      price: '79,900',
-      pricePerMonth: '6,658',
-      saving: '50%',
+      id: '3month',
+      title: '3 oylik',
+      duration: '3 oy',
+      price: '70,000',
+      pricePerMonth: '23,333',
+      saving: '22%',
       popular: false,
       gradient: 'from-purple-500/20 to-violet-500/10',
       glow: 'rgba(139,92,246,0.4)',
@@ -253,7 +253,7 @@ const Subscribe: React.FC = () => {
                     <span className="text-2xl sm:text-3xl md:text-4xl font-black text-white">{plan.price}</span>
                     <span className="text-white/40 text-sm font-medium">UZS</span>
                   </div>
-                  {plan.pricePerMonth && plan.id !== '3month' && (
+                  {plan.pricePerMonth && (
                     <p className="text-white/30 text-xs mt-1">{plan.pricePerMonth} UZS / oy</p>
                   )}
                   {plan.saving && (
