@@ -77,3 +77,13 @@ export const getDownloadUrl = (assetId) => {
     });
 };
 
+// ==================== SPEAKING ANALYSIS QUERIES ====================
+
+export const getSpeakingAnalysis = (attemptId) => {
+  return axiosClient
+    .get(`/attempts/${attemptId}/speaking-analysis`)
+    .then((response) => {
+      return response.data;
+    });
+};
+

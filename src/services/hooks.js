@@ -13,6 +13,7 @@ export const QUERY_KEYS = {
   ATTEMPTS: 'attempts',
   ATTEMPT: 'attempt',
   DOWNLOAD_URL: 'downloadUrl',
+  SPEAKING_ANALYSIS: 'speakingAnalysis',
 };
 
 // ==================== USER HOOKS ====================
@@ -229,6 +230,19 @@ export const useSubmitAttempt = () => {
     onError: () => {
       showToast.error(t('errors.examSubmitFailed'));
     },
+  });
+};
+
+// ==================== SPEAKING ANALYSIS HOOKS ====================
+
+export const useGetSpeakingAnalysis = (attemptId, options = {}) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.SPEAKING_ANALYSIS, attemptId],
+    queryFn: () => queries.getSpeakingAnalysis(attemptId),
+    enabled: !!attemptId,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+    ...options,
   });
 };
 

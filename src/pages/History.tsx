@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from '../i18n/useTranslation';
-import { useGetAttemptHistory, useGetAttempt } from '../services/hooks';
+import { useGetAttemptHistory, useGetAttempt, useGetSpeakingAnalysis } from '../services/hooks';
 import type { AttemptListResponse, AttemptStatus } from '../api/types';
 import ScoreChart from '../components/ScoreChart';
 import { showToast } from '../utils/configs/toastConfig';
-import * as queries from '../services/queries';
 import * as mutations from '../services/mutations';
 import { combineAudioToMp3, downloadMp3 } from '../utils/audioConverter';
 import { getRecordingsForAttempt } from '../utils/audioStore';
+import { generateAttemptPdf } from '../utils/pdfGenerator';
 
 const STATUS_STYLES: Record<AttemptStatus, { bg: string; text: string; label: string }> = {
   IN_PROGRESS: { bg: 'from-blue-500 to-cyan-500', text: 'text-blue-400', label: 'Jarayonda' },
@@ -33,19 +33,19 @@ const formatDate = (dateStr: string) => {
 };
 
 // Expandable detail row
-const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
+const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({ attemptId, status }) => {
   const { data: detail, isLoading } = useGetAttempt(attemptId);
+  const { data: analysis } = useGetSpeakingAnalysis(attemptId, { enabled: status === 'SCORED' });
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const handleDownloadAudio = async () => {
     if (!detail || isDownloading) return;
     setIsDownloading(true);
     try {
-      // 1. Avval IndexedDB'dan qidirish (backend'siz, tez)
       const stored = await getRecordingsForAttempt(attemptId);
       let audioBlobs: Blob[] = stored.map((r) => r.blob).filter((b) => b.size > 0);
 
-      // 2. IndexedDB bo'sh bo'lsa — S3'dan yuklab olish
       if (audioBlobs.length === 0) {
         showToast.info('Audio yuklanmoqda...');
         const audioResponses = (detail.responses ?? []).filter(
@@ -56,13 +56,11 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
           try {
             let downloadUrl: string | null = null;
             if (audioData.bucket && audioData.key) {
-              const result = await mutations.presignDownload({
-                bucket: audioData.bucket,
-                s3Key: audioData.key,
-              });
+              const result = await mutations.presignDownload({ bucket: audioData.bucket, s3Key: audioData.key });
               downloadUrl = result.downloadUrl;
             } else if (audioData.assetId) {
-              const result = await queries.getDownloadUrl(audioData.assetId);
+              // assetId bo'lsa ham presign-download endpoint'i ishlatiladi (download-url 404 beradi)
+              const result = await mutations.presignDownload({ assetId: audioData.assetId });
               downloadUrl = result.downloadUrl;
             }
             if (downloadUrl) {
@@ -94,6 +92,20 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    if (!detail || isGeneratingPdf) return;
+    setIsGeneratingPdf(true);
+    try {
+      generateAttemptPdf(detail as any, analysis as any ?? null);
+      showToast.success('PDF muvaffaqiyatli yuklab olindi');
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      showToast.error('PDF yaratishda xatolik yuz berdi');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -108,6 +120,7 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
 
   const sections = detail.sections ?? [];
   const responses = detail.responses ?? [];
+  const hasAudio = responses.some((r) => r.answer && typeof r.answer === 'object' && 'audio' in r.answer);
 
   return (
     <div className="space-y-5 py-2">
@@ -124,24 +137,159 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
               Ball: {Math.round(detail.totalScore)} / {Math.round(detail.maxTotalScore)}
             </span>
           )}
+          {analysis?.confidence != null && (
+            <span className="text-white/40 text-xs">
+              AI ishonchlilik: {Math.round(analysis.confidence * 100)}%
+            </span>
+          )}
         </div>
 
-        {responses.some((r) => r.answer && typeof r.answer === 'object' && 'audio' in r.answer) && (
-          <button
-            type="button"
-            onClick={handleDownloadAudio}
-            disabled={isDownloading}
-            className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-            </svg>
-            {isDownloading ? 'Converting...' : 'Download Audio (MP3)'}
-          </button>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* PDF download */}
+          {status === 'SCORED' && (
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isGeneratingPdf}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              {isGeneratingPdf ? 'PDF...' : 'PDF Yuklab olish'}
+            </button>
+          )}
+
+          {/* Audio download */}
+          {hasAudio && (
+            <button
+              type="button"
+              onClick={handleDownloadAudio}
+              disabled={isDownloading}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+              </svg>
+              {isDownloading ? 'Converting...' : 'Audio (MP3)'}
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* AI Summary */}
-      {detail.aiSummary && (
+      {/* AI Speaking Analysis */}
+      {analysis && (
+        <div className="space-y-4">
+          {/* Overall summary */}
+          <div className="bg-gradient-to-r from-orange-500/10 to-amber-500/5 border border-orange-500/20 rounded-xl p-4">
+            <p className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-2">AI Speaking Tahlil</p>
+            <p className="text-white/80 text-sm leading-relaxed">{analysis.overallSummary}</p>
+          </div>
+
+          {/* Strengths / Improvements / Recommendations */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {analysis.overallStrengths?.length > 0 && (
+              <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-3">
+                <p className="text-xs font-bold text-green-400 uppercase tracking-wider mb-2">Kuchli Tomonlar</p>
+                <ul className="space-y-1">
+                  {analysis.overallStrengths.map((s, i) => (
+                    <li key={i} className="text-white/70 text-xs flex gap-1.5">
+                      <span className="text-green-400 mt-0.5 flex-shrink-0">•</span>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {analysis.areasForImprovement?.length > 0 && (
+              <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-3">
+                <p className="text-xs font-bold text-red-400 uppercase tracking-wider mb-2">Rivojlantirish Kerak</p>
+                <ul className="space-y-1">
+                  {analysis.areasForImprovement.map((s, i) => (
+                    <li key={i} className="text-white/70 text-xs flex gap-1.5">
+                      <span className="text-red-400 mt-0.5 flex-shrink-0">•</span>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {analysis.recommendations?.length > 0 && (
+              <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-3">
+                <p className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">Tavsiyalar</p>
+                <ul className="space-y-1">
+                  {analysis.recommendations.map((s, i) => (
+                    <li key={i} className="text-white/70 text-xs flex gap-1.5">
+                      <span className="text-blue-400 mt-0.5 flex-shrink-0">•</span>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Part analyses */}
+          {analysis.partAnalyses?.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-xs font-bold text-white/40 uppercase tracking-wider">Bo'limlar Tahlili</p>
+              <div className="space-y-3">
+                {analysis.partAnalyses.map((part) => {
+                  const pct = part.maxScore > 0 ? Math.round((part.score / part.maxScore) * 100) : 0;
+                  return (
+                    <div key={part.partNumber} className="bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden">
+                      {/* Part header */}
+                      <div className="flex items-center justify-between px-4 py-3 bg-white/[0.03] border-b border-white/5">
+                        <span className="text-white text-sm font-bold">Part {part.partNumber}: {part.partName}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-black ${pct >= 70 ? 'text-green-400' : pct >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                            {Math.round(part.score)}/{Math.round(part.maxScore)}
+                          </span>
+                        </div>
+                      </div>
+                      {/* Score bar */}
+                      <div className="h-1 bg-white/5">
+                        <div
+                          className={`h-full transition-all ${pct >= 70 ? 'bg-green-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      {/* Criteria */}
+                      {part.criteriaBreakdown?.length > 0 && (
+                        <div className="p-4 space-y-3">
+                          {part.criteriaBreakdown.map((crit, ci) => {
+                            const cpct = crit.maxScore > 0 ? Math.round((crit.score / crit.maxScore) * 100) : 0;
+                            return (
+                              <div key={ci}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-white/60 text-xs font-medium">{crit.criterionName}</span>
+                                  <span className={`text-xs font-bold ${cpct >= 70 ? 'text-green-400' : cpct >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                                    {Math.round(crit.score)}/{Math.round(crit.maxScore)}
+                                  </span>
+                                </div>
+                                <div className="h-1 bg-white/5 rounded-full mb-1.5">
+                                  <div
+                                    className={`h-full rounded-full ${cpct >= 70 ? 'bg-green-500' : cpct >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                    style={{ width: `${cpct}%` }}
+                                  />
+                                </div>
+                                {crit.feedback && (
+                                  <p className="text-white/50 text-xs leading-relaxed">{crit.feedback}</p>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Basic AI Summary (agar to'liq analysis yo'q bo'lsa) */}
+      {!analysis && detail.aiSummary && (
         <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
           <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">AI Tahlil</p>
           <p className="text-white/70 text-sm leading-relaxed">{detail.aiSummary}</p>
@@ -159,9 +307,7 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
                   ? Math.round((sec.sectionScore / sec.maxSectionScore) * 100)
                   : null;
               return (
-                <div
-                  key={sec.id}
-                  className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
+                <div key={sec.id} className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-white text-sm font-semibold truncate">{sec.sectionTitle}</h4>
                     {pct !== null && (
@@ -171,7 +317,6 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
                     )}
                   </div>
                   <span className="text-white/30 text-xs capitalize">{sec.skill.toLowerCase()}</span>
-                  {/* Score bar */}
                   {pct !== null && (
                     <div className="mt-3 h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <div
@@ -190,7 +335,7 @@ const AttemptDetail: React.FC<{ attemptId: string }> = ({ attemptId }) => {
         </div>
       )}
 
-      {/* Rubric scores from responses */}
+      {/* Rubric scores */}
       {responses.some((r) => r.rubricScores && r.rubricScores.length > 0) && (
         <div className="space-y-3">
           <p className="text-xs font-bold text-white/40 uppercase tracking-wider">Batafsil baholash</p>
@@ -446,7 +591,7 @@ const History: React.FC = () => {
 
                           {isExpanded && (
                             <div className="mt-4 pt-4 border-t border-white/5">
-                              <AttemptDetail attemptId={item.id} />
+                              <AttemptDetail attemptId={item.id} status={item.status} />
                             </div>
                           )}
                         </div>
@@ -534,7 +679,7 @@ const History: React.FC = () => {
                             {isExpanded && (
                               <tr>
                                 <td colSpan={5} className="px-6 md:px-8 pb-6 bg-white/[0.02]">
-                                  <AttemptDetail attemptId={item.id} />
+                                  <AttemptDetail attemptId={item.id} status={item.status} />
                                 </td>
                               </tr>
                             )}
