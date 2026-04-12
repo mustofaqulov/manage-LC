@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import PhoneFloating from '@/components/PhoneFloating.tsx';
+import FeedbackChat from './FeedbackChat';
 import { stopAllAudio } from '../services/geminiService';
 
 interface LayoutProps {
@@ -28,6 +29,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="flex-grow">{children}</main>
       <Footer />
       <PhoneFloating></PhoneFloating>
+      <FeedbackChat />
     </div>
   );
 };
