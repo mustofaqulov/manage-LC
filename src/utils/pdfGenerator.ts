@@ -10,6 +10,7 @@ interface RubricScore {
 interface ResponseData {
   questionId: string;
   questionType: string;
+  answer?: Record<string, any> | null;
   aiSummary?: string | null;
   rubricScores?: RubricScore[] | null;
 }
@@ -323,26 +324,68 @@ export function generateAttemptPdf(
     }
   }
 
-  // ===== PER-RESPONSE AI SUMMARIES =====
+  // ===== PER-RESPONSE: TRANSCRIPT + AI BAHOLASH =====
   const speakingResponses = (detail.responses ?? []).filter(
-    (r) => r.questionType === 'SPEAKING_RESPONSE' && (r.aiSummary || (r.rubricScores?.length ?? 0) > 0)
+    (r) => r.questionType === 'SPEAKING_RESPONSE' &&
+      (r.aiSummary || (r.rubricScores?.length ?? 0) > 0 || r.answer?.transcript || r.answer?.text || r.answer?.transcription)
   );
 
   if (speakingResponses.length > 0) {
     y = checkPage(doc, y, 15, margin);
-    y = drawSection(doc, "Har bir Savol bo'yicha AI Baholash", y, pageWidth, margin);
+    y = drawSection(doc, "Har bir Savol bo'yicha Tahlil", y, pageWidth, margin);
 
     for (let i = 0; i < speakingResponses.length; i++) {
       const resp = speakingResponses[i];
       y = checkPage(doc, y, 15, margin);
 
+      // Savol header
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(margin, y - 1, contentWidth, 8, 1.5, 1.5, 'F');
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...DARK);
-      doc.text(`Savol ${i + 1}`, margin, y);
-      y += lineH + 1;
+      doc.text(`Savol ${i + 1}`, margin + 3, y + 5);
+      y += 11;
 
+      // Transcript (aytilgan so'zlar)
+      const transcriptText: string =
+        resp.answer?.transcript ||
+        resp.answer?.transcription ||
+        resp.answer?.text ||
+        '';
+
+      if (transcriptText) {
+        y = checkPage(doc, y, 14, margin);
+
+        // "Aytilgan so'zlar" label
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...ORANGE);
+        doc.text('AYTILGAN SO\'ZLAR:', margin + 2, y);
+        y += 4;
+
+        // Transcript text in a light box
+        const transcriptLines = doc.splitTextToSize(transcriptText, contentWidth - 8);
+        const boxH = transcriptLines.length * 4.5 + 6;
+        y = checkPage(doc, y, boxH + 4, margin);
+        doc.setFillColor(255, 251, 245);
+        doc.setDrawColor(255, 200, 140);
+        doc.roundedRect(margin, y, contentWidth, boxH, 2, 2, 'FD');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(60, 40, 10);
+        doc.text(transcriptLines, margin + 4, y + 5);
+        y += boxH + 4;
+      }
+
+      // AI umumiy fikr
       if (resp.aiSummary) {
+        y = checkPage(doc, y, 10, margin);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...GRAY);
+        doc.text('AI FIKR:', margin + 2, y);
+        y += 4;
         doc.setFontSize(9);
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(...GRAY);
@@ -350,7 +393,15 @@ export function generateAttemptPdf(
         y += 2;
       }
 
+      // Rubric scores
       if (resp.rubricScores?.length) {
+        y = checkPage(doc, y, 8, margin);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...GRAY);
+        doc.text('BAHOLASH:', margin + 2, y);
+        y += 4;
+
         for (const rs of resp.rubricScores) {
           y = checkPage(doc, y, 10, margin);
           doc.setFontSize(8.5);
@@ -370,7 +421,8 @@ export function generateAttemptPdf(
           }
         }
       }
-      y += 4;
+
+      y += 5;
     }
   }
 

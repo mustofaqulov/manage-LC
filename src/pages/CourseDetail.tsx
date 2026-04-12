@@ -40,7 +40,7 @@ const CourseDetail: React.FC = () => {
 
             {/* CTA */}
             <div className="flex flex-wrap gap-3 sm:gap-5">
-              <a href="https://forms.gle/u3T9MVfcRbJQN2Rr6">
+              <a href="https://manage-landing-teal.vercel.app/" target="_blank" rel="noopener noreferrer">
                 <button
                   className="
                   px-6 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-sm sm:text-base
@@ -54,16 +54,18 @@ const CourseDetail: React.FC = () => {
                   {t('courseDetail.joinCourse')}
                 </button>
               </a>
-              <button
-                className="
-                  px-6 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base
-                  border border-white/20
-                  bg-white/5 backdrop-blur-sm
-                  hover:bg-white/10 hover:border-white/30
-                  transition-all duration-300
-                ">
-                {t('courseDetail.freeConsultation')}
-              </button>
+              <a href="https://t.me/manageLC_admin" target="_blank" rel="noopener noreferrer">
+                <button
+                  className="
+                    px-6 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base
+                    border border-white/20
+                    bg-white/5 backdrop-blur-sm
+                    hover:bg-white/10 hover:border-white/30
+                    transition-all duration-300
+                  ">
+                  {t('courseDetail.freeConsultation')}
+                </button>
+              </a>
             </div>
           </div>
 

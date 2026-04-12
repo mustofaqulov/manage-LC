@@ -23,7 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#050505]">
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-white dark:bg-[#050505]">
       <Header />
       <main className="flex-grow">{children}</main>
       <Footer />

@@ -4,11 +4,16 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #050505;
-  color: #e5e5e5;
+  background-color: #ffffff;
+  color: #1f2937;
   overflow-x: hidden;
   margin: 0;
   padding: 0;
+}
+
+:root.dark body {
+  background-color: #050505;
+  color: #e5e5e5;
 }
 
 #root::-webkit-scrollbar {
@@ -49,7 +54,7 @@ body {
   opacity: 0.08;
 }
 
-.blob-1 {
+:root[data-theme="dark"] .blob-1 {
   background: radial-gradient(circle, #ff7300 0%, transparent 70%);
   width: 60vw;
   height: 60vw;
@@ -58,13 +63,33 @@ body {
   animation: blob-drift 40s infinite linear;
 }
 
-.blob-2 {
+:root[data-theme="light"] .blob-1 {
+  background: radial-gradient(circle, #ff7300 0%, transparent 70%);
+  width: 60vw;
+  height: 60vw;
+  top: -20%;
+  left: -15%;
+  animation: blob-drift 40s infinite linear;
+  opacity: 0.04;
+}
+
+:root[data-theme="dark"] .blob-2 {
   background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
   width: 50vw;
   height: 50vw;
   bottom: -20%;
   right: -15%;
   animation: blob-drift 45s infinite linear reverse;
+}
+
+:root[data-theme="light"] .blob-2 {
+  background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+  width: 50vw;
+  height: 50vw;
+  bottom: -20%;
+  right: -15%;
+  animation: blob-drift 45s infinite linear reverse;
+  opacity: 0.03;
 }
 
 @keyframes blob-drift {
@@ -82,3 +107,4 @@ body {
   0% { transform: translate(0, 0); }
   100% { transform: translate(60px, 60px); }
 }
+

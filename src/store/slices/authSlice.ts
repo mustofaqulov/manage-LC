@@ -56,25 +56,21 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (state, action: PayloadAction<{ user: UserResponse; token: string; freeAttemptAvailable?: boolean }>) => {
+    setCredentials: (state, action: PayloadAction<{ user: UserResponse; token: string }>) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
-      if (action.payload.freeAttemptAvailable !== undefined) {
-        state.freeAttemptAvailable = action.payload.freeAttemptAvailable;
-        localStorage.setItem('free_attempt_available', String(action.payload.freeAttemptAvailable));
-      }
       localStorage.setItem('auth_token', action.payload.token);
       localStorage.setItem('user_data', JSON.stringify(action.payload.user));
     },
     // User ma'lumotlarini yangilash (updateMe javobidan)
     setUser: (state, action: PayloadAction<UserResponse>) => {
       state.user = action.payload;
-      if (action.payload.freeAttemptAvailable !== undefined) {
-        state.freeAttemptAvailable = action.payload.freeAttemptAvailable;
-        localStorage.setItem('free_attempt_available', String(action.payload.freeAttemptAvailable));
-      }
       localStorage.setItem('user_data', JSON.stringify(action.payload));
+    },
+    setFreeAttemptAvailable: (state, action: PayloadAction<boolean>) => {
+      state.freeAttemptAvailable = action.payload;
+      localStorage.setItem('free_attempt_available', String(action.payload));
     },
     // Legacy user actions for backward compatibility
     setLegacyUser: (state, action: PayloadAction<{ id: string; phone: string; isSubscribed: boolean; subscriptionExpiry?: string }>) => {
@@ -115,10 +111,6 @@ const authSlice = createSlice({
     // Get me query
     builder.addMatcher(api.endpoints.getMe.matchFulfilled, (state, { payload }) => {
       state.user = payload;
-      if (payload.freeAttemptAvailable !== undefined) {
-        state.freeAttemptAvailable = payload.freeAttemptAvailable;
-        localStorage.setItem('free_attempt_available', String(payload.freeAttemptAvailable));
-      }
       localStorage.setItem('user_data', JSON.stringify(payload));
     });
 
@@ -126,14 +118,10 @@ const authSlice = createSlice({
     builder.addMatcher(api.endpoints.updateMe.matchFulfilled, (state, { payload }) => {
       state.user = payload;
       state.missingInfo = false;
-      if (payload.freeAttemptAvailable !== undefined) {
-        state.freeAttemptAvailable = payload.freeAttemptAvailable;
-        localStorage.setItem('free_attempt_available', String(payload.freeAttemptAvailable));
-      }
       localStorage.setItem('user_data', JSON.stringify(payload));
     });
   },
 });
 
-export const { setCredentials, setUser, setLegacyUser, logout, setMissingInfo } = authSlice.actions;
+export const { setCredentials, setUser, setLegacyUser, logout, setMissingInfo, setFreeAttemptAvailable } = authSlice.actions;
 export default authSlice.reducer;

@@ -49,14 +49,16 @@ export const getSection = ({ testId, sectionId }) => {
 
 // ==================== ATTEMPTS QUERIES ====================
 
-export const getAttemptHistory = ({ page = 0, size = 20 }) => {
+export const getAttemptHistory = ({ page = 0, size = 10, search, status, cefrLevel, sortBy, sortOrder } = {}) => {
+  const params = { page, size };
+  if (search) params.search = search;
+  if (status) params.status = status;
+  if (cefrLevel) params.cefrLevel = cefrLevel;
+  if (sortBy) params.sortBy = sortBy;
+  if (sortOrder) params.sortOrder = sortOrder;
   return axiosClient
-    .get('/attempts', {
-      params: { page, size },
-    })
-    .then((response) => {
-      return response.data;
-    });
+    .get('/attempts', { params })
+    .then((response) => response.data);
 };
 
 export const getAttempt = (attemptId) => {

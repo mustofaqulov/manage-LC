@@ -15,7 +15,7 @@ Manage LC is a React/TypeScript web application for language learning mock exams
 - Google Generative AI (Gemini) 0.21.0
 - Tailwind CSS 3 (PostCSS plugin) + SCSS modules
 - @breezystack/lamejs 1.2.7 (MP3 encoding via Web Worker — replaced FFmpeg WASM)
-- @ffmpeg/ffmpeg 0.12.15 + @ffmpeg/core + @ffmpeg/util (still in deps + build script, but no longer used in source)
+- @ffmpeg/ffmpeg 0.12.15 + @ffmpeg/core + @ffmpeg/util (in deps + build script for asset copying, but **not used in source** — replaced by lamejs Web Worker)
 - lucide-react 0.562.0 (icons)
 - swiper 12.0.3 (carousels)
 - i18n: 3 languages (uz, en, ru) via custom context
@@ -23,13 +23,14 @@ Manage LC is a React/TypeScript web application for language learning mock exams
 ## Development Commands
 
 ```bash
-npm install           # Install dependencies
+npm install           # Install dependencies + FFmpeg asset copy step
 npm run dev           # Dev server at http://localhost:4173
-npm run build         # Production build (vite build)
-npm run preview       # Preview production build
+npm run build         # Copy FFmpeg assets + production build (vite build)
+npm run preview       # Preview production build locally
+docker compose up --build  # Build and run containerized app (deployment check)
 ```
 
-No test runner or linter is configured.
+No linter or automated test suite is configured.
 
 ## Docker Deployment
 
@@ -56,6 +57,22 @@ Vite config injects `VITE_GEMINI_API_KEY` as `__VITE_GEMINI_API_KEY__` at build 
 
 `@/*` resolves to `src/` (configured in both `tsconfig.json` and `vite.config.ts`).
 
+### Module Organization
+
+- `src/pages/` — Route-level screens (one per route)
+- `src/components/` — Reusable UI components; `src/components/examflow/` for exam-specific layouts
+- `src/services/` — API access layer (TanStack React Query hooks, mutations)
+- `src/store/` — Global state management (Redux + RTK Query)
+- `src/utils/` — Shared helpers and utilities
+- `src/i18n/` — Translations (uz, en, ru)
+- `src/api/` — Generated API types
+- `types/` — Root-level shared types
+- `src/assets/` — Static images, fonts, etc.
+- `public/` — Public static files
+- `.github/workflows/`, `Dockerfile`, `docker-compose.yml` — Deployment
+
+**Backend Contract**: `openapi.md` is the canonical reference for backend API payloads and endpoints.
+
 ### Entry Point & App Structure
 
 - **src/index.tsx**: Mounts app, wraps with `I18nProvider`, disables `console.log` in production
@@ -68,10 +85,10 @@ Vite config injects `VITE_GEMINI_API_KEY` as `__VITE_GEMINI_API_KEY__` at build 
 The app uses two parallel state management systems:
 
 1. **Redux Toolkit + RTK Query** (`src/store/`):
-   - `src/store/slices/authSlice.ts`: Auth state (user, token, isAuthenticated, legacyUser for backward compat)
+   - `src/store/slices/authSlice.ts`: Auth state (user, token, isAuthenticated, freeAttemptAvailable, legacyUser for backward compat)
    - `src/store/api.ts`: RTK Query endpoints for all backend API calls (base URL: `https://api.managelc.uz`)
    - `src/store/hooks.ts`: Typed Redux hooks
-   - localStorage keys: `auth_token`, `user_data`, `manage_lc_user`
+   - localStorage keys: `auth_token`, `user_data`, `manage_lc_user`, `free_attempt_available`, `free_attempt_banner_dismissed`
 
 2. **TanStack React Query** (`src/services/hooks.js`, `src/services/queries.js`, `src/services/mutations.js`):
    - Query hooks for tests, attempts, sections, assets with configured stale times
@@ -86,7 +103,7 @@ The app uses two parallel state management systems:
 3. User receives 5-digit code from Telegram
 4. Code submitted → API login → Redux stores JWT token
 5. Protected routes (`/exam-flow/:testId`, `/history`) check `isAuthenticated || legacyUser`
-6. Premium access check via `src/hooks/useHasExamAccess.ts` — redirects to `/subscribe` if no access
+6. Premium access check via `src/hooks/useHasExamAccess.ts` — redirects to `/subscribe` if no access. Users with `freeAttemptAvailable === true` in Redux bypass this check (1 free test per registered user; login response `free_attempt_used` is inverted to `freeAttemptAvailable`). `FreeAttemptBanner` in `Header.tsx` shows a dismissible banner when the free test is still available.
 
 ### Audio System Architecture
 
@@ -163,17 +180,6 @@ RTK Query endpoints with auto-injected Bearer token:
 - **src/utils/configs/axiosConfig.js**: Axios instance with base URL `https://api.managelc.uz` and auth interceptors
 - **src/utils/configs/toastConfig.js**: react-toastify configuration
 
-## Codebase Conventions
-
-- Uzbek comments throughout codebase (mixed with English)
-- Primary color: `#ff7300` (orange brand color), secondary: `#222222`
-- Lazy-loaded routes via `React.lazy` with `Suspense` + simple loading div fallback
-- ErrorBoundary wraps entire app — "Oops!" screen shown on uncaught JS errors
-- MediaRecorder exposed on `window.mediaRecorder` for debugging
-- Verbose console logs with emoji prefixes in exam flow
-- Services mix `.ts` and `.js` files (hooks.js, queries.js, mutations.js are plain JS)
-- Styling: Tailwind CSS via PostCSS (`tailwind.config.js` + `postcss.config.js`), SCSS modules for component styles, global CSS in `src/index.css`
-
 ## Common Tasks
 
 **Adding a New API Endpoint**:
@@ -203,6 +209,40 @@ All routes are lazy-loaded via `React.lazy` with `Suspense` + simple loading div
 - **Auth state**: Redux Toolkit `authSlice` — used across the app
 - New features MUST use TanStack React Query hooks from `src/services/hooks.js`
 - Do NOT mix RTK Query and TanStack React Query in the same page
+
+## Testing & Validation
+
+**No automated test suite exists.** Before opening a PR:
+1. Run `npm run build` to verify production build succeeds
+2. Manually verify affected flows in the browser:
+   - Exam start / exam flow / answer submission
+   - History page / audio download
+   - Auth / login flow
+   - Responsive layouts (mobile, tablet, desktop)
+3. If adding tests, use `*.test.ts` or `*.test.tsx` naming and colocate with the feature
+
+## Commit & Pull Request Guidelines
+
+- Follow **Conventional Commit** style: `feat: ...`, `fix: ...`, `ci: ...`, `docs: ...`, `refactor: ...`
+- Keep messages short, imperative, and scoped to one logical change
+- Reference `openapi.md` if backend payloads or API contracts change
+- For UI changes, include screenshots or short recordings in PR description
+- Squash commits if needed before merge; maintain a clean history
+
+## Codebase Conventions
+
+- TypeScript + React function components throughout
+- File naming: `PascalCase` for pages/components (`ExamFlow.tsx`), `camelCase` for hooks (`useGetTests`), verb-based for utils
+- 2-space indentation, existing Tailwind patterns, SCSS only where codebase already uses it
+- Import paths use `@/` alias for `src/` where it improves readability
+- Uzbek comments mixed with English throughout
+- Do not commit secrets (API keys, tokens, credentials). Use `.env.local` for local development.
+- **Design**: Primary color `#ff7300` (orange brand), secondary `#222222`
+- **Routing**: Routes are lazy-loaded via `React.lazy` with `Suspense` + simple loading div fallback
+- **Error handling**: `ErrorBoundary` wraps entire app — "Oops!" screen shown on uncaught JS errors
+- **Styling**: Tailwind CSS via PostCSS (`tailwind.config.js` + `postcss.config.js`), SCSS modules for component styles, global CSS in `src/index.css`
+- **Services**: Mix of `.ts` and `.js` files (hooks.js, queries.js, mutations.js are plain JS)
+- **Debugging**: MediaRecorder exposed on `window.mediaRecorder`; verbose console logs with emoji prefixes in exam flow
 
 ## Known Limitations
 

@@ -13,6 +13,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ScrollToTop from './components/ScrollToTop';
 import { RequireProfile } from './components/RequireProfile';
 import { I18nProvider } from './i18n';
+import { ThemeProvider } from './context/ThemeContext';
 import { toastConfig } from './utils/configs/toastConfig';
 import styles from './App.module.scss';
 
@@ -38,6 +39,8 @@ const CourseDetail = lazy(() => import('./pages/CourseDetail'));
 const ApiTest = lazy(() => import('./pages/ApiTest'));
 const Subscribe = lazy(() => import('./pages/Subscribe'));
 const CustomExam = lazy(() => import('./pages/CustomExam'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Admin = lazy(() => import('./pages/Admin'));
 
 // Protected route wrapper component
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -53,38 +56,49 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 const App: React.FC = () => {
 
   return (
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <ErrorBoundary>
-          <I18nProvider>
-            <Router>
-              <ScrollToTop />
-              <RequireProfile>
-                <Layout>
-                  <Suspense fallback={<div className={styles.suspenseFallback}>Loading...</div>}>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/about" element={<About />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/mock-exam" element={<MockExam />} />
-                      <Route path="/exam-flow/:testId" element={<ProtectedRoute><ExamFlow /></ProtectedRoute>} />
-                      <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-                      <Route path="/leaderboard" element={<Leaderboard />} />
-                      <Route path="/courses/english" element={<CourseDetail />} />
-                      <Route path="/subscribe" element={<Subscribe />} />
-                      <Route path="/api-test" element={<ApiTest />} />
-                      <Route path="/custom-exam" element={<CustomExam />} />
-                    </Routes>
-                  </Suspense>
-                </Layout>
-              </RequireProfile>
-            </Router>
-        </I18nProvider>
-      </ErrorBoundary>
-      <ToastContainer {...toastConfig} aria-label="Notifications" />
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-    </QueryClientProvider>
-  </Provider>
+    <ThemeProvider>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <ErrorBoundary>
+            <I18nProvider>
+              <Router>
+                <ScrollToTop />
+                <Suspense fallback={<div className={styles.suspenseFallback}>Loading...</div>}>
+                  <Routes>
+                    {/* Admin — Layout'siz */}
+                    <Route path="/admin" element={<Admin />} />
+
+                    {/* Qolgan barcha sahifalar — Layout bilan */}
+                    <Route path="/*" element={
+                      <RequireProfile>
+                        <Layout>
+                          <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/about" element={<About />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/mock-exam" element={<MockExam />} />
+                            <Route path="/exam-flow/:testId" element={<ProtectedRoute><ExamFlow /></ProtectedRoute>} />
+                            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+                            <Route path="/leaderboard" element={<Leaderboard />} />
+                            <Route path="/courses/english" element={<CourseDetail />} />
+                            <Route path="/subscribe" element={<Subscribe />} />
+                            <Route path="/api-test" element={<ApiTest />} />
+                            <Route path="/custom-exam" element={<CustomExam />} />
+                            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                          </Routes>
+                        </Layout>
+                      </RequireProfile>
+                    } />
+                  </Routes>
+                </Suspense>
+              </Router>
+          </I18nProvider>
+        </ErrorBoundary>
+        <ToastContainer {...toastConfig} aria-label="Notifications" />
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </QueryClientProvider>
+    </Provider>
+    </ThemeProvider>
   );
 };
 

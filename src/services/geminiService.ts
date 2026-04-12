@@ -1,29 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-/**
- * ⚠️ SECURITY WARNING: Client-side API key usage is NOT recommended for production
- * See SECURITY.md for proper backend proxy implementation
- */
-const getApiKey = (): string => {
-  // Client-side: window dan olish (Vite define qilingan)
-  if (typeof window !== 'undefined' && window.__VITE_GEMINI_API_KEY__) {
-    return window.__VITE_GEMINI_API_KEY__;
-  }
-  // Fallback: Environment variable
-  if (import.meta.env.VITE_GEMINI_API_KEY) {
-    return import.meta.env.VITE_GEMINI_API_KEY;
-  }
-  console.error(
-    '⚠️ SECURITY: VITE_GEMINI_API_KEY not configured. ' +
-    'For production, use a backend proxy instead of client-side API keys. ' +
-    'See SECURITY.md for details.'
-  );
-  return '';
-};
-
-const apiKey = getApiKey();
-const genAI = new GoogleGenerativeAI(apiKey);
-
 // Global AudioContext va beep tracking
 let audioCtx: AudioContext | null = null;
 const activeBeeps = new Map<OscillatorNode, GainNode>();

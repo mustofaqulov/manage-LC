@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../i18n';
 import { useLogin, useUpdateMe } from '../services/hooks';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setCredentials, setUser } from '../store/slices/authSlice';
+import { setCredentials, setUser, setFreeAttemptAvailable } from '../store/slices/authSlice';
 import type { UserResponse } from '../api/types';
 import { debugToken } from '../utils/jwtDebug';
 
@@ -103,7 +103,6 @@ const Login: React.FC = () => {
             address: null,
             roles: result.role ? [result.role] : [],
             lastLoginAt: null,
-            freeAttemptAvailable: result.freeAttemptAvailable,
           };
 
           // Token'ni darhol localStorage'ga saqlash (Redux'dan oldin)
@@ -111,13 +110,11 @@ const Login: React.FC = () => {
           localStorage.setItem('user_data', JSON.stringify(mappedUser));
 
           // Keyin Redux'ni yangilash
-          dispatch(
-            setCredentials({
-              user: mappedUser,
-              token: result.token,
-              freeAttemptAvailable: result.freeAttemptAvailable,
-            }),
-          );
+          dispatch(setCredentials({ user: mappedUser, token: result.token }));
+
+          if (result.freeAttemptAvailable !== undefined) {
+            dispatch(setFreeAttemptAvailable(result.freeAttemptAvailable));
+          }
 
           // ⭐ missingInfo tekshirish - bu kalit!
           if (result.missingInfo) {
@@ -185,19 +182,19 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-start justify-center px-6 pt-32 pb-20 overflow-hidden bg-[#050505]">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#070707] via-[#120c06] to-black" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,115,0,0.25),transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(124,58,237,0.18),transparent_60%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:90px_90px]" />
+    <div className="relative min-h-screen flex items-start justify-center px-6 pt-32 pb-20 overflow-hidden bg-white dark:bg-[#050505]">
+      <div className="absolute inset-0 bg-gradient-to-br from-white dark:from-[#070707] via-gray-50 dark:via-[#120c06] to-gray-100 dark:to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,115,0,0.1),transparent_60%)] dark:bg-[radial-gradient(circle_at_30%_30%,rgba(255,115,0,0.25),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(124,58,237,0.05),transparent_60%)] dark:bg-[radial-gradient(circle_at_70%_70%,rgba(124,58,237,0.18),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:90px_90px]" />
 
       <div className="relative z-10 w-full max-w-md">
         <div
           className="
             relative p-6 sm:p-10 rounded-[1.8rem] sm:rounded-[2.8rem]
-            bg-white/5 backdrop-blur-2xl
-            border border-white/10
-            shadow-[0_30px_120px_rgba(0,0,0,0.9)]
+            bg-white/95 dark:bg-white/5 backdrop-blur-2xl
+            border border-gray-200 dark:border-white/10
+            shadow-[0_30px_120px_rgba(0,0,0,0.1)] dark:shadow-[0_30px_120px_rgba(0,0,0,0.9)]
           ">
           <div className="absolute -inset-1 rounded-[3rem] blur-2xl bg-gradient-to-br from-orange-500/30 via-amber-400/20 to-transparent opacity-60" />
 
@@ -206,21 +203,21 @@ const Login: React.FC = () => {
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
                 {t('login.title')}
               </h2>
-              <p className="text-white/55 text-sm">{t('login.subtitle')}</p>
+              <p className="text-gray-600 dark:text-white/55 text-sm">{t('login.subtitle')}</p>
             </div>
 
             {step === 'PHONE' && (
               /* STEP 1: PHONE - Faqat telefon raqam */
               <div className="space-y-5">
                 <div className="text-center mb-2">
-                  <p className="text-white/40 text-xs">
+                  <p className="text-gray-500 dark:text-white/40 text-xs">
                     Telegram orqali tasdiqlash kodi olish
                   </p>
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-xs font-bold text-white/60 mb-2">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-white/60 mb-2">
                     Telefon raqam *
                   </label>
                   <input
@@ -229,7 +226,7 @@ const Login: React.FC = () => {
                     onChange={handlePhoneChange}
                     placeholder="+998 "
                     autoFocus
-                    className="w-full px-4 py-3 rounded-xl bg-black/40 text-white font-bold text-sm tracking-wide border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-black/40 text-gray-900 dark:text-white font-bold text-sm tracking-wide border border-gray-300 dark:border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
                   />
                 </div>
 
@@ -262,7 +259,7 @@ const Login: React.FC = () => {
               /* STEP 2: CODE - Kod kiritish */
               <div className="space-y-7">
                 <div>
-                  <label className="block text-xs font-bold text-white/60 mb-3 uppercase tracking-[0.25em]">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-white/60 mb-3 uppercase tracking-[0.25em]">
                     {t('login.verifyCode')}
                   </label>
 
@@ -278,15 +275,15 @@ const Login: React.FC = () => {
                     autoFocus
                     className={`
                       w-full py-4 rounded-2xl text-center
-                      bg-black/40 text-white text-3xl sm:text-4xl font-black
+                      bg-gray-100 dark:bg-black/40 text-gray-900 dark:text-white text-3xl sm:text-4xl font-black
                       tracking-[0.5em]
-                      border ${error ? 'border-red-500' : 'border-white/15'}
+                      border ${error ? 'border-red-500' : 'border-gray-300 dark:border-white/15'}
                       focus:border-orange-400 focus:ring-1 focus:ring-orange-400
                       outline-none transition-all
                     `}
                   />
 
-                  <p className="text-xs text-white/40 mt-4 text-center">
+                  <p className="text-xs text-gray-500 dark:text-white/40 mt-4 text-center">
                     @{TELEGRAM_BOT_USERNAME} botidan olingan 5 raqamli kodni kiriting
                   </p>
 
@@ -338,14 +335,14 @@ const Login: React.FC = () => {
                       setCode('');
                       setError(null);
                     }}
-                    className="flex-1 py-3 rounded-xl text-white/40 text-sm font-bold hover:text-white/70 hover:bg-white/5 transition">
+                    className="flex-1 py-3 rounded-xl text-gray-500 dark:text-white/40 text-sm font-bold hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 transition">
                     ← Orqaga
                   </button>
 
                   <button
                     onClick={handleSendCode}
                     disabled={isLoginPending}
-                    className="flex-1 py-3 rounded-xl text-white/40 text-sm font-bold hover:text-white/70 hover:bg-white/5 transition disabled:opacity-40">
+                    className="flex-1 py-3 rounded-xl text-gray-500 dark:text-white/40 text-sm font-bold hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 transition disabled:opacity-40">
                     Kodni qayta olish
                   </button>
                 </div>
@@ -356,7 +353,7 @@ const Login: React.FC = () => {
               /* STEP 3: PROFILE - Faqat missingInfo === true bo'lganda */
               <div className="space-y-5">
                 <div className="text-center mb-2">
-                  <p className="text-white/40 text-xs">
+                  <p className="text-gray-500 dark:text-white/40 text-xs">
                     Profilingizni to'ldiring
                   </p>
                 </div>
@@ -364,7 +361,7 @@ const Login: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   {/* First Name */}
                   <div>
-                    <label className="block text-xs font-bold text-white/60 mb-2">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-white/60 mb-2">
                       Ism *
                     </label>
                     <input
@@ -376,13 +373,13 @@ const Login: React.FC = () => {
                       }}
                       placeholder="Ism"
                       autoFocus
-                      className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
+                      className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-black/40 text-gray-900 dark:text-white text-sm border border-gray-300 dark:border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
                     />
                   </div>
 
                   {/* Last Name */}
                   <div>
-                    <label className="block text-xs font-bold text-white/60 mb-2">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-white/60 mb-2">
                       Familiya *
                     </label>
                     <input
@@ -393,14 +390,14 @@ const Login: React.FC = () => {
                         setError(null);
                       }}
                       placeholder="Familiya"
-                      className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
+                      className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-black/40 text-gray-900 dark:text-white text-sm border border-gray-300 dark:border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-xs font-bold text-white/60 mb-2">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-white/60 mb-2">
                     Email (ixtiyoriy)
                   </label>
                   <input
@@ -411,7 +408,7 @@ const Login: React.FC = () => {
                       setError(null);
                     }}
                     placeholder="example@gmail.com"
-                    className="w-full px-4 py-3 rounded-xl bg-black/40 text-white text-sm border border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-black/40 text-gray-900 dark:text-white text-sm border border-gray-300 dark:border-white/15 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-all"
                   />
                 </div>
 
@@ -445,14 +442,14 @@ const Login: React.FC = () => {
                   Saqlash
                 </button>
 
-                <p className="text-xs text-white/40 text-center">
+                <p className="text-xs text-gray-500 dark:text-white/40 text-center">
                   * - Majburiy maydonlar
                 </p>
               </div>
             )}
 
-            <div className="mt-6 sm:mt-10 pt-5 sm:pt-8 border-t border-white/10 text-center">
-              <p className="text-xs text-white/35">{t('loginExtended.termsOfService')}</p>
+            <div className="mt-6 sm:mt-10 pt-5 sm:pt-8 border-t border-gray-300 dark:border-white/10 text-center">
+              <p className="text-xs text-gray-500 dark:text-white/35">{t('loginExtended.termsOfService')}</p>
             </div>
           </div>
         </div>

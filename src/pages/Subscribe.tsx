@@ -101,27 +101,27 @@ const Subscribe: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen py-20 sm:py-28 md:py-36 px-4 sm:px-6 md:px-12 overflow-hidden bg-[#050505]">
+    <div className="relative min-h-screen py-20 sm:py-28 md:py-36 px-4 sm:px-6 md:px-12 overflow-hidden bg-white dark:bg-[#050505]">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#120e08] to-black" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,140,0,0.25),transparent_55%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_60%,rgba(139,92,246,0.18),transparent_55%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:90px_90px]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white dark:from-[#0a0a0a] via-gray-50 dark:via-[#120e08] to-gray-100 dark:to-black" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,140,0,0.08),transparent_55%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(255,140,0,0.25),transparent_55%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_60%,rgba(139,92,246,0.05),transparent_55%)] dark:bg-[radial-gradient(circle_at_80%_60%,rgba(139,92,246,0.18),transparent_55%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:90px_90px]" />
 
       <div className="relative z-10 max-w-6xl mx-auto">
         {/* Back */}
         <div className="flex items-center mb-8 sm:mb-10 md:mb-12">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 hover:text-white font-semibold transition-all group px-3 sm:px-4 py-2 rounded-xl hover:bg-black/60 backdrop-blur-sm">
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white font-semibold transition-all group px-3 sm:px-4 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-black/60 backdrop-blur-sm">
             <svg
-              className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:-translate-x-1 transition-transform duration-300"
+              className="w-4 h-4 sm:w-5 sm:h-5 text-gray-900 dark:text-white group-hover:-translate-x-1 transition-transform duration-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="text-white text-sm sm:text-base">{t('common.back')}</span>
+            <span className="text-gray-900 dark:text-white text-sm sm:text-base">{t('common.back')}</span>
           </button>
         </div>
 
@@ -130,7 +130,7 @@ const Subscribe: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 sm:mb-6 bg-gradient-to-r from-orange-600 via-orange-300 to-orange-300 bg-clip-text text-transparent px-4">
             Obuna rejalar
           </h1>
-          <p className="text-white text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto px-4">
+          <p className="text-gray-900 dark:text-white text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto px-4">
             O'zingizga mos rejani tanlang va imtihonlarga tayyorlaning
           </p>
           <div className="w-20 sm:w-24 h-1 sm:h-1.5 bg-gradient-to-r from-orange-500 via-yellow-400 to-orange-500 mx-auto rounded-full mt-4 sm:mt-6" />
@@ -140,10 +140,10 @@ const Subscribe: React.FC = () => {
         {isAuthenticated && subscription && !subscriptionLoading && (
           <div className="mb-12 sm:mb-16 max-w-3xl mx-auto">
             <div
-              className={`relative rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 backdrop-blur-xl border shadow-[0_15px_50px_rgba(0,0,0,0.8)] ${
+              className={`relative rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 backdrop-blur-xl border shadow-[0_15px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_15px_50px_rgba(0,0,0,0.8)] ${
                 subscription.isSubscribed
-                  ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30'
-                  : 'bg-white/5 border-white/10'
+                  ? 'bg-green-50 dark:bg-green-500/10 border-green-300 dark:border-green-500/30'
+                  : 'bg-gray-100 dark:bg-white/5 border-gray-300 dark:border-white/10'
               }`}>
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex items-center gap-3">
@@ -166,11 +166,11 @@ const Subscribe: React.FC = () => {
                   <div>
                     <h3
                       className={`text-xl sm:text-2xl font-bold ${
-                        subscription.isSubscribed ? 'text-green-400' : 'text-gray-400'
+                        subscription.isSubscribed ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
                       }`}>
                       {subscription.isSubscribed ? 'Premium Aktiv' : 'Bepul Reja'}
                     </h3>
-                    <p className="text-white/60 text-sm sm:text-base mt-1">
+                    <p className="text-gray-600 dark:text-white/60 text-sm sm:text-base mt-1">
                       {subscription.isSubscribed
                         ? 'Barcha imtihonlarga cheksiz kirish'
                         : 'Premium obuna sotib oling'}
@@ -180,16 +180,16 @@ const Subscribe: React.FC = () => {
               </div>
 
               {subscription.isSubscribed && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-300 dark:border-white/10">
                   <div>
-                    <p className="text-white/50 text-xs sm:text-sm mb-1">Boshlanish sanasi</p>
-                    <p className="text-white font-semibold text-sm sm:text-base">
+                    <p className="text-gray-600 dark:text-white/50 text-xs sm:text-sm mb-1">Boshlanish sanasi</p>
+                    <p className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base">
                       {formatDate(subscription.startDate)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-white/50 text-xs sm:text-sm mb-1">Tugash sanasi</p>
-                    <p className="text-white font-semibold text-sm sm:text-base">
+                    <p className="text-gray-600 dark:text-white/50 text-xs sm:text-sm mb-1">Tugash sanasi</p>
+                    <p className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base">
                       {formatDate(subscription.endDate)}
                     </p>
                   </div>
@@ -197,7 +197,7 @@ const Subscribe: React.FC = () => {
               )}
 
               {!subscription.isSubscribed && (
-                <p className="text-white/70 text-sm sm:text-base mt-4 pt-4 border-t border-white/10">
+                <p className="text-gray-700 dark:text-white/70 text-sm sm:text-base mt-4 pt-4 border-t border-gray-300 dark:border-white/10">
                   Quyidagi rejalardan birini tanlang va barcha imtihonlarga kirish huquqiga ega bo'ling
                 </p>
               )}
@@ -206,89 +206,82 @@ const Subscribe: React.FC = () => {
         )}
 
         {/* Plan Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 md:gap-8 mb-12 sm:mb-16 md:mb-20">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className="group relative cursor-pointer"
-              onClick={() => setSelectedPlan(plan.id)}>
-              {/* Glow */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-12 sm:mb-16 md:mb-20">
+          {plans.map((plan) => {
+            const isSelected = selectedPlan === plan.id;
+            return (
               <div
-                className={`absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] bg-gradient-to-br ${plan.gradient} ${
-                  selectedPlan === plan.id ? 'opacity-100 scale-105' : 'opacity-40 group-hover:opacity-100 group-hover:scale-105'
-                } blur-2xl transition-all duration-700`}
-              />
-
-              {/* Card */}
-              <div
-                className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-6 sm:p-8 md:p-10 backdrop-blur-xl border shadow-[0_15px_50px_rgba(0,0,0,0.8)] md:shadow-[0_20px_60px_rgba(0,0,0,0.8)] transition-all duration-500 flex flex-col items-center text-center ${
-                  selectedPlan === plan.id
-                    ? 'bg-white/[0.08] border-orange-500/30 -translate-y-2 scale-[1.02]'
-                    : 'bg-white/5 border-white/10 group-hover:-translate-y-2 group-hover:scale-[1.02]'
+                key={plan.id}
+                onClick={() => setSelectedPlan(plan.id)}
+                className={`relative rounded-2xl border cursor-pointer transition-all duration-200 overflow-hidden ${
+                  isSelected
+                    ? 'border-orange-500/25 bg-orange-50 dark:bg-white/[0.05]'
+                    : 'border-gray-300 dark:border-white/[0.07] bg-gray-50 dark:bg-white/[0.03] hover:border-gray-400 dark:hover:border-white/[0.12] hover:bg-gray-100 dark:hover:bg-white/[0.05]'
                 }`}>
+
                 {/* Popular badge */}
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black uppercase tracking-wider shadow-[0_4px_20px_rgba(255,140,0,0.4)]">
+                  <div className="absolute top-4 right-4 px-2.5 py-1 rounded-lg bg-orange-500/15 border border-orange-500/25 text-orange-400 text-[10px] font-black uppercase tracking-wider">
                     Mashhur
                   </div>
                 )}
 
-                {/* Icon */}
-                <div
-                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center mb-5 transition-transform duration-500 group-hover:scale-110 ${
-                    selectedPlan === plan.id ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5 text-white/60'
-                  }`}>
-                  {plan.icon}
-                </div>
-
-                {/* Title */}
-                <h3 className="text-xl sm:text-2xl font-black text-white mb-1">
-                  {plan.title}
-                </h3>
-                <p className="text-white/40 text-xs mb-6">{plan.duration}</p>
-
-                {/* Price */}
-                <div className="mb-6">
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-2xl sm:text-3xl md:text-4xl font-black text-white">{plan.price}</span>
-                    <span className="text-white/40 text-sm font-medium">UZS</span>
+                <div className="p-5 sm:p-6">
+                  {/* Icon + title row */}
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      isSelected ? 'bg-orange-500/15 text-orange-400' : 'bg-gray-200 dark:bg-white/5 text-gray-600 dark:text-white/50'
+                    }`}>
+                      {plan.icon}
+                    </div>
+                    <div>
+                      <p className="text-gray-900 dark:text-white font-bold text-base leading-none">{plan.title}</p>
+                      <p className="text-gray-500 dark:text-white/35 text-xs mt-1">{plan.duration}</p>
+                    </div>
                   </div>
-                  {plan.pricePerMonth && (
-                    <p className="text-white/30 text-xs mt-1">{plan.pricePerMonth} UZS / oy</p>
-                  )}
-                  {plan.saving && (
-                    <span className="inline-block mt-2 px-3 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold">
-                      {plan.saving} tejash
-                    </span>
-                  )}
-                </div>
 
-                {/* Subscribe button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSubscribe(plan.id);
-                  }}
-                  className={`w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 ${
-                    selectedPlan === plan.id
-                      ? 'text-white bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_8px_30px_rgba(255,140,0,0.3)] hover:shadow-[0_12px_40px_rgba(255,140,0,0.5)] hover:scale-105'
-                      : 'text-white/70 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white'
-                  }`}>
-                  {selectedPlan === plan.id ? 'Obuna bo\'lish' : 'Tanlash'}
-                </button>
+                  {/* Price */}
+                  <div className="mb-5">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-3xl font-black text-gray-900 dark:text-white">{plan.price}</span>
+                      <span className="text-gray-500 dark:text-white/35 text-sm">UZS</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      {plan.pricePerMonth && (
+                        <p className="text-gray-500 dark:text-white/35 text-xs">{plan.pricePerMonth} UZS / oy</p>
+                      )}
+                      {plan.saving && (
+                        <span className="px-2 py-0.5 rounded-lg bg-green-100 dark:bg-green-500/10 border border-green-300 dark:border-green-500/20 text-green-700 dark:text-green-400 text-[10px] font-bold">
+                          {plan.saving} tejash
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Button */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleSubscribe(plan.id); }}
+                    className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_4px_20px_rgba(255,115,0,0.3)] hover:shadow-[0_6px_24px_rgba(255,115,0,0.45)]'
+                        : 'bg-gray-200 dark:bg-white/5 border border-gray-300 dark:border-white/10 text-gray-600 dark:text-white/60 hover:bg-gray-300 dark:hover:bg-white/8 hover:text-gray-700 dark:hover:text-white/80'
+                    }`}>
+                    {isSelected ? "Obuna bo'lish" : 'Tanlash'}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* FAQ / Info */}
         <div className="relative group">
-          <div className="absolute -inset-1 sm:-inset-2 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] blur-xl opacity-20" />
+          <div className="absolute -inset-1 sm:-inset-2 bg-gradient-to-r from-gray-300 dark:from-gray-900 via-gray-200 dark:via-gray-800 to-gray-300 dark:to-gray-900 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] blur-xl opacity-20" />
           <div
-            className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black
-            text-white p-6 sm:p-8 md:p-10 rounded-[20px] sm:rounded-[24px] md:rounded-[28px]
-            shadow-[0_15px_50px_rgba(0,0,0,0.3)] md:shadow-[0_20px_60px_rgba(0,0,0,0.3)]
-            border border-white/5">
+            className="relative bg-gradient-to-br from-gray-100 dark:from-gray-900 via-gray-50 dark:via-gray-800 to-white dark:to-black
+            text-gray-900 dark:text-white p-6 sm:p-8 md:p-10 rounded-[20px] sm:rounded-[24px] md:rounded-[28px]
+            shadow-[0_15px_50px_rgba(0,0,0,0.08)] dark:shadow-[0_15px_50px_rgba(0,0,0,0.3)] md:shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:md:shadow-[0_20px_60px_rgba(0,0,0,0.3)]
+            border border-gray-300 dark:border-white/5">
             <h4 className="text-lg sm:text-xl font-black mb-4 sm:mb-5 md:mb-6 flex items-center gap-2 sm:gap-3">
               <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400 text-base sm:text-lg">
                 ?
@@ -299,20 +292,20 @@ const Subscribe: React.FC = () => {
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm">
               <div>
-                <h5 className="text-white/80 font-bold mb-1">To'lov qanday amalga oshiriladi?</h5>
-                <p className="text-white/40 text-xs leading-relaxed">Click, Payme yoki bank kartasi orqali to'lov qilishingiz mumkin.</p>
+                <h5 className="text-gray-800 dark:text-white/80 font-bold mb-1">To'lov qanday amalga oshiriladi?</h5>
+                <p className="text-gray-600 dark:text-white/40 text-xs leading-relaxed">Click, Payme yoki bank kartasi orqali to'lov qilishingiz mumkin.</p>
               </div>
               <div>
-                <h5 className="text-white/80 font-bold mb-1">Obunani bekor qilsa bo'ladimi?</h5>
-                <p className="text-white/40 text-xs leading-relaxed">Ha, istalgan vaqtda bekor qilishingiz mumkin. Qolgan kunlar saqlanadi.</p>
+                <h5 className="text-gray-800 dark:text-white/80 font-bold mb-1">Obunani bekor qilsa bo'ladimi?</h5>
+                <p className="text-gray-600 dark:text-white/40 text-xs leading-relaxed">Ha, istalgan vaqtda bekor qilishingiz mumkin. Qolgan kunlar saqlanadi.</p>
               </div>
               <div>
-                <h5 className="text-white/80 font-bold mb-1">Bepul sinov bormi?</h5>
-                <p className="text-white/40 text-xs leading-relaxed">Ha, birinchi imtihonni bepul topshirishingiz mumkin.</p>
+                <h5 className="text-gray-800 dark:text-white/80 font-bold mb-1">Bepul sinov bormi?</h5>
+                <p className="text-gray-600 dark:text-white/40 text-xs leading-relaxed">Ha, birinchi imtihonni bepul topshirishingiz mumkin.</p>
               </div>
               <div>
-                <h5 className="text-white/80 font-bold mb-1">Umrbod obuna nima?</h5>
-                <p className="text-white/40 text-xs leading-relaxed">Bir marta to'lab, platformadan cheksiz foydalaning. Yangi testlar avtomatik qo'shiladi.</p>
+                <h5 className="text-gray-800 dark:text-white/80 font-bold mb-1">Umrbod obuna nima?</h5>
+                <p className="text-gray-600 dark:text-white/40 text-xs leading-relaxed">Bir marta to'lab, platformadan cheksiz foydalaning. Yangi testlar avtomatik qo'shiladi.</p>
               </div>
             </div>
           </div>

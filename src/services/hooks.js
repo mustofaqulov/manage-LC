@@ -149,12 +149,12 @@ export const useStartRandomAttempt = () => {
   });
 };
 
-export const useGetAttemptHistory = ({ page, size } = {}) => {
+export const useGetAttemptHistory = ({ page, size, search, status, cefrLevel, sortBy, sortOrder } = {}) => {
   const { t } = useTranslation();
   return useQuery({
-    queryKey: [QUERY_KEYS.ATTEMPTS, { page, size }],
-    queryFn: () => queries.getAttemptHistory({ page, size }),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    queryKey: [QUERY_KEYS.ATTEMPTS, { page, size, search, status, cefrLevel, sortBy, sortOrder }],
+    queryFn: () => queries.getAttemptHistory({ page, size, search, status, cefrLevel, sortBy, sortOrder }),
+    staleTime: 2 * 60 * 1000,
     meta: { errorMessage: t('errors.loadFailed') },
   });
 };
