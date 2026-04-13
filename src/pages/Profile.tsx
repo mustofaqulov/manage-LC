@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setUser } from '../store/slices/authSlice';
 import { useUpdateMe } from '../services/hooks';
@@ -59,7 +59,9 @@ const Profile: React.FC = () => {
   const [email, setEmail] = useState(user?.email ?? '');
   const [region, setRegion] = useState(user?.region ?? '');
   const [city, setCity] = useState(user?.city ?? '');
+  const [regionDropdownOpen, setRegionDropdownOpen] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const regionDropdownRef = useRef<HTMLDivElement | null>(null);
 
   // Sync when user loads
   useEffect(() => {
@@ -72,9 +74,27 @@ const Profile: React.FC = () => {
     }
   }, [user]);
 
-  const handleChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!regionDropdownRef.current) return;
+      if (!regionDropdownRef.current.contains(event.target as Node)) {
+        setRegionDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  const handleChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setter(e.target.value);
     setDirty(true);
+  };
+
+  const handleRegionSelect = (value: string) => {
+    setRegion(value);
+    setDirty(true);
+    setRegionDropdownOpen(false);
   };
 
   const handleSave = () => {
@@ -91,6 +111,7 @@ const Profile: React.FC = () => {
   };
 
   const inputCls = 'w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm placeholder-white/25 focus:border-orange-400/60 focus:ring-1 focus:ring-orange-400/30 outline-none transition-all';
+  const dropdownBtnCls = 'w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm hover:border-white/20 focus:border-orange-400/60 focus:ring-1 focus:ring-orange-400/30 outline-none transition-all text-left flex items-center justify-between';
   const labelCls = 'block text-[11px] font-bold text-white/40 uppercase tracking-widest mb-2';
 
   return (
@@ -237,11 +258,52 @@ const Profile: React.FC = () => {
             </div>
             <div>
               <label className={labelCls}>Viloyat</label>
-              <select className={inputCls} value={region} onChange={handleChange(setRegion)}
-                style={{ appearance: 'none' }}>
-                <option value="">Tanlang...</option>
-                {UZ_REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
-              </select>
+              <div className="relative" ref={regionDropdownRef}>
+                <button
+                  type="button"
+                  className={dropdownBtnCls}
+                  onClick={() => setRegionDropdownOpen((prev) => !prev)}
+                  aria-haspopup="listbox"
+                  aria-expanded={regionDropdownOpen}
+                >
+                  <span className={region ? 'text-white' : 'text-white/45'}>{region || 'Tanlang...'}</span>
+                  <svg
+                    className={`w-4 h-4 text-white/45 transition-transform ${regionDropdownOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {regionDropdownOpen && (
+                  <ul
+                    role="listbox"
+                    className="absolute z-20 mt-2 w-full max-h-60 overflow-y-auto rounded-xl bg-[#101010] border border-white/10 shadow-[0_16px_30px_rgba(0,0,0,0.45)]"
+                  >
+                    <li
+                      role="option"
+                      aria-selected={region === ''}
+                      onClick={() => handleRegionSelect('')}
+                      className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${region === '' ? 'bg-orange-500/15 text-orange-400' : 'text-white/75 hover:bg-white/[0.05] hover:text-white'}`}
+                    >
+                      Tanlang...
+                    </li>
+                    {UZ_REGIONS.map((r) => (
+                      <li
+                        key={r}
+                        role="option"
+                        aria-selected={region === r}
+                        onClick={() => handleRegionSelect(r)}
+                        className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${region === r ? 'bg-orange-500/15 text-orange-400' : 'text-white/75 hover:bg-white/[0.05] hover:text-white'}`}
+                      >
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
             <div>
               <label className={labelCls}>Shahar / Tuman</label>

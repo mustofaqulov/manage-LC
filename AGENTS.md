@@ -1,23 +1,47 @@
-# Repository Guidelines
+# Project Guidelines
 
-## Project Structure & Module Organization
-Application code lives in `src/`. Use `src/pages/` for route-level screens, `src/components/` for reusable UI, and `src/components/examflow/` for exam-specific layouts and controls. Keep API access in `src/services/` and global state in `src/store/`. Shared helpers belong in `src/utils/`, translations in `src/i18n/`, and generated or shared types in `src/api/`, `src/types/`, or root-level `types/`. Static assets belong in `public/` or `src/assets/`. Deployment files are in `.github/workflows/`, `Dockerfile`, and `docker-compose.yml`. Treat `openapi.md` as the backend contract reference.
+## Build and Validate
+- `npm install` installs dependencies and runs `postinstall` (`scripts/copy-ffmpeg.cjs`).
+- `npm run dev` starts Vite on port `4173`.
+- `npm run build` runs FFmpeg asset copy, then outputs production files to `dist/`.
+- `npm run preview` serves the production build locally.
+- `docker compose up --build` runs a deployment-like container build.
+- There is no automated test suite yet. Before PRs, run `npm run build` and manually verify login, exam flow, answer submission, history, and responsive layout.
 
-## Build, Test, and Development Commands
-- `npm install`: install dependencies and run the FFmpeg asset copy step.
-- `npm run dev`: start the Vite dev server on port `4173`.
-- `npm run build`: copy FFmpeg assets and create a production build in `dist/`.
-- `npm run preview`: serve the production build locally.
-- `docker compose up --build`: build and run the containerized app for deployment checks.
+## Architecture and Boundaries
+- Code lives in `src/`:
+	- `src/pages/` route-level screens
+	- `src/components/` reusable UI (`src/components/examflow/` for exam flow)
+	- `src/services/` API layer and TanStack React Query hooks
+	- `src/store/` Redux auth state
+	- `src/utils/` shared helpers (audio, storage, configs)
+	- `src/i18n/` translations
+- Data-fetching rule:
+	- Use TanStack React Query hooks from `src/services/hooks.js` for new feature work.
+	- Keep Redux usage focused on auth/session state.
+	- RTK Query in `src/store/api.ts` is legacy/dev-reference (`src/pages/ApiTest.tsx`); do not introduce new page features with it.
+	- Do not mix TanStack React Query and RTK Query in the same page.
+- Audio lifecycle rule:
+	- `src/pages/ExamFlow.tsx` owns recording/timer orchestration.
+	- `src/services/geminiService.ts` owns TTS/beep cleanup (`stopAllAudio`).
+	- Any change around exam navigation/audio must preserve cleanup behavior when leaving exam flow.
+- Treat `openapi` as the backend contract source.
 
-## Coding Style & Naming Conventions
-Use TypeScript and React function components throughout. Follow the existing 2-space indentation style and prefer small, focused components. Name pages and components in `PascalCase` (`ExamFlow.tsx`), hooks in `camelCase` with a `use` prefix (`useGetTests`), and utility/service functions in clear verb-based names. Keep imports stable by using the `@` alias for `src` where it improves readability. Reuse existing Tailwind utility patterns and SCSS only where the codebase already does so.
+## Code Style and Conventions
+- Use TypeScript and React function components with existing 2-space indentation.
+- Naming:
+	- Components/pages: `PascalCase`
+	- Hooks: `camelCase` with `use` prefix
+	- Utility/service functions: clear verb-based names
+- Prefer `@/` alias imports for `src` when it improves readability.
+- Prefer existing Tailwind utility patterns; use SCSS modules only where the codebase already does.
+- Keep i18n consistent when adding user-facing text (uz, en, ru).
 
-## Testing Guidelines
-There is no dedicated automated test suite in this repository yet. At minimum, run `npm run build` before opening a PR and manually verify the affected flow in the browser, especially exam start, answer submission, history, and responsive layouts. If you add tests, use `*.test.ts` or `*.test.tsx` naming and keep them close to the feature they validate.
+## Security and Config
+- Never commit secrets.
+- Keep environment values (for example `VITE_GEMINI_API_KEY`) in local env files or CI secrets.
 
-## Commit & Pull Request Guidelines
-Recent history follows Conventional Commit style: `feat: ...`, `fix: ...`, `ci: ...`. Keep commit messages short, imperative, and scoped to one change. PRs should include a concise summary, linked issue or task if available, and screenshots or short recordings for UI changes. When backend payloads or exam flow logic change, note the API impact explicitly and reference `openapi.md`.
-
-## Security & Configuration Tips
-Do not commit secrets. Keep environment values such as `VITE_GEMINI_API_KEY` in local env files or CI secrets, not in source code.
+## References
+- Deep architecture and flow details: [CLAUDE.md](CLAUDE.md)
+- Setup and quick start: [README.md](README.md)
+- API payload and endpoint contract: [openapi](openapi)
