@@ -932,6 +932,44 @@ components:
         settings:
           type: object
           additionalProperties: {}
+    CriterionBreakdownResponse:
+      type: object
+      required:
+      - criterionName
+      - score
+      - maxScore
+      - feedback
+      properties:
+        criterionName:
+          type: string
+        score:
+          type: number
+        maxScore:
+          type: number
+        feedback:
+          type: string
+    CrossPartComparisonResponse:
+      type: object
+      required:
+      - strongestPart
+      - weakestPart
+      - patterns
+      - progressionNotes
+      properties:
+        strongestPart:
+          type: integer
+          format: int32
+        weakestPart:
+          type: integer
+          format: int32
+        patterns:
+          type: array
+          items:
+            type: string
+        progressionNotes:
+          type: array
+          items:
+            type: string
     GrantAccessRequest:
       type: object
       required:
@@ -1173,6 +1211,43 @@ components:
           type: integer
           format: int32
         sortableFields:
+          type: array
+          items:
+            type: string
+    PartAnalysisResponse:
+      type: object
+      required:
+      - partNumber
+      - partName
+      - score
+      - maxScore
+      - criteriaBreakdown
+      - strengths
+      - weaknesses
+      - recommendations
+      properties:
+        partNumber:
+          type: integer
+          format: int32
+        partName:
+          type: string
+        score:
+          type: number
+        maxScore:
+          type: number
+        criteriaBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/CriterionBreakdownResponse"
+        strengths:
+          type: array
+          items:
+            type: string
+        weaknesses:
+          type: array
+          items:
+            type: string
+        recommendations:
           type: array
           items:
             type: string
@@ -1639,6 +1714,56 @@ components:
       enum:
       - ASC
       - DESC
+    SpeakingAnalysisResponse:
+      type: object
+      required:
+      - id
+      - attemptId
+      - estimatedSpeakingLevel
+      - overallSummary
+      - partAnalyses
+      - crossPartComparison
+      - overallStrengths
+      - areasForImprovement
+      - recommendations
+      - confidence
+      - generatedAt
+      properties:
+        id:
+          $ref: "#/components/schemas/UUID"
+        attemptId:
+          $ref: "#/components/schemas/UUID"
+        estimatedSpeakingLevel:
+          anyOf:
+          - $ref: "#/components/schemas/CefrLevel"
+          - type: "null"
+        overallSummary:
+          type: string
+        partAnalyses:
+          type: array
+          items:
+            $ref: "#/components/schemas/PartAnalysisResponse"
+        crossPartComparison:
+          $ref: "#/components/schemas/CrossPartComparisonResponse"
+        overallStrengths:
+          type: array
+          items:
+            type: string
+        areasForImprovement:
+          type: array
+          items:
+            type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+        confidence:
+          type:
+          - number
+          - "null"
+          format: double
+        generatedAt:
+          $ref: "#/components/schemas/Instant"
     StartAttemptRequest:
       type: object
       required:
@@ -2428,6 +2553,57 @@ paths:
       summary: Rescore Attempt
       tags:
       - Admin Submission Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - GRADER
+  /admin/submissions/{attemptId}/speaking-analysis:
+    get:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpeakingAnalysisResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Analysis
+      tags:
+      - Admin Speaking Analysis Resource
+      security:
+      - SecurityScheme:
+        - ADMIN
+        - GRADER
+  /admin/submissions/{attemptId}/speaking-analysis/regenerate:
+    post:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Regenerate
+      tags:
+      - Admin Speaking Analysis Resource
       security:
       - SecurityScheme:
         - ADMIN
@@ -3409,6 +3585,61 @@ paths:
       summary: Submit Section
       tags:
       - Attempt Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /attempts/{attemptId}/speaking-analysis:
+    get:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpeakingAnalysisResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Get Analysis
+      tags:
+      - Speaking Analysis Resource
+      security:
+      - SecurityScheme:
+        - USER
+        - GRADER
+        - CONTENT_EDITOR
+        - ADMIN
+  /attempts/{attemptId}/speaking-analysis/regenerate:
+    post:
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Regenerate
+      tags:
+      - Speaking Analysis Resource
       security:
       - SecurityScheme:
         - USER

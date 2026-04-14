@@ -10,6 +10,25 @@ export const getMe = () => {
     });
 };
 
+export const getAdminUsers = ({
+  isActive,
+  page = 0,
+  role,
+  search,
+  size = 20,
+} = {}) => {
+  const params = { page, size };
+  if (typeof isActive === 'boolean') params.isActive = isActive;
+  if (role) params.role = role;
+  if (search) params.search = search;
+
+  return axiosClient
+    .get('/admin/users', { params })
+    .then((response) => {
+      return response.data;
+    });
+};
+
 // ==================== TESTS QUERIES ====================
 
 export const getTests = ({

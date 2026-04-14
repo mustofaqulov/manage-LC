@@ -7,6 +7,7 @@ import { showToast } from '../utils/configs/toastConfig';
 // ==================== QUERY KEYS ====================
 export const QUERY_KEYS = {
   USER: 'user',
+  ADMIN_USERS: 'adminUsers',
   TESTS: 'tests',
   TEST: 'test',
   SECTION: 'section',
@@ -25,6 +26,23 @@ export const useGetMe = () => {
     queryFn: queries.getMe,
     staleTime: 5 * 60 * 1000, // 5 minutes
     meta: { errorMessage: t('errors.loadFailed') },
+  });
+};
+
+export const useGetAdminUsers = ({
+  isActive,
+  page,
+  role,
+  search,
+  size,
+} = {}, options = {}) => {
+  const { t } = useTranslation();
+  return useQuery({
+    queryKey: [QUERY_KEYS.ADMIN_USERS, { isActive, page, role, search, size }],
+    queryFn: () => queries.getAdminUsers({ isActive, page, role, search, size }),
+    staleTime: 30 * 1000,
+    meta: { errorMessage: t('errors.loadFailed') },
+    ...options,
   });
 };
 

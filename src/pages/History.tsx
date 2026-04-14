@@ -218,7 +218,11 @@ const ResponseAudioCard: React.FC<{
 // ── AttemptDetail (expandable inner content) ────────────────────────────────
 
 const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({ attemptId, status }) => {
-  const { data: detail, isLoading } = useGetAttempt(attemptId);
+  const shouldLiveRefetch = status === 'SUBMITTED' || status === 'SCORING';
+  const { data: detail, isLoading } = useGetAttempt(attemptId, {
+    refetchInterval: shouldLiveRefetch ? 3000 : false,
+    refetchIntervalInBackground: true,
+  });
   const { data: analysis } = useGetSpeakingAnalysis(attemptId, { enabled: status === 'SCORED' });
   const [isDownloading, setIsDownloading] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -736,7 +740,12 @@ const History: React.FC = () => {
     return () => clearTimeout(t);
   }, []);
 
-  const { data: historyData, isLoading, isError } = useGetAttemptHistory({
+  const {
+    data: historyData,
+    isLoading,
+    isError,
+    refetch: refetchHistory,
+  } = useGetAttemptHistory({
     page,
     size: PAGE_SIZE,
     search: debouncedSearch || undefined,
@@ -777,6 +786,19 @@ const History: React.FC = () => {
   }, [attempts]);
 
   const hasSearch = !!debouncedSearch;
+
+  useEffect(() => {
+    const hasPendingScoring = attempts.some((attempt) => attempt.status === 'SUBMITTED' || attempt.status === 'SCORING');
+    if (!hasPendingScoring) return;
+
+    const timer = window.setInterval(() => {
+      refetchHistory();
+    }, 4000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [attempts, refetchHistory]);
 
   return (
     <div className="relative min-h-screen py-20 sm:py-28 md:py-36 px-4 sm:px-6 md:px-12 overflow-hidden bg-[#050505]">
