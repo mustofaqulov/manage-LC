@@ -226,15 +226,6 @@ const ExamFlow: React.FC = () => {
   // ================= UI STATE =================
   const [status, setStatus] = useState<ExamStatus>(ExamStatus.IDLE);
 
-  // Poll attempt detail every 4s while on FINISHED screen and scoring is in progress
-  useEffect(() => {
-    const needsPolling =
-      status === ExamStatus.FINISHED &&
-      (attemptDetail?.status === 'SUBMITTED' || attemptDetail?.status === 'SCORING');
-    if (!needsPolling) return;
-    const timer = setInterval(() => { refetchAttempt(); }, 4000);
-    return () => clearInterval(timer);
-  }, [status, attemptDetail?.status, refetchAttempt]);
   const [displayTime, setDisplayTime] = useState(0);
   const [timeProgress, setTimeProgress] = useState(1);
   const [isMicAllowed, setIsMicAllowed] = useState(false);
