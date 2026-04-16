@@ -114,7 +114,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
     );
   }
 
-  const hasScore = attempt?.totalScore != null;
+  const hasScore = attempt?.status === 'SCORED' && attempt?.totalScore != null;
   const scorePercent = attempt?.scorePercentage != null ? Math.round(Number(attempt.scorePercentage)) : null;
 
   // Subjective responses with AI feedback (ESSAY or SPEAKING_RESPONSE)
