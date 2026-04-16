@@ -68,6 +68,11 @@ export enum AssetType {
   DOCUMENT = 'DOCUMENT',
 }
 
+export enum AttemptSourceType {
+  TEST = 'TEST',
+  RANDOM_SECTIONS = 'RANDOM_SECTIONS',
+}
+
 // Auth
 export interface LoginRequest {
   phone: string;
@@ -211,7 +216,8 @@ export interface StartAttemptResponse {
 
 export interface AttemptListResponse {
   id: UUID;
-  testId: UUID;
+  testId: UUID | null;
+  sourceType: AttemptSourceType;
   testTitle: string;
   cefrLevel: CefrLevel;
   status: AttemptStatus;
@@ -226,7 +232,8 @@ export interface AttemptListResponse {
 
 export interface AttemptDetailResponse {
   id: UUID;
-  testId: UUID;
+  testId: UUID | null;
+  sourceType: AttemptSourceType;
   testTitle: string;
   cefrLevel: CefrLevel;
   status: AttemptStatus;
