@@ -362,7 +362,14 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
       {analysis && (
         <div className="space-y-3">
           <div className="bg-orange-500/8 border border-orange-500/15 rounded-xl p-4">
-            <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-2">AI Speaking Tahlil</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest">AI Speaking Tahlil</p>
+              {analysis.estimatedSpeakingLevel && (
+                <span className="px-2.5 py-1 rounded-lg bg-orange-500/15 border border-orange-500/25 text-orange-300 text-xs font-black">
+                  {analysis.estimatedSpeakingLevel}
+                </span>
+              )}
+            </div>
             <p className="text-white/75 text-sm leading-relaxed">{analysis.overallSummary}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
