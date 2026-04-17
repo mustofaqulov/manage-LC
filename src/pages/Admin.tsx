@@ -523,6 +523,7 @@ interface AdminAvatarsPanelProps {
   error: string;
   onDelete: (userId: string) => void;
   onRefresh: () => void;
+  userByUserId: Record<string, AdminUser>;
 }
 
 interface AdminUsersPanelProps {
@@ -1613,6 +1614,7 @@ const AdminAvatarsPanel: React.FC<AdminAvatarsPanelProps> = ({
   error,
   onDelete,
   onRefresh,
+  userByUserId,
 }) => {
   return (
     <div>
@@ -1673,9 +1675,30 @@ const AdminAvatarsPanel: React.FC<AdminAvatarsPanelProps> = ({
               </div>
 
               <div className="p-2.5">
-                <p className="text-white/50 text-[10px] font-mono truncate" title={avatar.user_id}>
-                  {avatar.user_id.slice(0, 8)}...
-                </p>
+                {(() => {
+                  const u = userByUserId[avatar.user_id];
+                  const name = u ? formatFullName(u) : null;
+                  const phone = u?.phone ?? null;
+                  return (
+                    <>
+                      {name && name !== '-' && (
+                        <p className="text-white/80 text-[11px] font-semibold truncate leading-tight" title={name}>
+                          {name}
+                        </p>
+                      )}
+                      {phone && (
+                        <p className="text-white/45 text-[10px] truncate mt-0.5" title={phone}>
+                          {phone}
+                        </p>
+                      )}
+                      {!u && (
+                        <p className="text-white/30 text-[10px] font-mono truncate" title={avatar.user_id}>
+                          {avatar.user_id.slice(0, 8)}...
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
                 <p className="text-white/25 text-[10px] mt-0.5">{formatDate(avatar.updated_at)}</p>
 
                 <AdminButton
@@ -2307,6 +2330,7 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [avatarUsers, setAvatarUsers] = useState<AdminUser[]>([]);
   const token = localStorage.getItem('auth_token') ?? '';
 
   const avatarUrlByUserId = useMemo(() => {
@@ -2319,23 +2343,35 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     return map;
   }, [avatars]);
 
+  const userByUserId = useMemo(() => {
+    const map: Record<string, AdminUser> = {};
+    for (const u of avatarUsers) {
+      map[u.id] = u;
+    }
+    return map;
+  }, [avatarUsers]);
+
   const fetchAvatars = useCallback(async () => {
     setLoading(true);
     setError('');
 
     try {
-      const res = await fetch(`${AVATAR_BASE}/admin/avatars`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const [avatarRes, usersRes] = await Promise.all([
+        fetch(`${AVATAR_BASE}/admin/avatars`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        adminUsersApi.list({ page: 0, size: 200 }).catch(() => null),
+      ]);
 
-      if (!res.ok) {
-        if (res.status === 403) setError('Bu amal uchun ADMIN huquqi kerak');
-        else setError(`Xatolik: ${res.status}`);
+      if (!avatarRes.ok) {
+        if (avatarRes.status === 403) setError('Bu amal uchun ADMIN huquqi kerak');
+        else setError(`Xatolik: ${avatarRes.status}`);
         return;
       }
 
-      const data = await res.json();
+      const data = await avatarRes.json();
       setAvatars(data.avatars ?? []);
+      if (usersRes) setAvatarUsers(usersRes.items ?? []);
     } catch {
       setError("Server bilan bog'lanib bo'lmadi");
     } finally {
@@ -2518,6 +2554,7 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                 error={error}
                 onDelete={handleDelete}
                 onRefresh={fetchAvatars}
+                userByUserId={userByUserId}
               />
             ) : activeTab === 'users' ? (
               <AdminUsersPanel avatarUrlByUserId={avatarUrlByUserId} />
