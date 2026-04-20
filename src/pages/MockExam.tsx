@@ -165,7 +165,7 @@ const MockExam: React.FC = () => {
       return;
     }
     navigate(`/exam-flow/${testId}`, {
-      state: { mode: selectedMode },
+      state: { mode: selectedMode, isFree },
     });
   };
 

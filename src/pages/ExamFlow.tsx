@@ -45,18 +45,19 @@ const ExamFlow: React.FC = () => {
 
   // Premium obuna tekshiruvi - access yo'q bo'lsa /subscribe ga yo'naltirish
   useEffect(() => {
-    // Roles yuklanguncha kutamiz va faqat bir marta tekshiramiz
-    if (roles.length > 0 && !hasAccess && !accessCheckedRef.current) {
+    const isFreeTest = (location.state as any)?.isFree === true;
+    if (roles.length > 0 && !hasAccess && !isFreeTest && !accessCheckedRef.current) {
       accessCheckedRef.current = true;
       showToast.warning('Imtihon topshirish uchun premium obuna sotib oling');
       navigate('/subscribe', { replace: true });
     }
-  }, [hasAccess, roles, navigate]);
+  }, [hasAccess, roles, navigate, location.state]);
 
   // Mode support
   const routeState = location.state as {
     selectedSectionIds?: string[];
     mode?: string;
+    isFree?: boolean;
     randomConfig?: {
       cefrLevel?: CefrLevel;
       sectionCount?: number;

@@ -630,7 +630,10 @@ const AttemptCard: React.FC<{
                   {Math.round(item.scorePercentage)}%
                 </span>
                 {(() => {
-                  const lvl = scoreToLevel(item.scorePercentage);
+                  const estimatedLevel = (item as any).estimatedCefrLevel;
+                  const lvl = estimatedLevel
+                    ? { label: estimatedLevel, color: scoreToLevel(item.scorePercentage)?.color ?? 'text-white/60' }
+                    : scoreToLevel(item.scorePercentage);
                   return lvl ? (
                     <span className={`text-[10px] font-black mt-0.5 ${lvl.color}`}>{lvl.label}</span>
                   ) : null;
@@ -667,20 +670,13 @@ const AttemptCard: React.FC<{
                 <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`} />
                 {statusStyle.label}
               </span>
-              {/* CEFR level from score */}
+              {/* Estimated CEFR level badge */}
               {(() => {
-                const lvl = scoreToLevel(item.scorePercentage);
-                const apiLevel = (item as any).estimatedCefrLevel || item.cefrLevel;
-                const display = apiLevel || lvl?.label;
-                if (!display) return null;
-                const isCalculated = !apiLevel && !!lvl;
+                const estimatedLevel = (item as any).estimatedCefrLevel;
+                if (!estimatedLevel) return null;
                 return (
-                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${
-                    isCalculated
-                      ? `bg-white/5 border border-white/10 ${lvl!.color}`
-                      : 'bg-orange-500/10 border border-orange-500/20 text-orange-400'
-                  }`}>
-                    {display}
+                  <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-orange-500/10 border border-orange-500/20 text-orange-400">
+                    {estimatedLevel}
                   </span>
                 );
               })()}
