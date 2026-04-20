@@ -5,7 +5,7 @@ import { apiClient } from '../services/api';
 interface LeaderboardEntry {
   rank: number;
   displayName: string;
-  bestScore: number | null;
+  bestScore: number | string | null;
   attemptCount: number;
   cefrLevel: string | null;
 }
@@ -29,6 +29,9 @@ const CEFR_COLORS: Record<string, string> = {
 };
 
 const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+const toNum = (v: number | string | null | undefined) =>
+  v != null ? parseFloat(String(v)) : null;
 
 const PAGE_SIZE = 20;
 
@@ -152,8 +155,8 @@ const Leaderboard: React.FC = () => {
                   >
                     <span className="text-white font-black text-lg">
                       {type === 'score'
-                        ? entry.bestScore != null
-                          ? entry.bestScore.toFixed(1)
+                        ? toNum(entry.bestScore) != null
+                          ? toNum(entry.bestScore)!.toFixed(1)
                           : '—'
                         : entry.attemptCount}
                     </span>
@@ -213,7 +216,7 @@ const Leaderboard: React.FC = () => {
                       )}
                     </div>
                     <span className="text-right text-white/80 font-bold text-sm">
-                      {entry.bestScore != null ? entry.bestScore.toFixed(1) : '—'}
+                      {toNum(entry.bestScore) != null ? toNum(entry.bestScore)!.toFixed(1) : '—'}
                     </span>
                     <span className="text-right text-white/50 text-sm">{entry.attemptCount}</span>
                   </div>
