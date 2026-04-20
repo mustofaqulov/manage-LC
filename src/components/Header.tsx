@@ -8,6 +8,7 @@ import Logo from '../assets/images/logo.svg';
 import LanguageSwitcher from './LanguageSwitcher';
 import FreeAttemptBanner from './FreeAttemptBanner';
 import AvatarFeatureBanner from './AvatarFeatureBanner';
+import LeaderboardAnnouncementBanner from './LeaderboardAnnouncementBanner';
 import AvatarUpload from './AvatarUpload';
 
 const Header: React.FC = memo(() => {
@@ -42,6 +43,7 @@ const Header: React.FC = memo(() => {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
+      <LeaderboardAnnouncementBanner />
       <FreeAttemptBanner />
       <AvatarFeatureBanner />
       <div className="px-3 sm:px-4 md:px-8 pt-4">
