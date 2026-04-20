@@ -162,9 +162,13 @@ const MockExam: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleStartTest = (testId: string) => {
+  const handleStartTest = (testId: string, isFree = false) => {
     if (!isAuthenticated) {
       navigate('/login');
+      return;
+    }
+    if (!hasAccess && !isFree) {
+      navigate('/subscribe');
       return;
     }
     navigate(`/exam-flow/${testId}`, {
@@ -544,18 +548,37 @@ const MockExam: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 md:gap-8 mb-12 sm:mb-16 md:mb-20">
                 {fullTests.map((test) => {
                   const levelStyle = LEVEL_COLORS[test.cefrLevel] || LEVEL_COLORS.B1;
+                  const isFree = test.settings?.freeForAll === true;
+                  const canStart = hasAccess || isFree;
                   return (
                     <div key={test.id} className="group relative cursor-pointer">
-                      <div
-                        className={`absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] bg-gradient-to-br ${levelStyle.bg} opacity-40 group-hover:opacity-100 group-hover:scale-105 blur-2xl transition-all duration-700`}
-                      />
+                      {/* FREE glow effect */}
+                      {isFree && (
+                        <div className="absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] bg-gradient-to-br from-emerald-500 to-green-400 opacity-30 group-hover:opacity-60 blur-2xl transition-all duration-700" />
+                      )}
+                      {!isFree && (
+                        <div
+                          className={`absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] bg-gradient-to-br ${levelStyle.bg} opacity-40 group-hover:opacity-100 group-hover:scale-105 blur-2xl transition-all duration-700`}
+                        />
+                      )}
 
                       <div
-                        className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-5 sm:p-7 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)] md:shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03] transition-all duration-500 flex flex-col items-center text-center min-h-[260px] sm:min-h-[320px] md:min-h-[370px]`}
+                        className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-5 sm:p-7 md:p-10 bg-white/5 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.8)] md:shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03] transition-all duration-500 flex flex-col items-center text-center min-h-[260px] sm:min-h-[320px] md:min-h-[370px] ${isFree ? 'border-2 border-emerald-400/50' : 'border border-white/10'}`}
                         style={{ '--hover-glow': levelStyle.glow } as React.CSSProperties}
                       >
+                        {/* FREE banner */}
+                        {isFree && (
+                          <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-4 py-1 bg-gradient-to-r from-emerald-500 to-green-400 rounded-full shadow-[0_4px_20px_rgba(52,211,153,0.5)] z-10">
+                            <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clipRule="evenodd" />
+                              <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
+                            </svg>
+                            <span className="text-white text-xs font-black uppercase tracking-wider">Bepul • Cheksiz</span>
+                          </div>
+                        )}
+
                         {/* CEFR Level Badge */}
-                        <div className={`px-4 py-1.5 rounded-full border border-white/10 bg-white/5 ${levelStyle.text} text-xs font-black uppercase tracking-wider mb-4`}>
+                        <div className={`px-4 py-1.5 rounded-full border border-white/10 bg-white/5 ${levelStyle.text} text-xs font-black uppercase tracking-wider mb-4 ${isFree ? 'mt-2' : ''}`}>
                           CEFR {test.cefrLevel}
                         </div>
 
@@ -591,15 +614,16 @@ const MockExam: React.FC = () => {
 
                         {/* Start button */}
                         <button
-                          onClick={() => handleStartTest(test.id)}
-                          disabled={!hasAccess}
-                          className={`w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base text-white
-                            ${hasAccess
-                              ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_8px_30px_rgba(255,140,0,0.3)] hover:shadow-[0_12px_40px_rgba(255,140,0,0.5)] hover:scale-105 cursor-pointer'
-                              : 'bg-gray-600 cursor-not-allowed opacity-50'
-                            }
-                            transition-all duration-300 disabled:hover:scale-100`}>
-                          {hasAccess ? t('mockExam.startExam') : 'Premium obuna kerak'}
+                          onClick={() => handleStartTest(test.id, isFree)}
+                          disabled={!canStart}
+                          className={`w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base text-white transition-all duration-300 disabled:hover:scale-100
+                            ${isFree
+                              ? 'bg-gradient-to-r from-emerald-500 to-green-400 shadow-[0_8px_30px_rgba(52,211,153,0.3)] hover:shadow-[0_12px_40px_rgba(52,211,153,0.5)] hover:scale-105 cursor-pointer'
+                              : canStart
+                                ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_8px_30px_rgba(255,140,0,0.3)] hover:shadow-[0_12px_40px_rgba(255,140,0,0.5)] hover:scale-105 cursor-pointer'
+                                : 'bg-gray-600 cursor-not-allowed opacity-50'
+                            }`}>
+                          {isFree ? 'Bepul boshlash' : canStart ? t('mockExam.startExam') : 'Premium obuna kerak'}
                         </button>
                       </div>
                     </div>
