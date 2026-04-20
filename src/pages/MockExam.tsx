@@ -137,19 +137,12 @@ const MockExam: React.FC = () => {
   }, [randomTests, selectedRandomLevel]);
 
   // Obuna yo'q bo'lsa /subscribe ga yo'naltirish (freeAttempt bo'lmasa)
-  useEffect(() => {
-    if (isAuthenticated && !hasAccess && !toastShownRef.current) {
-      toastShownRef.current = true;
-      navigate('/subscribe');
-    }
-  }, [isAuthenticated, hasAccess, navigate]);
-
   const handleModeSelect = (mode: ExamMode | 'custom') => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    if (!hasAccess) {
+    if (!hasAccess && mode !== 'full') {
       navigate('/subscribe');
       return;
     }
