@@ -469,7 +469,11 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
                 <div key={sec.id} className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-1">
                     <h4 className="text-white text-sm font-semibold truncate">{sec.sectionTitle}</h4>
-                    {pct !== null && <span className={`text-sm font-black ${textColor}`}>{pct}%</span>}
+                    {sec.sectionScore != null && sec.maxSectionScore > 0 && (
+                      <span className={`text-sm font-black ${textColor}`}>
+                        {(sec.sectionScore / sec.maxSectionScore * 75).toFixed(1)}/75
+                      </span>
+                    )}
                   </div>
                   <span className="text-white/30 text-xs capitalize">{sec.skill?.toLowerCase()}</span>
                   {pct !== null && (
@@ -624,11 +628,12 @@ const AttemptCard: React.FC<{
 
           {/* Score circle */}
           <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center justify-center">
-            {item.scorePercentage != null ? (
+            {(item as any).totalScore != null ? (
               <>
                 <span className="text-white text-sm font-black leading-none">
-                  {Math.round(item.scorePercentage)}%
+                  {parseFloat(String((item as any).totalScore)).toFixed(1)}
                 </span>
+                <span className="text-white/30 text-[9px] leading-none">/75</span>
                 {(() => {
                   const estimatedLevel = (item as any).estimatedCefrLevel;
                   const lvl = estimatedLevel
@@ -638,11 +643,6 @@ const AttemptCard: React.FC<{
                     <span className={`text-[10px] font-black mt-0.5 ${lvl.color}`}>{lvl.label}</span>
                   ) : null;
                 })()}
-                {delta !== null && delta !== 0 && (
-                  <span className={`text-[8px] font-bold ${delta > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {delta > 0 ? '+' : ''}{delta}
-                  </span>
-                )}
               </>
             ) : (
               <span className="text-white/30 text-xs font-medium">—</span>
@@ -760,30 +760,32 @@ const History: React.FC = () => {
 
   // Stats (from current filtered page — shows context-aware numbers)
   const stats = useMemo(() => {
-    const scored = attempts.filter((a) => a.status === 'SCORED' && a.scorePercentage != null && !isNaN(Number(a.scorePercentage)));
+    const scored = attempts.filter((a) => a.status === 'SCORED' && (a as any).totalScore != null);
     return {
       total: totalItems,
-      avg: scored.length > 0 ? Math.round(scored.reduce((s, a) => s + Number(a.scorePercentage), 0) / scored.length) : 0,
-      best: scored.length > 0 ? Math.round(Math.max(...scored.map((a) => Number(a.scorePercentage)))) : 0,
+      avg: scored.length > 0 ? parseFloat((scored.reduce((s, a) => s + parseFloat(String((a as any).totalScore)), 0) / scored.length).toFixed(1)) : 0,
+      best: scored.length > 0 ? parseFloat(Math.max(...scored.map((a) => parseFloat(String((a as any).totalScore)))).toFixed(1)) : 0,
     };
   }, [attempts, totalItems]);
 
   // Chart data
   const chartData = useMemo(() => (
     [...attempts]
-      .filter((a) => a.status === 'SCORED' && a.scorePercentage != null)
+      .filter((a) => a.status === 'SCORED' && (a as any).totalScore != null)
       .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime())
-      .map((a) => ({ date: a.startedAt, score: a.scorePercentage! }))
+      .map((a) => ({ date: a.startedAt, score: parseFloat(String((a as any).totalScore)) }))
   ), [attempts]);
 
   // Delta map
   const deltaMap = useMemo(() => {
     const map: Record<string, number | null> = {};
     const sorted = [...attempts]
-      .filter((a) => a.status === 'SCORED' && a.scorePercentage != null)
+      .filter((a) => a.status === 'SCORED' && (a as any).totalScore != null)
       .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime());
     sorted.forEach((a, i) => {
-      map[a.id] = i === 0 ? null : Math.round((a.scorePercentage ?? 0) - (sorted[i - 1].scorePercentage ?? 0));
+      const cur = parseFloat(String((a as any).totalScore));
+      const prev = i === 0 ? null : parseFloat(String((sorted[i - 1] as any).totalScore));
+      map[a.id] = prev === null ? null : parseFloat((cur - prev).toFixed(1));
     });
     return map;
   }, [attempts]);
@@ -825,8 +827,8 @@ const History: React.FC = () => {
         <div className="grid grid-cols-3 gap-3 sm:gap-5 mb-8">
           {[
             { label: t('history.totalExams'), value: stats.total, color: 'text-white' },
-            { label: t('history.avgScore'),   value: stats.avg  > 0 ? `${stats.avg}%`  : '—', color: 'text-orange-400' },
-            { label: t('history.bestScore'),  value: stats.best > 0 ? `${stats.best}%` : '—', color: 'text-green-400' },
+            { label: t('history.avgScore'),   value: stats.avg  > 0 ? `${stats.avg}/75`  : '—', color: 'text-orange-400' },
+            { label: t('history.bestScore'),  value: stats.best > 0 ? `${stats.best}/75` : '—', color: 'text-green-400' },
           ].map(({ label, value, color }) => (
             <div key={label} className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-4 sm:p-6 text-center">
               <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">{label}</p>
