@@ -415,7 +415,7 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
                   <div key={part.partNumber} className="bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-3 bg-white/[0.02]">
                       <span className="text-white text-sm font-bold">Part {part.partNumber}: {part.partName}</span>
-                      <span className={`text-sm font-black ${textColor}`}>{Math.round(part.score)}/{Math.round(part.maxScore)}</span>
+                      <span className={`text-sm font-black ${textColor}`}>{part.maxScore > 0 ? (part.score / part.maxScore * 75).toFixed(1) : '—'}/75</span>
                     </div>
                     <div className="h-1 bg-white/5"><div className={`h-full ${color}`} style={{ width: `${pct}%` }} /></div>
                     {part.criteriaBreakdown?.length > 0 && (
@@ -428,7 +428,7 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
                             <div key={ci}>
                               <div className="flex items-center justify-between mb-1">
                                 <span className="text-white/55 text-xs">{crit.criterionName}</span>
-                                <span className={`text-xs font-bold ${ct}`}>{Math.round(crit.score)}/{Math.round(crit.maxScore)}</span>
+                                <span className={`text-xs font-bold ${ct}`}>{crit.maxScore > 0 ? (crit.score / crit.maxScore * 75).toFixed(1) : '—'}/75</span>
                               </div>
                               <div className="h-1 bg-white/5 rounded-full mb-1.5">
                                 <div className={`h-full rounded-full ${cc}`} style={{ width: `${cpct}%` }} />
@@ -504,8 +504,8 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
                     <tr key={`${r.id}-${rs.criterionId}`} className="border-b border-white/[0.03]">
                       <td className="px-4 py-3 text-white/65 text-sm">{rs.criterionName}</td>
                       <td className="px-4 py-3 text-right">
-                        <span className="text-white font-bold text-sm">{Math.round(rs.score)}</span>
-                        <span className="text-white/30 text-xs">/{Math.round(rs.maxScore)}</span>
+                        <span className="text-white font-bold text-sm">{rs.maxScore > 0 ? (rs.score / rs.maxScore * 75).toFixed(1) : '—'}</span>
+                        <span className="text-white/30 text-xs">/75</span>
                       </td>
                       <td className="px-4 py-3 text-white/45 text-xs hidden sm:table-cell">{rs.feedback || '—'}</td>
                     </tr>
