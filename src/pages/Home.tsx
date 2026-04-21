@@ -1,5 +1,168 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useGetAttemptHistory } from '../services/hooks';
+import { useAuth } from '../hooks/useAuth';
+
+// ─── CEFR config ─────────────────────────────────────────────────────────────
+
+const CEFR_BARS = [
+  { level: 'A2', label: 'Elementary',         range: '0–37%',  maxPct: 37,  color: 'bg-blue-400'   },
+  { level: 'B1', label: 'Intermediate',       range: '38–50%', maxPct: 50,  color: 'bg-cyan-400'   },
+  { level: 'B2', label: 'Upper Intermediate', range: '51–64%', maxPct: 64,  color: 'bg-green-400'  },
+  { level: 'C1', label: 'Advanced',           range: '65–75%', maxPct: 100, color: 'bg-orange-400' },
+];
+
+const CEFR_LEVEL_COLORS: Record<string, string> = {
+  A1: 'text-slate-400',
+  A2: 'text-blue-400',
+  B1: 'text-cyan-400',
+  B2: 'text-green-400',
+  C1: 'text-orange-400',
+  C2: 'text-amber-300',
+};
+
+// ─── Score card ──────────────────────────────────────────────────────────────
+
+const ScoreCard: React.FC<{
+  score: number;
+  cefrLevel: string;
+  feedback?: string | null;
+  isReal?: boolean;
+}> = ({ score, cefrLevel, feedback, isReal }) => {
+  const pct = Math.round(score);
+  const levelColor = CEFR_LEVEL_COLORS[cefrLevel] ?? 'text-orange-400';
+
+  const activeLevelInfo = CEFR_BARS.find((b) => {
+    if (cefrLevel === 'A1' || cefrLevel === 'A2') return b.level === 'A2';
+    if (cefrLevel === 'C2') return b.level === 'C1';
+    return b.level === cefrLevel;
+  }) ?? CEFR_BARS[3];
+
+  return (
+    <div className="relative w-full max-w-[500px]">
+      {/* Glow */}
+      <div className="absolute inset-0 bg-orange-500/15 blur-3xl rounded-3xl" />
+
+      {/* Card */}
+      <div className="relative rounded-3xl bg-white dark:bg-white/[0.04] border border-gray-300 dark:border-white/10
+        backdrop-blur-xl p-7 shadow-[0_32px_80px_rgba(0,0,0,0.1)] dark:shadow-[0_32px_80px_rgba(0,0,0,0.7)]">
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <p className="text-gray-500 dark:text-white/40 text-xs font-medium uppercase tracking-wider">
+              {isReal ? 'Oxirgi natijangiz' : 'Sizning natijangiz'}
+            </p>
+            <p className="text-gray-900 dark:text-white text-sm font-bold mt-0.5">CEFR Speaking</p>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-4xl font-black text-gray-900 dark:text-white leading-none">{pct}%</span>
+          </div>
+        </div>
+
+        {/* Current level highlight */}
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-orange-500/10 border border-orange-500/20 mb-5">
+          <span className={`text-3xl font-black leading-none ${levelColor}`}>{cefrLevel}</span>
+          <div>
+            <p className="text-gray-900 dark:text-white text-sm font-bold">{activeLevelInfo.label}</p>
+            <p className="text-gray-500 dark:text-white/40 text-xs">
+              {activeLevelInfo.range} · {isReal ? 'Sizning darajangiz' : 'Namuna daraja'}
+            </p>
+          </div>
+        </div>
+
+        {/* CEFR bars */}
+        <div className="space-y-2.5">
+          {CEFR_BARS.map(({ level, label, range, maxPct, color }) => {
+            const active = level === activeLevelInfo.level;
+            const fillPct = active ? Math.min(100, (pct / maxPct) * 100) : maxPct;
+            return (
+              <div key={level}
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all
+                  ${active ? 'bg-orange-500/8 border border-orange-500/15' : ''}`}>
+                <span className={`w-9 text-xs font-black ${active ? levelColor : 'text-gray-500 dark:text-white/30'}`}>
+                  {level}
+                </span>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className={`text-[10px] font-medium ${active ? 'text-gray-700 dark:text-white/60' : 'text-gray-400 dark:text-white/25'}`}>
+                      {label}
+                    </span>
+                    <span className={`text-[10px] font-bold ${active ? levelColor : 'text-gray-400 dark:text-white/25'}`}>
+                      {range}
+                    </span>
+                  </div>
+                  <div className="h-1 rounded-full bg-gray-200 dark:bg-white/8 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${active ? color : 'bg-gray-300 dark:bg-white/10'}`}
+                      style={{ width: `${fillPct}%`, opacity: active ? 1 : 0.4 }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Feedback or AI hint */}
+        <div className="mt-4 px-3 py-2.5 rounded-xl bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/5">
+          <p className="text-gray-500 dark:text-white/35 text-[11px] leading-relaxed">
+            {feedback ?? '"Pauzalarni kamaytiring va bog\'lovchi so\'zlarni ko\'proq ishlating."'}
+          </p>
+        </div>
+
+        {/* Real result badge */}
+        {isReal && (
+          <div className="mt-3 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-green-400/70 text-[10px] font-semibold uppercase tracking-wider">
+              Haqiqiy natija
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── Hero right panel ─────────────────────────────────────────────────────────
+
+const HeroScorePanel: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
+  const { data, isLoading } = useGetAttemptHistory({
+    page: 0,
+    size: 5,
+    status: 'SCORED',
+    sortBy: 'SCORED_AT',
+    sortOrder: 'DESC',
+  });
+
+  if (isAuthenticated && isLoading) {
+    return (
+      <div className="relative w-[500px]">
+        <div className="absolute inset-0 bg-orange-500/10 blur-3xl rounded-3xl" />
+        <div className="relative rounded-3xl bg-white/[0.04] border border-white/10 p-7 h-[420px] animate-pulse" />
+      </div>
+    );
+  }
+
+  const lastScored = isAuthenticated
+    ? data?.items?.find((a: any) => a.status === 'SCORED' && a.totalScore != null && a.estimatedCefrLevel)
+    : null;
+
+  if (lastScored) {
+    const pct = lastScored.scorePercentage != null
+      ? Math.round(parseFloat(String(lastScored.scorePercentage)))
+      : Math.round((parseFloat(String(lastScored.totalScore)) / 75) * 100);
+
+    return <ScoreCard score={pct} cefrLevel={lastScored.estimatedCefrLevel} isReal />;
+  }
+
+  return <ScoreCard score={68} cefrLevel="C1" isReal={false} />;
+};
+
+// ─── Home page ────────────────────────────────────────────────────────────────
 
 const Home: React.FC = () => {
   return (
@@ -70,79 +233,21 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Right — Score card mockup */}
+            {/* Right — Score card */}
             <div className="hidden lg:flex justify-center items-center">
-              <div className="relative w-[500px]">
-                {/* Glow */}
-                <div className="absolute inset-0 bg-orange-500/15 dark:bg-orange-500/15 blur-3xl rounded-3xl" />
-
-                {/* Card */}
-                <div className="relative rounded-3xl bg-white dark:bg-white/[0.04] border border-gray-300 dark:border-white/10 backdrop-blur-xl p-7 shadow-[0_32px_80px_rgba(0,0,0,0.1)] dark:shadow-[0_32px_80px_rgba(0,0,0,0.7)]">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <p className="text-gray-500 dark:text-white/40 text-xs font-medium uppercase tracking-wider">Sizning natijangiz</p>
-                      <p className="text-gray-900 dark:text-white text-sm font-bold mt-0.5">CEFR Speaking</p>
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-4xl font-black text-gray-900 dark:text-white leading-none">68%</span>
-                    </div>
-                  </div>
-
-                  {/* Current level highlight */}
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-orange-500/10 border border-orange-500/20 mb-5">
-                    <span className="text-3xl font-black text-orange-400 leading-none">C1</span>
-                    <div>
-                      <p className="text-gray-900 dark:text-white text-sm font-bold">Advanced</p>
-                      <p className="text-gray-500 dark:text-white/40 text-xs">65–75% · Sizning darajangiz</p>
-                    </div>
-                  </div>
-
-                  {/* CEFR level bars */}
-                  <div className="space-y-2.5">
-                    {[
-                      { level: 'A2', label: 'Elementary',         range: '0–37%',  pct: 37,  color: 'bg-blue-400',   active: false },
-                      { level: 'B1', label: 'Intermediate',       range: '38–50%', pct: 50,  color: 'bg-cyan-400',   active: false },
-                      { level: 'B2', label: 'Upper Intermediate', range: '51–64%', pct: 64,  color: 'bg-green-400',  active: false },
-                      { level: 'C1', label: 'Advanced',           range: '65–75%', pct: 100, color: 'bg-orange-400', active: true  },
-                    ].map(({ level, label, range, pct, color, active }) => (
-                      <div key={level} className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${active ? 'bg-orange-500/8 border border-orange-500/15' : ''}`}>
-                        <span className={`w-9 text-xs font-black ${active ? 'text-orange-400' : 'text-gray-500 dark:text-white/30'}`}>{level}</span>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className={`text-[10px] font-medium ${active ? 'text-gray-700 dark:text-white/60' : 'text-gray-400 dark:text-white/25'}`}>{label}</span>
-                            <span className={`text-[10px] font-bold ${active ? 'text-orange-400' : 'text-gray-400 dark:text-white/25'}`}>{range}</span>
-                          </div>
-                          <div className="h-1 rounded-full bg-gray-200 dark:bg-white/8 overflow-hidden">
-                            <div className={`h-full rounded-full ${active ? color : 'bg-gray-300 dark:bg-white/10'}`} style={{ width: `${pct}%`, opacity: active ? 1 : 0.4 }} />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* AI feedback */}
-                  <div className="mt-4 px-3 py-2.5 rounded-xl bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/5">
-                    <p className="text-gray-500 dark:text-white/35 text-[11px] leading-relaxed">
-                      "Pauzalarni kamaytiring va bog'lovchi so'zlarni ko'proq ishlating."
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <HeroScorePanel />
             </div>
           </div>
 
           {/* Stats bar */}
           <div className="mt-16 sm:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { value: '40+', label: "Imtihon savollari" },
-
-              { value: 'AI', label: "Avtomatik baho" },
-              { value: 'A2–C1', label: "CEFR darajalari" },
-              { value: '3 qism', label: "Speaking format" },
+              { value: '40+', label: 'Imtihon savollari' },
+              { value: 'AI',  label: 'Avtomatik baho' },
+              { value: 'A2–C1', label: 'CEFR darajalari' },
+              { value: '3 qism', label: 'Speaking format' },
             ].map(({ value, label }) => (
-              <div
-                key={label}
+              <div key={label}
                 className="px-5 py-4 rounded-2xl bg-gray-200 dark:bg-white/[0.03] border border-gray-300 dark:border-white/[0.07] text-center">
                 <p className="text-gray-900 dark:text-white text-2xl font-black mb-1">{value}</p>
                 <p className="text-gray-600 dark:text-white/40 text-xs">{label}</p>
@@ -155,7 +260,7 @@ const Home: React.FC = () => {
       {/* ── HOW IT WORKS ──────────────────────────────────────── */}
       <section className="relative py-20 sm:py-28 px-4 sm:px-6 md:px-12 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-white dark:from-[#050505] via-gray-50 dark:via-[#080806] to-white dark:to-[#050505]" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02) dark:rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02) dark:rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:80px_80px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:80px_80px]" />
 
         <div className="relative z-10 max-w-5xl mx-auto">
           <div className="text-center mb-14">
@@ -166,7 +271,6 @@ const Home: React.FC = () => {
           </div>
 
           <div className="grid sm:grid-cols-3 gap-6 sm:gap-8 relative">
-            {/* Connector line */}
             <div className="hidden sm:block absolute top-[38px] left-[22%] right-[22%] h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
 
             {[
@@ -202,7 +306,6 @@ const Home: React.FC = () => {
               },
             ].map(({ step, icon, title, desc }) => (
               <div key={step} className="relative flex flex-col items-center text-center p-6 rounded-3xl bg-gray-50 dark:bg-white/[0.03] border border-gray-300 dark:border-white/[0.07]">
-                {/* Step circle */}
                 <div className="w-[72px] h-[72px] rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-500/10 border border-orange-500/20 flex items-center justify-center mb-5">
                   {icon}
                 </div>
@@ -213,7 +316,6 @@ const Home: React.FC = () => {
             ))}
           </div>
 
-          {/* Bottom CTA */}
           <div className="mt-14 flex justify-center">
             <Link
               to="/mock-exam"
