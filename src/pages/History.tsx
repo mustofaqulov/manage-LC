@@ -326,7 +326,7 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
           )}
           {analysis?.confidence != null && (
             <span className="text-white/35 text-xs">
-              AI ishonch: {Math.round(analysis.confidence * 100)}%
+              AI ishonch: {(analysis.confidence * 75).toFixed(1)}/75
             </span>
           )}
         </div>

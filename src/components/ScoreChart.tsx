@@ -34,7 +34,7 @@ const ScoreChart: React.FC<ScoreChartProps> = ({ data }) => {
   const points = useMemo(() => {
     if (data.length === 0) return [];
     const minScore = Math.max(0, Math.min(...data.map((d) => d.score)) - 10);
-    const maxScore = Math.min(100, Math.max(...data.map((d) => d.score)) + 10);
+    const maxScore = Math.min(75, Math.max(...data.map((d) => d.score)) + 10);
     const range = maxScore - minScore || 1;
 
     return data.map((d, i) => ({
@@ -47,7 +47,7 @@ const ScoreChart: React.FC<ScoreChartProps> = ({ data }) => {
   const yTicks = useMemo(() => {
     if (data.length === 0) return [];
     const minScore = Math.max(0, Math.min(...data.map((d) => d.score)) - 10);
-    const maxScore = Math.min(100, Math.max(...data.map((d) => d.score)) + 10);
+    const maxScore = Math.min(75, Math.max(...data.map((d) => d.score)) + 10);
     const step = Math.ceil((maxScore - minScore) / 4);
     const ticks: number[] = [];
     for (let v = Math.floor(minScore); v <= maxScore; v += step) {
@@ -98,7 +98,7 @@ const ScoreChart: React.FC<ScoreChartProps> = ({ data }) => {
         {/* Y-axis grid lines and labels */}
         {yTicks.map((val) => {
           const minScore = Math.max(0, Math.min(...data.map((d) => d.score)) - 10);
-          const maxScore = Math.min(100, Math.max(...data.map((d) => d.score)) + 10);
+          const maxScore = Math.min(75, Math.max(...data.map((d) => d.score)) + 10);
           const range = maxScore - minScore || 1;
           const y = PADDING.top + chartH - ((val - minScore) / range) * chartH;
           return (
@@ -118,7 +118,7 @@ const ScoreChart: React.FC<ScoreChartProps> = ({ data }) => {
                 fill="rgba(255,255,255,0.3)"
                 fontSize="11"
                 fontWeight="600">
-                {val}%
+                {val}
               </text>
             </g>
           );
@@ -204,7 +204,7 @@ const ScoreChart: React.FC<ScoreChartProps> = ({ data }) => {
                   fill="white"
                   fontSize="12"
                   fontWeight="700">
-                  {Math.round(p.score)}%
+                  {parseFloat(String(p.score)).toFixed(1)}
                 </text>
               </g>
             )}
