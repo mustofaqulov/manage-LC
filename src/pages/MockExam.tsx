@@ -161,6 +161,7 @@ const MockExam: React.FC = () => {
       return;
     }
     if (!hasAccess && !isFree) {
+      showToast.warning('Testni boshlash uchun premium obuna kerak');
       navigate('/subscribe');
       return;
     }
@@ -543,22 +544,48 @@ const MockExam: React.FC = () => {
                   const levelStyle = LEVEL_COLORS[test.cefrLevel] || LEVEL_COLORS.B1;
                   const isFree = test.settings?.freeForAll === true;
                   const canStart = hasAccess || isFree;
+                  const isLocked = !canStart;
                   return (
-                    <div key={test.id} className="group relative cursor-pointer">
-                      {/* FREE glow effect */}
-                      {isFree && (
+                    <div
+                      key={test.id}
+                      className="group relative cursor-pointer"
+                      onClick={() => handleStartTest(test.id, isFree)}
+                    >
+                      {/* Glow effect */}
+                      {isFree ? (
                         <div className="absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] bg-gradient-to-br from-emerald-500 to-green-400 opacity-30 group-hover:opacity-60 blur-2xl transition-all duration-700" />
-                      )}
-                      {!isFree && (
+                      ) : isLocked ? (
+                        <div className="absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] bg-gradient-to-br from-gray-600 to-gray-700 opacity-20 blur-2xl transition-all duration-700" />
+                      ) : (
                         <div
                           className={`absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] bg-gradient-to-br ${levelStyle.bg} opacity-40 group-hover:opacity-100 group-hover:scale-105 blur-2xl transition-all duration-700`}
                         />
                       )}
 
                       <div
-                        className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-5 sm:p-7 md:p-10 bg-white/5 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.8)] md:shadow-[0_20px_60px_rgba(0,0,0,0.8)] group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03] transition-all duration-500 flex flex-col items-center text-center min-h-[260px] sm:min-h-[320px] md:min-h-[370px] ${isFree ? 'border-2 border-emerald-400/50' : 'border border-white/10'}`}
+                        className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-5 sm:p-7 md:p-10 backdrop-blur-xl shadow-[0_15px_50px_rgba(0,0,0,0.8)] md:shadow-[0_20px_60px_rgba(0,0,0,0.8)] transition-all duration-500 flex flex-col items-center text-center min-h-[260px] sm:min-h-[320px] md:min-h-[370px]
+                          ${isFree
+                            ? 'bg-white/5 border-2 border-emerald-400/50 group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03]'
+                            : isLocked
+                              ? 'bg-white/[0.03] border border-white/5 group-hover:border-orange-500/30 group-hover:bg-white/[0.05]'
+                              : 'bg-white/5 border border-white/10 group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03]'
+                          }`}
                         style={{ '--hover-glow': levelStyle.glow } as React.CSSProperties}
                       >
+                        {/* Lock overlay for locked tests */}
+                        {isLocked && (
+                          <div className="absolute inset-0 rounded-[20px] sm:rounded-[24px] md:rounded-[28px] flex items-center justify-center z-10 bg-black/10 group-hover:bg-black/5 transition-all duration-300">
+                            <div className="flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                              <div className="w-10 h-10 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center">
+                                <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                              </div>
+                              <span className="text-orange-400 text-xs font-bold">Obuna kerak</span>
+                            </div>
+                          </div>
+                        )}
+
                         {/* FREE banner */}
                         {isFree && (
                           <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-4 py-1 bg-gradient-to-r from-emerald-500 to-green-400 rounded-full shadow-[0_4px_20px_rgba(52,211,153,0.5)] z-10">
@@ -570,25 +597,36 @@ const MockExam: React.FC = () => {
                           </div>
                         )}
 
+                        {/* Lock badge for locked tests */}
+                        {isLocked && (
+                          <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-gray-700 to-gray-600 border border-white/10 rounded-full z-10">
+                            <svg className="w-3 h-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <span className="text-orange-400 text-xs font-bold uppercase tracking-wide">Premium</span>
+                          </div>
+                        )}
+
                         {/* CEFR Level Badge */}
-                        <div className={`px-4 py-1.5 rounded-full border border-white/10 bg-white/5 ${levelStyle.text} text-xs font-black uppercase tracking-wider mb-4 ${isFree ? 'mt-2' : ''}`}>
+                        <div className={`px-4 py-1.5 rounded-full border text-xs font-black uppercase tracking-wider mb-4 ${isFree || !isLocked ? 'mt-2' : 'mt-2'}
+                          ${isLocked ? 'border-white/5 bg-white/[0.03] text-white/30' : `border-white/10 bg-white/5 ${levelStyle.text}`}`}>
                           CEFR {test.cefrLevel}
                         </div>
 
                         {/* Title */}
-                        <h3 className="text-xl sm:text-2xl font-black mt-2 text-white">
+                        <h3 className={`text-xl sm:text-2xl font-black mt-2 ${isLocked ? 'text-white/40' : 'text-white'}`}>
                           {test.title}
                         </h3>
 
                         {/* Description */}
                         {test.description && (
-                          <p className="text-white/50 text-xs sm:text-sm mt-3 sm:mt-4 mb-4 line-clamp-3">
+                          <p className={`text-xs sm:text-sm mt-3 sm:mt-4 mb-4 line-clamp-3 ${isLocked ? 'text-white/20' : 'text-white/50'}`}>
                             {test.description}
                           </p>
                         )}
 
                         {/* Info badges */}
-                        <div className="flex items-center gap-3 mt-4 sm:mt-auto mb-5 sm:mb-6">
+                        <div className={`flex items-center gap-3 mt-4 sm:mt-auto mb-5 sm:mb-6 ${isLocked ? 'opacity-30' : ''}`}>
                           <span className="flex items-center gap-1.5 text-white/40 text-xs">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -605,18 +643,28 @@ const MockExam: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Start button */}
+                        {/* Start / Lock button */}
                         <button
-                          onClick={() => handleStartTest(test.id, isFree)}
-                          disabled={!canStart}
-                          className={`w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base text-white transition-all duration-300 disabled:hover:scale-100
+                          onClick={(e) => { e.stopPropagation(); handleStartTest(test.id, isFree); }}
+                          className={`w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base text-white transition-all duration-300
                             ${isFree
                               ? 'bg-gradient-to-r from-emerald-500 to-green-400 shadow-[0_8px_30px_rgba(52,211,153,0.3)] hover:shadow-[0_12px_40px_rgba(52,211,153,0.5)] hover:scale-105 cursor-pointer'
-                              : canStart
-                                ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_8px_30px_rgba(255,140,0,0.3)] hover:shadow-[0_12px_40px_rgba(255,140,0,0.5)] hover:scale-105 cursor-pointer'
-                                : 'bg-gray-600 cursor-not-allowed opacity-50'
+                              : isLocked
+                                ? 'bg-white/5 border border-white/10 text-white/40 hover:bg-orange-500/10 hover:border-orange-500/30 hover:text-orange-400 cursor-pointer flex items-center justify-center gap-2'
+                                : 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_8px_30px_rgba(255,140,0,0.3)] hover:shadow-[0_12px_40px_rgba(255,140,0,0.5)] hover:scale-105 cursor-pointer'
                             }`}>
-                          {isFree ? 'Bepul boshlash' : canStart ? t('mockExam.startExam') : 'Premium obuna kerak'}
+                          {isFree ? (
+                            'Bepul boshlash'
+                          ) : isLocked ? (
+                            <>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                              </svg>
+                              Obuna olish
+                            </>
+                          ) : (
+                            t('mockExam.startExam')
+                          )}
                         </button>
                       </div>
                     </div>
