@@ -548,7 +548,7 @@ const MockExam: React.FC = () => {
                   return (
                     <div
                       key={test.id}
-                      className="group relative cursor-pointer"
+                      className={`group relative ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                       onClick={() => handleStartTest(test.id, isFree)}
                     >
                       {/* Glow effect */}
@@ -645,12 +645,13 @@ const MockExam: React.FC = () => {
 
                         {/* Start / Lock button */}
                         <button
+                          disabled={isLocked}
                           onClick={(e) => { e.stopPropagation(); handleStartTest(test.id, isFree); }}
                           className={`w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base text-white transition-all duration-300
                             ${isFree
                               ? 'bg-gradient-to-r from-emerald-500 to-green-400 shadow-[0_8px_30px_rgba(52,211,153,0.3)] hover:shadow-[0_12px_40px_rgba(52,211,153,0.5)] hover:scale-105 cursor-pointer'
                               : isLocked
-                                ? 'bg-white/5 border border-white/10 text-white/40 hover:bg-orange-500/10 hover:border-orange-500/30 hover:text-orange-400 cursor-pointer flex items-center justify-center gap-2'
+                                ? 'bg-white/5 border border-white/10 text-white/40 cursor-not-allowed flex items-center justify-center gap-2 opacity-50'
                                 : 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-[0_8px_30px_rgba(255,140,0,0.3)] hover:shadow-[0_12px_40px_rgba(255,140,0,0.5)] hover:scale-105 cursor-pointer'
                             }`}>
                           {isFree ? (
