@@ -563,8 +563,8 @@ const getUserInitials = (user: AdminUserRecord) => {
   return phone.slice(-2) || 'U';
 };
 
-const toIsoDateTime = (value: string) => {
-  return `${value}T00:00:00.000Z`;
+const toIsoDateTime = (value: string, endOfDay = false) => {
+  return endOfDay ? `${value}T23:59:59.999Z` : `${value}T00:00:00.000Z`;
 };
 
 const toDateInputValue = (iso?: string | null) => {
@@ -1958,8 +1958,8 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ avatarUrlByUserId }) 
         await grantAccessMutation.mutateAsync({
           userId: editingUser.id,
           payload: {
-            startDate: toIsoDateTime(editStartDate),
-            endDate: toIsoDateTime(editEndDate),
+            startDate: toIsoDateTime(editStartDate, false),
+            endDate: toIsoDateTime(editEndDate, true),
           },
         });
       } else {
