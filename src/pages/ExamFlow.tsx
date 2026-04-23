@@ -12,6 +12,7 @@ import {
   useUpsertResponse,
   useSubmitSection,
   useSubmitAttempt,
+  useCancelAttempt,
   usePresignUpload,
   useUploadToS3,
   useGetAttempt,
@@ -258,8 +259,12 @@ const ExamFlow: React.FC = () => {
   const { mutateAsync: upsertResponseMutation } = useUpsertResponse();
   const { mutateAsync: submitSectionMutation } = useSubmitSection();
   const { mutateAsync: submitAttemptMutation } = useSubmitAttempt();
+  const { mutateAsync: cancelAttemptMutation } = useCancelAttempt();
   const { mutateAsync: presignUploadMutation } = usePresignUpload();
   const { mutateAsync: uploadToS3Mutation } = useUploadToS3();
+
+  // True once the full attempt has been successfully submitted — prevents cancel on unmount
+  const isAttemptFinishedRef = useRef(false);
 
   // ================= CLEANUP =================
   const cleanupAll = useCallback(() => {
@@ -299,6 +304,21 @@ const ExamFlow: React.FC = () => {
   useEffect(() => {
     return () => cleanupAll();
   }, [cleanupAll]);
+
+  // Cancel attempt on unmount if user exits a full test without finishing
+  useEffect(() => {
+    return () => {
+      if (
+        !isAttemptFinishedRef.current &&
+        attemptIdRef.current &&
+        !isCustomMode &&
+        !isRandomMode
+      ) {
+        cancelAttemptMutation(attemptIdRef.current).catch(() => {});
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const handleBeforeUnload = () => cleanupAll();
@@ -614,6 +634,7 @@ const ExamFlow: React.FC = () => {
             setIsSubmittingAttempt(true);
             try {
               await submitAttemptMutation(attemptIdRef.current);
+              isAttemptFinishedRef.current = true;
               await refetchAttempt();
             } catch (error) {
               console.error('❌ Attempt submit failed:', error);
@@ -701,6 +722,7 @@ const ExamFlow: React.FC = () => {
           }).catch(() => {});
         }
         await submitAttemptMutation(attemptIdRef.current);
+        isAttemptFinishedRef.current = true;
       } catch (error) {
         console.error('Finish attempt error:', error);
       }

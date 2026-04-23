@@ -251,6 +251,12 @@ export const useSubmitAttempt = () => {
   });
 };
 
+export const useCancelAttempt = () => {
+  return useMutation({
+    mutationFn: mutations.cancelAttempt,
+  });
+};
+
 // ==================== SPEAKING ANALYSIS HOOKS ====================
 
 export const useGetSpeakingAnalysis = (attemptId, options = {}) => {

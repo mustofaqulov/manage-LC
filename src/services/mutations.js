@@ -79,6 +79,14 @@ export const submitAttempt = (attemptId) => {
     });
 };
 
+export const cancelAttempt = (attemptId) => {
+  return axiosClient
+    .post(`/attempts/${attemptId}/cancel`)
+    .then((response) => {
+      return response.data;
+    });
+};
+
 // ==================== ASSETS MUTATIONS ====================
 
 export const presignUpload = ({ assetType, mimeType, contextType, attemptId, questionId }) => {
