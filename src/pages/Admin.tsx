@@ -62,6 +62,7 @@ interface CreateExamFormState {
   timeLimitMinutes: string;
   passingScore: string;
   instructions: string;
+  freeForAll: boolean;
 }
 
 interface EditExamFormState {
@@ -70,6 +71,7 @@ interface EditExamFormState {
   timeLimitMinutes: string;
   passingScore: string;
   instructions: string;
+  freeForAll: boolean;
 }
 
 const ROLE_OPTIONS: Array<{ value: RoleFilter; label: string }> = [
@@ -122,6 +124,7 @@ const DEFAULT_EXAM_FORM: CreateExamFormState = {
   timeLimitMinutes: '30',
   passingScore: '60',
   instructions: '',
+  freeForAll: false,
 };
 
 const ALL_ADMIN_OPERATIONS: AdminOperationDefinition[] = [
@@ -594,6 +597,7 @@ const toEditExamFormState = (exam: AdminTestRecord): EditExamFormState => {
     timeLimitMinutes: exam.timeLimitMinutes == null ? '' : String(exam.timeLimitMinutes),
     passingScore: exam.passingScore == null ? '' : String(exam.passingScore),
     instructions: exam.instructions ?? '',
+    freeForAll: exam.settings?.freeForAll === true,
   };
 };
 
@@ -817,6 +821,7 @@ const CreateExamPanel: React.FC = () => {
       timeLimitMinutes: parseOptionalNumber(form.timeLimitMinutes, 'Vaqt limiti', { integer: true, min: 1 }),
       passingScore: parseOptionalNumber(form.passingScore, 'Passing score', { min: 0 }),
       instructions: toNullableText(form.instructions),
+      settings: { freeForAll: form.freeForAll },
     };
   };
 
@@ -903,6 +908,17 @@ const CreateExamPanel: React.FC = () => {
           disabled={isSubmitting}
         />
 
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={form.freeForAll}
+            onChange={(e) => updateField('freeForAll', e.target.checked)}
+            disabled={isSubmitting}
+            className="w-4 h-4 accent-orange-500"
+          />
+          <span className="text-white/70 text-sm">Bepul (obunasiz foydalanuvchilar ham kira oladi)</span>
+        </label>
+
         <div className="flex items-center justify-end gap-2">
           <AdminButton
             type="button"
@@ -945,6 +961,7 @@ const AdminExamsPanel: React.FC = () => {
     timeLimitMinutes: '',
     passingScore: '',
     instructions: '',
+    freeForAll: false,
   });
 
   const updateTestMutation = useUpdateAdminTestMutation();
@@ -1071,6 +1088,7 @@ const AdminExamsPanel: React.FC = () => {
         timeLimitMinutes: parseOptionalNumber(editForm.timeLimitMinutes, 'Vaqt limiti', { integer: true, min: 1 }),
         passingScore: parseOptionalNumber(editForm.passingScore, 'Passing score', { min: 0 }),
         instructions: toNullableText(editForm.instructions),
+        settings: { freeForAll: editForm.freeForAll },
       };
 
       await runTestAction(
@@ -1343,6 +1361,16 @@ const AdminExamsPanel: React.FC = () => {
                 onChange={(value) => updateEditField('instructions', value)}
                 rows={4}
               />
+
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={editForm.freeForAll}
+                  onChange={(e) => updateEditField('freeForAll', e.target.checked)}
+                  className="w-4 h-4 accent-orange-500"
+                />
+                <span className="text-white/70 text-sm">Bepul (obunasiz foydalanuvchilar ham kira oladi)</span>
+              </label>
 
               <div className="flex justify-end gap-2 pt-1">
                 <AdminButton
