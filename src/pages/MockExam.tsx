@@ -10,8 +10,6 @@ import type { TestListResponse, CefrLevel } from '../api/types';
 
 type ExamMode = 'full' | 'random';
 type FullLevelFilter = CefrLevel | 'ALL';
-type TestSortBy = 'PUBLISHED_DATE' | 'NAME';
-type SortOrder = 'ASC' | 'DESC';
 
 const LEVEL_COLORS: Record<CefrLevel, { bg: string; text: string; glow: string }> = {
   A1: { bg: 'from-green-500/20 to-emerald-500/10', text: 'text-green-400', glow: 'rgba(34,197,94,0.45)' },
@@ -76,8 +74,6 @@ const MockExam: React.FC = () => {
   const [selectedMode, setSelectedMode] = useState<ExamMode | null>(null);
   const [selectedRandomLevel, setSelectedRandomLevel] = useState<CefrLevel>('B1');
   const [selectedFullLevel, setSelectedFullLevel] = useState<FullLevelFilter>('ALL');
-  const [sortBy, setSortBy] = useState<TestSortBy>('PUBLISHED_DATE');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('DESC');
   const [currentPage, setCurrentPage] = useState(1);
   const toastShownRef = useRef(false); // Toast faqat bir marta chiqishi uchun
 
@@ -90,12 +86,20 @@ const MockExam: React.FC = () => {
       level: selectedFullLevel === 'ALL' ? undefined : selectedFullLevel,
       page: currentPage - 1,
       size: FULL_TESTS_PER_PAGE,
-      sortBy,
-      sortOrder,
+      sortBy: 'PUBLISHED_DATE',
+      sortOrder: 'DESC',
     },
     { enabled: selectedMode === 'full' },
   );
-  const fullTests: TestListResponse[] = fullTestsData?.items ?? [];
+  const fullTests: TestListResponse[] = useMemo(() => {
+    const items = fullTestsData?.items ?? [];
+    if (hasAccess) return items;
+    return [...items].sort((a, b) => {
+      const aFree = a.settings?.freeForAll === true ? -1 : 1;
+      const bFree = b.settings?.freeForAll === true ? -1 : 1;
+      return aFree - bFree;
+    });
+  }, [fullTestsData, hasAccess]);
   const totalFullItems = fullTestsData?.totalCount ?? fullTestsData?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalFullItems / FULL_TESTS_PER_PAGE));
 
@@ -436,71 +440,6 @@ const MockExam: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div className="rounded-2xl p-4 sm:p-5 bg-white/[0.04] border border-white/10 backdrop-blur-xl">
-                  <p className="text-white/55 text-xs uppercase tracking-wider mb-3">Sort By</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSortBy('PUBLISHED_DATE');
-                        setCurrentPage(1);
-                      }}
-                      className={`h-10 rounded-xl text-xs sm:text-sm font-semibold transition ${
-                        sortBy === 'PUBLISHED_DATE'
-                          ? 'bg-sky-500/90 text-white shadow-[0_8px_20px_rgba(56,189,248,0.35)]'
-                          : 'bg-white/[0.04] border border-white/10 text-white/70 hover:bg-white/[0.08]'
-                      }`}>
-                      Published
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSortBy('NAME');
-                        setCurrentPage(1);
-                      }}
-                      className={`h-10 rounded-xl text-xs sm:text-sm font-semibold transition ${
-                        sortBy === 'NAME'
-                          ? 'bg-sky-500/90 text-white shadow-[0_8px_20px_rgba(56,189,248,0.35)]'
-                          : 'bg-white/[0.04] border border-white/10 text-white/70 hover:bg-white/[0.08]'
-                      }`}>
-                      Name
-                    </button>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl p-4 sm:p-5 bg-white/[0.04] border border-white/10 backdrop-blur-xl">
-                  <p className="text-white/55 text-xs uppercase tracking-wider mb-3">Sort Order</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSortOrder('DESC');
-                        setCurrentPage(1);
-                      }}
-                      className={`h-10 rounded-xl text-xs sm:text-sm font-semibold transition ${
-                        sortOrder === 'DESC'
-                          ? 'bg-emerald-500/90 text-white shadow-[0_8px_20px_rgba(16,185,129,0.35)]'
-                          : 'bg-white/[0.04] border border-white/10 text-white/70 hover:bg-white/[0.08]'
-                      }`}>
-                      Newest
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSortOrder('ASC');
-                        setCurrentPage(1);
-                      }}
-                      className={`h-10 rounded-xl text-xs sm:text-sm font-semibold transition ${
-                        sortOrder === 'ASC'
-                          ? 'bg-emerald-500/90 text-white shadow-[0_8px_20px_rgba(16,185,129,0.35)]'
-                          : 'bg-white/[0.04] border border-white/10 text-white/70 hover:bg-white/[0.08]'
-                      }`}>
-                      Oldest
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Loading State */}
