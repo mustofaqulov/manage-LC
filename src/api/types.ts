@@ -133,6 +133,7 @@ export interface TestListResponse {
   timeLimitMinutes: number | null;
   sectionCount: number;
   publishedAt: Instant | null;
+  settings: Record<string, any>;
 }
 
 export interface TestDetailResponse {
