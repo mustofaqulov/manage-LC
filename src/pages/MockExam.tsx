@@ -279,20 +279,22 @@ const MockExam: React.FC = () => {
         {/* Mode Selection Cards */}
         {!selectedMode && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 md:gap-8 mb-12 sm:mb-16 md:mb-20">
-            {MODE_CARDS.map((card) => (
+            {MODE_CARDS.map((card) => {
+              const cardLocked = !hasAccess && card.mode !== 'full';
+              return (
               <button
                 key={card.mode}
                 onClick={() => handleModeSelect(card.mode)}
-                disabled={!hasAccess}
-                className={`group relative text-left ${!hasAccess ? 'cursor-not-allowed opacity-50' : ''}`}>
+                disabled={cardLocked}
+                className={`group relative text-left ${cardLocked ? 'cursor-not-allowed opacity-50' : ''}`}>
                 <div
-                  className={`absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] opacity-0 blur-2xl transition-all duration-700 ${hasAccess ? 'group-hover:opacity-100' : ''}`}
+                  className={`absolute inset-0 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] opacity-0 blur-2xl transition-all duration-700 ${!cardLocked ? 'group-hover:opacity-100' : ''}`}
                   style={{ background: `radial-gradient(circle, ${card.glow}, transparent 70%)` }}
                 />
-                <div className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-6 sm:p-8 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)] transition-all duration-500 flex flex-col items-center text-center min-h-[280px] sm:min-h-[300px] ${hasAccess ? 'group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03]' : ''}`}>
+                <div className={`relative rounded-[20px] sm:rounded-[24px] md:rounded-[28px] p-6 sm:p-8 md:p-10 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_15px_50px_rgba(0,0,0,0.8)] transition-all duration-500 flex flex-col items-center text-center min-h-[280px] sm:min-h-[300px] ${!cardLocked ? 'group-hover:-translate-y-2 md:group-hover:-translate-y-3 group-hover:scale-[1.02] md:group-hover:scale-[1.03]' : ''}`}>
 
-                  {/* Premium Badge - faqat access yo'q bo'lsa */}
-                  {!hasAccess && (
+                  {/* Premium Badge - faqat locked bo'lsa */}
+                  {cardLocked && (
                     <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 backdrop-blur-sm">
                       <span className="text-xs font-bold text-orange-400 flex items-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -304,8 +306,8 @@ const MockExam: React.FC = () => {
                   )}
 
                   {/* Icon */}
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-white mb-5 shadow-lg transition-transform duration-500 ${hasAccess ? 'group-hover:scale-110' : ''}`}>
-                    {!hasAccess ? (
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-white mb-5 shadow-lg transition-transform duration-500 ${!cardLocked ? 'group-hover:scale-110' : ''}`}>
+                    {cardLocked ? (
                       <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                       </svg>
@@ -333,7 +335,8 @@ const MockExam: React.FC = () => {
                   </span>
                 </div>
               </button>
-            ))}
+              );
+            })}
           </div>
         )}
 
