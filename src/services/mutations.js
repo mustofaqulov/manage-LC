@@ -89,7 +89,7 @@ export const cancelAttempt = (attemptId) => {
 
 // ==================== ASSETS MUTATIONS ====================
 
-export const presignUpload = ({ assetType, mimeType, contextType, attemptId, questionId }) => {
+export const presignUpload = ({ assetType, mimeType, contextType, attemptId, questionId, filename, fileSizeBytes }) => {
   return axiosClient
     .post('/assets/presign-upload', {
       assetType,
@@ -97,6 +97,8 @@ export const presignUpload = ({ assetType, mimeType, contextType, attemptId, que
       contextType,
       attemptId,
       questionId,
+      filename,
+      fileSizeBytes,
     })
     .then((response) => {
       return response.data;

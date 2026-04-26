@@ -41,6 +41,7 @@ const Subscribe = lazy(() => import('./pages/Subscribe'));
 const CustomExam = lazy(() => import('./pages/CustomExam'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Admin = lazy(() => import('./pages/Admin'));
+const Chat = lazy(() => import('./pages/Chat'));
 
 // Protected route wrapper component
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -85,6 +86,7 @@ const App: React.FC = () => {
                             <Route path="/api-test" element={<ApiTest />} />
                             <Route path="/custom-exam" element={<CustomExam />} />
                             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                            <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
                           </Routes>
                         </Layout>
                       </RequireProfile>

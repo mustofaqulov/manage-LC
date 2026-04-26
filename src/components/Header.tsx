@@ -33,6 +33,7 @@ const Header: React.FC = memo(() => {
     { key: 'courses', path: '/courses/english', essential: false },
     { key: 'exams', path: '/mock-exam', essential: true },
     { key: 'history', path: '/history', essential: true },
+    { key: 'chat', path: '/chat', essential: true },
     { key: 'subscription', path: '/subscribe', essential: false },
     { key: 'leaderboard', path: '/leaderboard', essential: true },
   ];

@@ -8,6 +8,7 @@ export default {
     courses: 'Kurslar',
     exams: 'Imtihonlar',
     history: 'Tarix',
+    chat: 'Chat',
     subscription: 'Obuna',
     leaderboard: 'Reyting',
     loading: 'Yuklanmoqda...',
