@@ -20,13 +20,18 @@ import {
   useUpdateAdminTestMutation,
   useUpdateAdminUserRolesMutation,
 } from '../services/admin/hooks';
+import {
+  AdminRubricsPanel,
+  AdminSubmissionsPanel,
+  AdminTestBuilderPanel,
+} from './admin/AdminDashboardPanels';
 import type { AdminTest, AdminUser, PagedResponse, Role, TestStatus } from '../services/admin/types';
 
 const ADMIN_SESSION_KEY = 'admin_session';
 const AVATAR_BASE = (import.meta.env.VITE_AVATAR_API_URL as string) || 'https://manage-avatar-production.up.railway.app';
 const PAGE_SIZE = 20;
 
-type AdminTab = 'avatars' | 'users' | 'exams' | 'exam-create' | 'question-structure' | 'admin-operations';
+type AdminTab = 'avatars' | 'users' | 'user-history' | 'exams' | 'exam-create' | 'builder' | 'rubrics' | 'submissions';
 type RoleFilter = 'ALL' | 'USER' | 'GRADER' | 'CONTENT_EDITOR' | 'ADMIN';
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type TestStatusFilter = 'ALL' | TestStatus;
@@ -2350,6 +2355,285 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ avatarUrlByUserId }) 
   );
 };
 
+// ── User History Panel ───────────────────────────────────────────────────────
+
+const HISTORY_STATUS_LABELS: Record<string, { bg: string; text: string; label: string }> = {
+  IN_PROGRESS: { bg: 'bg-amber-400/10 border-amber-400/20', text: 'text-amber-400', label: 'Jarayonda' },
+  SUBMITTED: { bg: 'bg-blue-400/10 border-blue-400/20', text: 'text-blue-400', label: 'Topshirilgan' },
+  SCORING: { bg: 'bg-purple-400/10 border-purple-400/20', text: 'text-purple-400', label: 'Baholanmoqda' },
+  SCORED: { bg: 'bg-green-400/10 border-green-400/20', text: 'text-green-400', label: 'Baholangan' },
+  CANCELLED: { bg: 'bg-zinc-500/10 border-zinc-500/20', text: 'text-zinc-400', label: 'Bekor qilingan' },
+  EXPIRED: { bg: 'bg-red-500/10 border-red-500/20', text: 'text-red-400', label: 'Muddati tugagan' },
+};
+
+const formatHistoryDate = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '—';
+  try {
+    return new Date(dateStr).toLocaleString('uz-UZ', {
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
+const AdminUserHistoryPanel: React.FC = () => {
+  const [userSearch, setUserSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [attemptsPage, setAttemptsPage] = useState(0);
+  const [selectedAttempt, setSelectedAttempt] = useState<any | null>(null);
+  const [attemptDetail, setAttemptDetail] = useState<any | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(userSearch), 300);
+    return () => clearTimeout(t);
+  }, [userSearch]);
+
+  const { data: usersData, isLoading: usersLoading } = useAdminUsersQuery({
+    search: debouncedSearch || undefined,
+    page: 0,
+    size: 10,
+  });
+  const userResults: AdminUser[] = (usersData as any)?.items ?? [];
+
+  const [attemptsData, setAttemptsData] = useState<any>(null);
+  const [attemptsLoading, setAttemptsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedUser) {
+      setAttemptsData(null);
+      return;
+    }
+    let cancelled = false;
+    setAttemptsLoading(true);
+    adminUsersApi
+      .listAttempts(selectedUser.id, { page: attemptsPage, size: 20 })
+      .then((data) => { if (!cancelled) setAttemptsData(data); })
+      .catch(() => { if (!cancelled) setAttemptsData({ items: [], totalCount: 0 }); })
+      .finally(() => { if (!cancelled) setAttemptsLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedUser, attemptsPage]);
+
+  const openDetail = async (attempt: any) => {
+    if (!selectedUser) return;
+    setSelectedAttempt(attempt);
+    setAttemptDetail(null);
+    setDetailLoading(true);
+    try {
+      const detail = await adminUsersApi.getAttemptDetail(selectedUser.id, attempt.id);
+      setAttemptDetail(detail);
+    } catch {
+      showToast.error('Tafsilotni yuklab bo\'lmadi');
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const attempts: any[] = attemptsData?.items ?? [];
+  const totalAttempts: number = attemptsData?.totalCount ?? attemptsData?.total ?? 0;
+  const totalAttemptsPages = Math.max(1, Math.ceil(totalAttempts / 20));
+
+  return (
+    <div className="space-y-4">
+      <AdminCard className="p-4">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <div className="flex-1">
+            <AdminInputField
+              label="Foydalanuvchini qidirish"
+              placeholder="Telefon, ism yoki familiya..."
+              value={userSearch}
+              onChange={(v) => { setUserSearch(v); setSelectedUser(null); setAttemptsPage(0); }}
+            />
+          </div>
+          {selectedUser && (
+            <AdminButton variant="secondary" size="sm" onClick={() => { setSelectedUser(null); setUserSearch(''); }}>
+              Tozalash
+            </AdminButton>
+          )}
+        </div>
+
+        {!selectedUser && debouncedSearch.trim() !== '' && (
+          <div className="mt-4 border-t border-white/[0.06] pt-3">
+            {usersLoading ? (
+              <div className="flex justify-center py-6"><AdminSpinner /></div>
+            ) : userResults.length === 0 ? (
+              <div className="text-white/40 text-sm text-center py-4">Foydalanuvchi topilmadi</div>
+            ) : (
+              <div className="space-y-1">
+                {userResults.map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => { setSelectedUser(u); setAttemptsPage(0); }}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/[0.04] transition flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div className="text-white text-sm font-semibold">
+                        {u.firstName || ''} {u.lastName || ''}
+                        {!u.firstName && !u.lastName && <span className="text-white/40">(ismsiz)</span>}
+                      </div>
+                      <div className="text-white/50 text-xs">{u.phone}</div>
+                    </div>
+                    <span className="text-white/30 text-xs">{(u.roles ?? []).join(', ')}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </AdminCard>
+
+      {selectedUser && (
+        <AdminCard className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="text-white font-bold">
+                {selectedUser.firstName || ''} {selectedUser.lastName || ''}
+                {!selectedUser.firstName && !selectedUser.lastName && <span className="text-white/40">(ismsiz)</span>}
+              </div>
+              <div className="text-white/50 text-xs">{selectedUser.phone} • {totalAttempts} ta urinish</div>
+            </div>
+          </div>
+
+          {attemptsLoading ? (
+            <div className="flex justify-center py-10"><AdminSpinner /></div>
+          ) : attempts.length === 0 ? (
+            <div className="text-white/40 text-sm text-center py-10">Urinishlar topilmadi</div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-[800px] w-full text-sm">
+                  <thead>
+                    <tr className="text-white/50 text-xs uppercase border-b border-white/[0.06]">
+                      <th className="text-left px-3 py-2">Test</th>
+                      <th className="text-left px-3 py-2">Daraja</th>
+                      <th className="text-left px-3 py-2">Status</th>
+                      <th className="text-left px-3 py-2">Ball</th>
+                      <th className="text-left px-3 py-2">CEFR</th>
+                      <th className="text-left px-3 py-2">Boshlandi</th>
+                      <th className="px-3 py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attempts.map((a) => {
+                      const st = HISTORY_STATUS_LABELS[a.status] ?? { bg: 'bg-white/5 border-white/10', text: 'text-white/60', label: a.status };
+                      return (
+                        <tr key={a.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
+                          <td className="px-3 py-3 text-white">{a.testTitle}</td>
+                          <td className="px-3 py-3 text-white/70">{a.cefrLevel}</td>
+                          <td className="px-3 py-3">
+                            <span className={`inline-block px-2 py-1 rounded-md border text-xs font-semibold ${st.bg} ${st.text}`}>{st.label}</span>
+                          </td>
+                          <td className="px-3 py-3 text-white/70">
+                            {a.totalScore != null && a.maxTotalScore != null ? `${Number(a.totalScore).toFixed(1)} / ${Number(a.maxTotalScore).toFixed(0)}` : '—'}
+                          </td>
+                          <td className="px-3 py-3 text-white/70">{a.estimatedCefrLevel ?? '—'}</td>
+                          <td className="px-3 py-3 text-white/50 text-xs">{formatHistoryDate(a.startedAt)}</td>
+                          <td className="px-3 py-3 text-right">
+                            <AdminButton size="sm" variant="secondary" onClick={() => openDetail(a)}>Tafsilot</AdminButton>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalAttemptsPages > 1 && (
+                <div className="flex items-center justify-between mt-4 text-xs text-white/50">
+                  <div>Sahifa {attemptsPage + 1} / {totalAttemptsPages}</div>
+                  <div className="flex gap-2">
+                    <AdminButton size="sm" variant="secondary" disabled={attemptsPage === 0} onClick={() => setAttemptsPage((p) => Math.max(0, p - 1))}>Oldingi</AdminButton>
+                    <AdminButton size="sm" variant="secondary" disabled={attemptsPage >= totalAttemptsPages - 1} onClick={() => setAttemptsPage((p) => p + 1)}>Keyingi</AdminButton>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </AdminCard>
+      )}
+
+      {selectedAttempt && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => { setSelectedAttempt(null); setAttemptDetail(null); }}>
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between sticky top-0 bg-[#0a0a0a]">
+              <div>
+                <div className="text-white font-bold">{selectedAttempt.testTitle}</div>
+                <div className="text-white/50 text-xs">CEFR {selectedAttempt.cefrLevel} • {selectedAttempt.status}</div>
+              </div>
+              <button onClick={() => { setSelectedAttempt(null); setAttemptDetail(null); }} className="text-white/50 hover:text-white">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {detailLoading || !attemptDetail ? (
+                <div className="flex justify-center py-10"><AdminSpinner /></div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="bg-white/[0.03] rounded-lg p-3">
+                      <div className="text-white/40 text-xs">Umumiy ball</div>
+                      <div className="text-white font-bold mt-1">
+                        {attemptDetail.totalScore != null ? `${Number(attemptDetail.totalScore).toFixed(1)} / ${Number(attemptDetail.maxTotalScore ?? 0).toFixed(0)}` : '—'}
+                      </div>
+                    </div>
+                    <div className="bg-white/[0.03] rounded-lg p-3">
+                      <div className="text-white/40 text-xs">Daraja</div>
+                      <div className="text-white font-bold mt-1">{attemptDetail.estimatedCefrLevel ?? '—'}</div>
+                    </div>
+                    <div className="bg-white/[0.03] rounded-lg p-3">
+                      <div className="text-white/40 text-xs">Boshlandi</div>
+                      <div className="text-white text-xs mt-1">{formatHistoryDate(attemptDetail.startedAt)}</div>
+                    </div>
+                    <div className="bg-white/[0.03] rounded-lg p-3">
+                      <div className="text-white/40 text-xs">Topshirildi</div>
+                      <div className="text-white text-xs mt-1">{formatHistoryDate(attemptDetail.submittedAt)}</div>
+                    </div>
+                  </div>
+
+                  {attemptDetail.aiSummary && (
+                    <div className="bg-white/[0.03] rounded-lg p-3">
+                      <div className="text-white/40 text-xs uppercase mb-2">AI Xulosa</div>
+                      <div className="text-white/80 text-sm whitespace-pre-wrap">{attemptDetail.aiSummary}</div>
+                    </div>
+                  )}
+
+                  {Array.isArray(attemptDetail.sections) && attemptDetail.sections.length > 0 && (
+                    <div>
+                      <div className="text-white/40 text-xs uppercase mb-2">Bo'limlar</div>
+                      <div className="space-y-2">
+                        {attemptDetail.sections.map((s: any) => (
+                          <div key={s.id} className="bg-white/[0.03] rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="text-white font-semibold text-sm">{s.sectionTitle}</div>
+                                <div className="text-white/50 text-xs">{s.skill} • {s.status}</div>
+                              </div>
+                              <div className="text-white text-sm">
+                                {s.sectionScore != null ? `${Number(s.sectionScore).toFixed(1)} / ${Number(s.maxSectionScore ?? 0).toFixed(0)}` : '—'}
+                              </div>
+                            </div>
+                            {s.aiFeedback && (
+                              <div className="text-white/70 text-xs mt-2 whitespace-pre-wrap">{s.aiFeedback}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Dashboard ────────────────────────────────────────────────────────────────
 
 const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
@@ -2464,6 +2748,16 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               )}
             />
             <SidebarButton
+              active={activeTab === 'user-history'}
+              onClick={() => setActiveTab('user-history')}
+              label="User tarixi"
+              icon={(
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+            />
+            <SidebarButton
               active={activeTab === 'exams'}
               onClick={() => setActiveTab('exams')}
               label="Barcha examlar"
@@ -2484,29 +2778,39 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               )}
             />
             <SidebarButton
-              active={activeTab === 'question-structure'}
-              onClick={() => setActiveTab('question-structure')}
-              label="Savol struktura"
+              active={activeTab === 'builder'}
+              onClick={() => setActiveTab('builder')}
+              label="Test builder"
               icon={(
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M7 3v4m10-4v4M6 11l2 2 4-4m5 4h.01M17 17h.01M12 17h.01M7 17h.01M7 13h.01M12 13h.01" />
                 </svg>
               )}
             />
             <SidebarButton
-              active={activeTab === 'admin-operations'}
-              onClick={() => setActiveTab('admin-operations')}
-              label="Backend amallar"
+              active={activeTab === 'rubrics'}
+              onClick={() => setActiveTab('rubrics')}
+              label="Rubrics"
               icon={(
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V9m-5-4l5 5m0 0V5m0 5H9" />
+                </svg>
+              )}
+            />
+            <SidebarButton
+              active={activeTab === 'submissions'}
+              onClick={() => setActiveTab('submissions')}
+              label="Submissions"
+              icon={(
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6M7 4h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
                 </svg>
               )}
             />
           </nav>
 
           <div className="mt-auto p-3 text-[11px] text-white/35 border-t border-white/[0.08]">
-            OpenAPI asosida admin users integratsiyasi
+            Faqat ishlaydigan admin boshqaruv panellari
           </div>
         </aside>
 
@@ -2518,13 +2822,17 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                   ? 'Avatar boshqaruvi'
                   : activeTab === 'users'
                     ? 'Foydalanuvchilar ro\'yxati'
+                    : activeTab === 'user-history'
+                      ? 'Foydalanuvchi tarixi'
                     : activeTab === 'exams'
                       ? 'Barcha examlar'
                     : activeTab === 'exam-create'
                       ? 'Yangi exam qo\'shish'
-                    : activeTab === 'question-structure'
-                      ? 'Exam savol strukturasi'
-                      : 'Backend admin amallari'}
+                    : activeTab === 'builder'
+                      ? 'Test builder'
+                      : activeTab === 'rubrics'
+                        ? 'Rubric boshqaruvi'
+                        : 'Submission review'}
               </h1>
               <p className="text-white/35 text-[11px] md:text-xs">ManageLC admin tools</p>
             </div>
@@ -2548,6 +2856,12 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               icon={<span className="w-2 h-2 rounded-full bg-current" />}
             />
             <SidebarButton
+              active={activeTab === 'user-history'}
+              onClick={() => setActiveTab('user-history')}
+              label="History"
+              icon={<span className="w-2 h-2 rounded-full bg-current" />}
+            />
+            <SidebarButton
               active={activeTab === 'exams'}
               onClick={() => setActiveTab('exams')}
               label="Exams"
@@ -2560,15 +2874,21 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               icon={<span className="w-2 h-2 rounded-full bg-current" />}
             />
             <SidebarButton
-              active={activeTab === 'question-structure'}
-              onClick={() => setActiveTab('question-structure')}
-              label="Question"
+              active={activeTab === 'builder'}
+              onClick={() => setActiveTab('builder')}
+              label="Builder"
               icon={<span className="w-2 h-2 rounded-full bg-current" />}
             />
             <SidebarButton
-              active={activeTab === 'admin-operations'}
-              onClick={() => setActiveTab('admin-operations')}
-              label="Ops"
+              active={activeTab === 'rubrics'}
+              onClick={() => setActiveTab('rubrics')}
+              label="Rubrics"
+              icon={<span className="w-2 h-2 rounded-full bg-current" />}
+            />
+            <SidebarButton
+              active={activeTab === 'submissions'}
+              onClick={() => setActiveTab('submissions')}
+              label="Review"
               icon={<span className="w-2 h-2 rounded-full bg-current" />}
             />
           </div>
@@ -2586,14 +2906,18 @@ const AdminDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               />
             ) : activeTab === 'users' ? (
               <AdminUsersPanel avatarUrlByUserId={avatarUrlByUserId} />
+            ) : activeTab === 'user-history' ? (
+              <AdminUserHistoryPanel />
             ) : activeTab === 'exams' ? (
               <AdminExamsPanel />
             ) : activeTab === 'exam-create' ? (
               <CreateExamPanel />
-            ) : activeTab === 'question-structure' ? (
-              <CreateQuestionStructurePanel />
+            ) : activeTab === 'builder' ? (
+              <AdminTestBuilderPanel />
+            ) : activeTab === 'rubrics' ? (
+              <AdminRubricsPanel />
             ) : (
-              <AdminOperationsPanel />
+              <AdminSubmissionsPanel />
             )}
           </div>
         </div>

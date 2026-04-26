@@ -1,16 +1,12 @@
 import { apiClient } from '../api';
 import {
+  AddSectionAssetRequest,
   AdminSection,
+  AdminSectionAsset,
   CreateSectionRequest,
   ReorderSectionAssetsRequest,
   UpdateSectionRequest,
 } from './types';
-
-export interface AddSectionAssetRequest {
-  assetId: string;
-  contextLabel?: string | null;
-  orderIndex?: number;
-}
 
 export const adminSectionsApi = {
   async create(payload: CreateSectionRequest) {
@@ -28,12 +24,12 @@ export const adminSectionsApi = {
   },
 
   async addAsset(sectionId: string, payload: AddSectionAssetRequest) {
-    const response = await apiClient.post(`/admin/tests/sections/${sectionId}/assets`, payload);
+    const response = await apiClient.post<AdminSectionAsset>(`/admin/tests/sections/${sectionId}/assets`, payload);
     return response.data;
   },
 
   async reorderAssets(sectionId: string, payload: ReorderSectionAssetsRequest) {
-    const response = await apiClient.post(`/admin/tests/sections/${sectionId}/assets/reorder`, payload);
+    const response = await apiClient.post<void>(`/admin/tests/sections/${sectionId}/assets/reorder`, payload);
     return response.data;
   },
 

@@ -61,4 +61,20 @@ export const adminUsersApi = {
     const response = await apiClient.put(`/admin/users/${userId}/roles`, payload);
     return response.data;
   },
+
+  async listAttempts(userId: string, query: { page?: number; size?: number; search?: string } = {}) {
+    const response = await apiClient.get(`/admin/users/${userId}/attempts`, {
+      params: withCleanParams({
+        page: query.page ?? 0,
+        size: query.size ?? 20,
+        search: query.search,
+      }),
+    });
+    return response.data;
+  },
+
+  async getAttemptDetail(userId: string, attemptId: string) {
+    const response = await apiClient.get(`/admin/users/${userId}/attempts/${attemptId}`);
+    return response.data;
+  },
 };
