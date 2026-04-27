@@ -2394,7 +2394,7 @@ const AdminUserHistoryPanel: React.FC = () => {
   const { data: usersData, isLoading: usersLoading } = useAdminUsersQuery({
     search: debouncedSearch || undefined,
     page: 0,
-    size: 10,
+    size: PAGE_SIZE,
   });
   const userResults: AdminUser[] = (usersData as any)?.items ?? [];
 
@@ -2444,30 +2444,60 @@ const AdminUserHistoryPanel: React.FC = () => {
               label="Foydalanuvchini qidirish"
               placeholder="Telefon, ism yoki familiya..."
               value={userSearch}
-              onChange={(v) => { setUserSearch(v); setSelectedUser(null); setAttemptsPage(0); }}
+              onChange={setUserSearch}
             />
           </div>
-          {selectedUser && (
-            <AdminButton variant="secondary" size="sm" onClick={() => { setSelectedUser(null); setUserSearch(''); }}>
+          {(userSearch || selectedUser) && (
+            <AdminButton
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setUserSearch('');
+                setDebouncedSearch('');
+                setSelectedUser(null);
+                setAttemptsPage(0);
+              }}
+            >
               Tozalash
             </AdminButton>
           )}
         </div>
 
-        {!selectedUser && debouncedSearch.trim() !== '' && (
-          <div className="mt-4 border-t border-white/[0.06] pt-3">
-            {usersLoading ? (
-              <div className="flex justify-center py-6"><AdminSpinner /></div>
-            ) : userResults.length === 0 ? (
-              <div className="text-white/40 text-sm text-center py-4">Foydalanuvchi topilmadi</div>
-            ) : (
-              <div className="space-y-1">
-                {userResults.map((u) => (
+        <div className="mt-4 border-t border-white/[0.06] pt-3">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <div className="text-white text-sm font-semibold">
+                {debouncedSearch.trim() ? 'Qidiruv natijalari' : 'Foydalanuvchilar ro‘yxati'}
+              </div>
+              <div className="text-white/40 text-xs">
+                {debouncedSearch.trim() ? `${userResults.length} ta foydalanuvchi topildi` : `Oxirgi ${PAGE_SIZE} ta foydalanuvchi`}
+              </div>
+            </div>
+            {selectedUser && (
+              <div className="text-white/35 text-xs">
+                Tanlangan: {selectedUser.firstName || selectedUser.lastName ? `${selectedUser.firstName || ''} ${selectedUser.lastName || ''}`.trim() : selectedUser.phone}
+              </div>
+            )}
+          </div>
+
+          {usersLoading ? (
+            <div className="flex justify-center py-6"><AdminSpinner /></div>
+          ) : userResults.length === 0 ? (
+            <div className="text-white/40 text-sm text-center py-4">Foydalanuvchi topilmadi</div>
+          ) : (
+            <div className="space-y-1 max-h-[360px] overflow-y-auto pr-1">
+              {userResults.map((u) => {
+                const isSelected = selectedUser?.id === u.id;
+                return (
                   <button
                     key={u.id}
                     type="button"
                     onClick={() => { setSelectedUser(u); setAttemptsPage(0); }}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/[0.04] transition flex items-center justify-between gap-3"
+                    className={`w-full text-left px-3 py-2 rounded-lg transition flex items-center justify-between gap-3 ${
+                      isSelected
+                        ? 'bg-orange-500/12 border border-orange-500/25'
+                        : 'border border-transparent hover:bg-white/[0.04]'
+                    }`}
                   >
                     <div>
                       <div className="text-white text-sm font-semibold">
@@ -2476,13 +2506,13 @@ const AdminUserHistoryPanel: React.FC = () => {
                       </div>
                       <div className="text-white/50 text-xs">{u.phone}</div>
                     </div>
-                    <span className="text-white/30 text-xs">{(u.roles ?? []).join(', ')}</span>
+                    <span className="text-white/30 text-xs text-right">{(u.roles ?? []).join(', ')}</span>
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </AdminCard>
 
       {selectedUser && (
