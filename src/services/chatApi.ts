@@ -5,6 +5,8 @@ export interface ChatMessage {
   userId: string;
   userName: string | null;
   userPhone: string;
+  isPremium: boolean;
+  isAdmin: boolean;
   content: string;
   imageAssetId: string | null;
   imageUrl: string | null;
