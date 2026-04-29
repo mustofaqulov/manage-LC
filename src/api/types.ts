@@ -247,8 +247,68 @@ export interface AttemptDetailResponse {
   scorePercentage: number | null;
   estimatedCefrLevel: CefrLevel | null;
   aiSummary: string | null;
+  fullAiReport: FullAiReport | null;
   sections: AttemptSectionResponse[];
   responses: ResponseResponse[] | null;
+}
+
+// AI evaluation DTOs (CEFR-anchored 0-9 band scale)
+export interface CriterionScore {
+  criterion: string;
+  score: number; // 1-9 band
+}
+
+export interface DiagnosticComment {
+  issue: string;
+  evidence: string;
+  suggestion: string;
+}
+
+export interface Correction {
+  original: string;
+  corrected: string;
+  explanation: string;
+}
+
+export interface CorrectiveAction {
+  priority: number;
+  action: string;
+}
+
+export interface StudyDay {
+  day: number;
+  task: string;
+}
+
+export interface SpeakingEvaluation {
+  cefrLevel: string;
+  overallScore: number; // 0-9 with 0.5 increments
+  scores: CriterionScore[];
+  summary: string;
+  diagnosticComments: DiagnosticComment[];
+  corrections: Correction[];
+  modelAnswer: string;
+  drills: string[];
+}
+
+export interface WritingEvaluation {
+  cefrLevel: string;
+  overallScore: number;
+  scores: CriterionScore[];
+  summary: string;
+  diagnosticComments: DiagnosticComment[];
+  corrections: Correction[];
+  modelAnswer: string;
+  correctiveActions: CorrectiveAction[];
+  studyPlan: StudyDay[];
+}
+
+export type AiEvaluation = SpeakingEvaluation | WritingEvaluation;
+
+export interface FullAiReport {
+  summary: string;
+  strengths: string[];
+  improvements: string[];
 }
 
 export interface AttemptSectionResponse {
@@ -287,6 +347,7 @@ export interface ResponseResponse {
   scoreAwarded: number | null;
   maxScore: number | null;
   aiSummary: string | null;
+  aiEvaluation: AiEvaluation | null;
   rubricScores: RubricScoreResponse[] | null;
 }
 

@@ -64,6 +64,31 @@ const scoreToLevel = (pct: number | null | undefined): { label: string; color: s
   return { label: 'C1+', color: 'text-amber-300' };
 };
 
+// New band-based scoring (0-9 IELTS-style). New attempts have fullAiReport != null.
+const isBandScore = (value: number | null | undefined): boolean =>
+  value != null && Number(value) <= 10;
+
+const bandColor = (band: number): string => {
+  if (band >= 7) return 'text-green-400';
+  if (band >= 5.5) return 'text-amber-400';
+  if (band >= 4) return 'text-orange-400';
+  return 'text-red-400';
+};
+
+const bandBgColor = (band: number): string => {
+  if (band >= 7) return 'bg-green-500';
+  if (band >= 5.5) return 'bg-amber-500';
+  if (band >= 4) return 'bg-orange-500';
+  return 'bg-red-500';
+};
+
+// Format a score depending on whether it's band (0-9) or legacy (0-75).
+const formatScoreOver = (score: number | null | undefined, max: number | null | undefined): string => {
+  if (score == null) return '—';
+  if (isBandScore(max ?? score)) return `${Number(score).toFixed(1)}/9`;
+  return `${Number(score).toFixed(1)}/${max ?? 75}`;
+};
+
 // ── ResponseAudioCard ────────────────────────────────────────────────────────
 
 const ResponseAudioCard: React.FC<{
@@ -208,8 +233,144 @@ const ResponseAudioCard: React.FC<{
       )}
 
       {/* AI feedback */}
-      {aiSummary && (
+      {aiSummary && !response?.aiEvaluation && (
         <p className="text-white/45 text-xs leading-relaxed border-t border-white/5 pt-2">{aiSummary}</p>
+      )}
+
+      {/* New AI evaluation (band scale 0-9) */}
+      {response?.aiEvaluation && (
+        <AiEvaluationCard evaluation={response.aiEvaluation} />
+      )}
+    </div>
+  );
+};
+
+// ── AiEvaluationCard ────────────────────────────────────────────────────────
+
+const AiEvaluationCard: React.FC<{ evaluation: any }> = ({ evaluation }) => {
+  const overall = Number(evaluation.overallScore);
+  const isWriting = Array.isArray(evaluation.studyPlan) || Array.isArray(evaluation.correctiveActions);
+
+  return (
+    <div className="border-t border-white/5 pt-3 space-y-3">
+      {/* Header — overall band + CEFR */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          {evaluation.cefrLevel && (
+            <span className="px-2 py-0.5 rounded-md bg-orange-500/15 border border-orange-500/25 text-orange-300 text-[10px] font-black">
+              {evaluation.cefrLevel}
+            </span>
+          )}
+          <span className="text-white/40 text-[10px] uppercase tracking-widest font-bold">Overall band</span>
+        </div>
+        <span className={`text-lg font-black ${bandColor(overall)}`}>
+          {overall.toFixed(1)}<span className="text-white/30 text-xs">/9</span>
+        </span>
+      </div>
+
+      {/* Criterion bands */}
+      {Array.isArray(evaluation.scores) && evaluation.scores.length > 0 && (
+        <div className="grid grid-cols-2 gap-2">
+          {evaluation.scores.map((s: any, i: number) => (
+            <div key={i} className="bg-white/[0.03] rounded-lg px-3 py-2">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-white/55 text-[10px] uppercase tracking-wider font-bold">{s.criterion}</span>
+                <span className={`text-xs font-black ${bandColor(s.score)}`}>{s.score}</span>
+              </div>
+              <div className="h-1 bg-white/5 rounded-full">
+                <div className={`h-full rounded-full ${bandBgColor(s.score)}`} style={{ width: `${(s.score / 9) * 100}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Summary */}
+      {evaluation.summary && (
+        <div className="bg-white/[0.03] rounded-lg p-3">
+          <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1">AI tahlil</p>
+          <p className="text-white/75 text-xs leading-relaxed">{evaluation.summary}</p>
+        </div>
+      )}
+
+      {/* Diagnostic comments */}
+      {Array.isArray(evaluation.diagnosticComments) && evaluation.diagnosticComments.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Diagnostika</p>
+          {evaluation.diagnosticComments.map((c: any, i: number) => (
+            <div key={i} className="bg-amber-500/5 border border-amber-500/15 rounded-lg p-3 space-y-1">
+              <p className="text-amber-300 text-xs font-semibold">{c.issue}</p>
+              {c.evidence && <p className="text-white/50 text-[11px] italic">"{c.evidence}"</p>}
+              {c.suggestion && <p className="text-white/65 text-[11px]">→ {c.suggestion}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Corrections */}
+      {Array.isArray(evaluation.corrections) && evaluation.corrections.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold">Tuzatishlar</p>
+          {evaluation.corrections.map((c: any, i: number) => (
+            <div key={i} className="bg-white/[0.03] rounded-lg p-3 space-y-1">
+              <p className="text-red-300/80 text-[11px] line-through">{c.original}</p>
+              <p className="text-green-300 text-[11px]">{c.corrected}</p>
+              {c.explanation && <p className="text-white/45 text-[11px] mt-1">{c.explanation}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Model answer */}
+      {evaluation.modelAnswer && (
+        <div className="bg-blue-500/5 border border-blue-500/15 rounded-lg p-3">
+          <p className="text-blue-300 text-[10px] uppercase tracking-wider font-bold mb-1">Namuna javob</p>
+          <p className="text-white/70 text-xs leading-relaxed whitespace-pre-wrap">{evaluation.modelAnswer}</p>
+        </div>
+      )}
+
+      {/* Speaking drills */}
+      {!isWriting && Array.isArray(evaluation.drills) && evaluation.drills.length > 0 && (
+        <div className="bg-white/[0.03] rounded-lg p-3">
+          <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-2">Mashqlar</p>
+          <ul className="space-y-1">
+            {evaluation.drills.map((d: string, i: number) => (
+              <li key={i} className="text-white/65 text-xs flex gap-1.5">
+                <span className="text-orange-400 flex-shrink-0">•</span>{d}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Writing corrective actions */}
+      {isWriting && Array.isArray(evaluation.correctiveActions) && evaluation.correctiveActions.length > 0 && (
+        <div className="bg-white/[0.03] rounded-lg p-3">
+          <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-2">Tuzatish chora-tadbirlari</p>
+          <ul className="space-y-1">
+            {[...evaluation.correctiveActions].sort((a: any, b: any) => a.priority - b.priority).map((a: any, i: number) => (
+              <li key={i} className="text-white/65 text-xs flex gap-2">
+                <span className="text-orange-400 font-bold flex-shrink-0">{a.priority}.</span>
+                <span>{a.action}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Writing study plan */}
+      {isWriting && Array.isArray(evaluation.studyPlan) && evaluation.studyPlan.length > 0 && (
+        <div className="bg-white/[0.03] rounded-lg p-3">
+          <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-2">7 kunlik o'qish rejasi</p>
+          <div className="space-y-1.5">
+            {evaluation.studyPlan.map((d: any, i: number) => (
+              <div key={i} className="flex gap-2 text-xs">
+                <span className="text-orange-400 font-bold flex-shrink-0">Day {d.day}:</span>
+                <span className="text-white/65">{d.task}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -320,13 +481,13 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
             </span>
           )}
           {detail.totalScore != null && detail.maxTotalScore != null && (
-            <span className="text-white/45 text-xs">
-              Ball: {Math.round(detail.totalScore)} / {Math.round(detail.maxTotalScore)}
+            <span className={`text-xs font-bold ${isBandScore(detail.maxTotalScore) ? bandColor(Number(detail.totalScore)) : 'text-white/45'}`}>
+              Ball: {formatScoreOver(detail.totalScore, detail.maxTotalScore)}
             </span>
           )}
           {analysis?.confidence != null && (
             <span className="text-white/35 text-xs">
-              AI ishonch: {(analysis.confidence * 75).toFixed(1)}/75
+              AI ishonch: {Math.round(analysis.confidence * 100)}%
             </span>
           )}
         </div>
@@ -408,37 +569,116 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
             <div className="space-y-2">
               <p className="text-[10px] font-black text-white/35 uppercase tracking-widest">Bo'limlar tahlili</p>
               {analysis.partAnalyses.map((part: any) => {
-                const pct = part.maxScore > 0 ? Math.round((part.score / part.maxScore) * 100) : 0;
-                const color = pct >= 70 ? 'bg-green-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500';
-                const textColor = pct >= 70 ? 'text-green-400' : pct >= 50 ? 'text-amber-400' : 'text-red-400';
+                // New format: band scale 0-9 in part.scores; legacy: score/maxScore
+                const isNewFormat = Array.isArray(part.scores) && part.scores.length > 0 && part.cefrLevel != null;
+                const avgBand = isNewFormat
+                  ? part.scores.reduce((s: number, x: any) => s + Number(x.score), 0) / part.scores.length
+                  : null;
+                const legacyPct = !isNewFormat && part.maxScore > 0 ? Math.round((part.score / part.maxScore) * 100) : 0;
                 return (
                   <div key={part.partNumber} className="bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-3 bg-white/[0.02]">
-                      <span className="text-white text-sm font-bold">Part {part.partNumber}: {part.partName}</span>
-                      <span className={`text-sm font-black ${textColor}`}>{part.maxScore > 0 ? (part.score / part.maxScore * 75).toFixed(1) : '—'}/75</span>
+                      <span className="text-white text-sm font-bold">
+                        Part {part.partNumber}{part.partName ? `: ${part.partName}` : ''}
+                      </span>
+                      {isNewFormat ? (
+                        <span className="flex items-center gap-2">
+                          {part.cefrLevel && (
+                            <span className="px-2 py-0.5 rounded-md bg-orange-500/15 border border-orange-500/25 text-orange-300 text-[10px] font-black">
+                              {part.cefrLevel}
+                            </span>
+                          )}
+                          {avgBand != null && (
+                            <span className={`text-sm font-black ${bandColor(avgBand)}`}>{avgBand.toFixed(1)}/9</span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className={`text-sm font-black ${legacyPct >= 70 ? 'text-green-400' : legacyPct >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                          {part.maxScore > 0 ? (part.score / part.maxScore * 75).toFixed(1) : '—'}/75
+                        </span>
+                      )}
                     </div>
-                    <div className="h-1 bg-white/5"><div className={`h-full ${color}`} style={{ width: `${pct}%` }} /></div>
-                    {part.criteriaBreakdown?.length > 0 && (
-                      <div className="p-4 space-y-3">
-                        {part.criteriaBreakdown.map((crit: any, ci: number) => {
-                          const cpct = crit.maxScore > 0 ? Math.round((crit.score / crit.maxScore) * 100) : 0;
-                          const cc = cpct >= 70 ? 'bg-green-500' : cpct >= 50 ? 'bg-amber-500' : 'bg-red-500';
-                          const ct = cpct >= 70 ? 'text-green-400' : cpct >= 50 ? 'text-amber-400' : 'text-red-400';
-                          return (
-                            <div key={ci}>
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-white/55 text-xs">{crit.criterionName}</span>
-                                <span className={`text-xs font-bold ${ct}`}>{crit.maxScore > 0 ? (crit.score / crit.maxScore * 75).toFixed(1) : '—'}/75</span>
-                              </div>
-                              <div className="h-1 bg-white/5 rounded-full mb-1.5">
-                                <div className={`h-full rounded-full ${cc}`} style={{ width: `${cpct}%` }} />
-                              </div>
-                              {crit.feedback && <p className="text-white/45 text-xs leading-relaxed">{crit.feedback}</p>}
-                            </div>
-                          );
-                        })}
+                    {!isNewFormat && (
+                      <div className="h-1 bg-white/5">
+                        <div className={`h-full ${legacyPct >= 70 ? 'bg-green-500' : legacyPct >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${legacyPct}%` }} />
                       </div>
                     )}
+                    <div className="p-4 space-y-3">
+                      {/* New format: criterion scores */}
+                      {isNewFormat && (
+                        <div className="grid grid-cols-2 gap-2">
+                          {part.scores.map((s: any, ci: number) => (
+                            <div key={ci} className="bg-white/[0.02] rounded-lg px-3 py-2">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-white/55 text-[10px] uppercase tracking-wider font-bold">{s.criterion}</span>
+                                <span className={`text-xs font-black ${bandColor(s.score)}`}>{s.score}</span>
+                              </div>
+                              <div className="h-1 bg-white/5 rounded-full">
+                                <div className={`h-full rounded-full ${bandBgColor(s.score)}`} style={{ width: `${(s.score / 9) * 100}%` }} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* Legacy format: criteriaBreakdown */}
+                      {!isNewFormat && part.criteriaBreakdown?.length > 0 && (
+                        <>
+                          {part.criteriaBreakdown.map((crit: any, ci: number) => {
+                            const cpct = crit.maxScore > 0 ? Math.round((crit.score / crit.maxScore) * 100) : 0;
+                            const cc = cpct >= 70 ? 'bg-green-500' : cpct >= 50 ? 'bg-amber-500' : 'bg-red-500';
+                            const ct = cpct >= 70 ? 'text-green-400' : cpct >= 50 ? 'text-amber-400' : 'text-red-400';
+                            return (
+                              <div key={ci}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-white/55 text-xs">{crit.criterionName}</span>
+                                  <span className={`text-xs font-bold ${ct}`}>{crit.maxScore > 0 ? (crit.score / crit.maxScore * 75).toFixed(1) : '—'}/75</span>
+                                </div>
+                                <div className="h-1 bg-white/5 rounded-full mb-1.5">
+                                  <div className={`h-full rounded-full ${cc}`} style={{ width: `${cpct}%` }} />
+                                </div>
+                                {crit.feedback && <p className="text-white/45 text-xs leading-relaxed">{crit.feedback}</p>}
+                              </div>
+                            );
+                          })}
+                        </>
+                      )}
+
+                      {/* Strengths / weaknesses (new format) */}
+                      {(part.strengths?.length > 0 || part.weaknesses?.length > 0) && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-white/5">
+                          {part.strengths?.length > 0 && (
+                            <div>
+                              <p className="text-[9px] font-black text-green-400 uppercase tracking-widest mb-1">Kuchli</p>
+                              <ul className="space-y-0.5">
+                                {part.strengths.map((s: string, i: number) => (
+                                  <li key={i} className="text-white/60 text-[11px] flex gap-1.5"><span className="text-green-400 flex-shrink-0">•</span>{s}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {part.weaknesses?.length > 0 && (
+                            <div>
+                              <p className="text-[9px] font-black text-red-400 uppercase tracking-widest mb-1">Zaif</p>
+                              <ul className="space-y-0.5">
+                                {part.weaknesses.map((s: string, i: number) => (
+                                  <li key={i} className="text-white/60 text-[11px] flex gap-1.5"><span className="text-red-400 flex-shrink-0">•</span>{s}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Notable quotes */}
+                      {part.notableQuotes?.length > 0 && (
+                        <div className="pt-2 border-t border-white/5">
+                          <p className="text-[9px] font-black text-white/35 uppercase tracking-widest mb-1">Iqtiboslar</p>
+                          {part.notableQuotes.map((q: string, i: number) => (
+                            <p key={i} className="text-white/55 text-[11px] italic mt-0.5">"{q}"</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -447,8 +687,40 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
         </div>
       )}
 
-      {/* Basic AI Summary */}
-      {!analysis && detail.aiSummary && (
+      {/* Full AI Report (new band-based) */}
+      {(detail as any).fullAiReport && (
+        <div className="space-y-3">
+          <div className="bg-orange-500/8 border border-orange-500/15 rounded-xl p-4">
+            <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-2">AI Umumiy hisobot</p>
+            <p className="text-white/75 text-sm leading-relaxed whitespace-pre-wrap">{(detail as any).fullAiReport.summary}</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {Array.isArray((detail as any).fullAiReport.strengths) && (detail as any).fullAiReport.strengths.length > 0 && (
+              <div className="bg-green-500/5 border border-green-500/15 rounded-xl p-3">
+                <p className="text-[10px] font-black text-green-400 uppercase tracking-widest mb-2">Kuchli tomonlar</p>
+                <ul className="space-y-1">
+                  {(detail as any).fullAiReport.strengths.map((s: string, i: number) => (
+                    <li key={i} className="text-white/65 text-xs flex gap-1.5"><span className="text-green-400 flex-shrink-0">•</span>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {Array.isArray((detail as any).fullAiReport.improvements) && (detail as any).fullAiReport.improvements.length > 0 && (
+              <div className="bg-red-500/5 border border-red-500/15 rounded-xl p-3">
+                <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">Yaxshilash</p>
+                <ul className="space-y-1">
+                  {(detail as any).fullAiReport.improvements.map((s: string, i: number) => (
+                    <li key={i} className="text-white/65 text-xs flex gap-1.5"><span className="text-red-400 flex-shrink-0">•</span>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Basic AI Summary (legacy, only when no full report) */}
+      {!analysis && !(detail as any).fullAiReport && detail.aiSummary && (
         <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
           <p className="text-[10px] font-black text-white/35 uppercase tracking-widest mb-2">AI Tahlil</p>
           <p className="text-white/65 text-sm leading-relaxed">{detail.aiSummary}</p>
@@ -461,24 +733,31 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
           <p className="text-[10px] font-black text-white/35 uppercase tracking-widest">Bo'limlar</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {sections.map((sec: any) => {
+              const isBand = isBandScore(sec.maxSectionScore);
               const pct = sec.sectionScore != null && sec.maxSectionScore > 0
                 ? Math.round((sec.sectionScore / sec.maxSectionScore) * 100) : null;
-              const color = pct != null ? (pct >= 70 ? 'bg-green-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500') : '';
-              const textColor = pct != null ? (pct >= 70 ? 'text-green-400' : pct >= 50 ? 'text-amber-400' : 'text-red-400') : '';
+              const colorBand = isBand && sec.sectionScore != null
+                ? bandBgColor(Number(sec.sectionScore))
+                : (pct != null ? (pct >= 70 ? 'bg-green-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500') : '');
+              const textColorBand = isBand && sec.sectionScore != null
+                ? bandColor(Number(sec.sectionScore))
+                : (pct != null ? (pct >= 70 ? 'text-green-400' : pct >= 50 ? 'text-amber-400' : 'text-red-400') : '');
               return (
                 <div key={sec.id} className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-1">
                     <h4 className="text-white text-sm font-semibold truncate">{sec.sectionTitle}</h4>
                     {sec.sectionScore != null && sec.maxSectionScore > 0 && (
-                      <span className={`text-sm font-black ${textColor}`}>
-                        {(sec.sectionScore / sec.maxSectionScore * 75).toFixed(1)}/75
+                      <span className={`text-sm font-black ${textColorBand}`}>
+                        {isBand
+                          ? `${Number(sec.sectionScore).toFixed(1)}/9`
+                          : `${(sec.sectionScore / sec.maxSectionScore * 75).toFixed(1)}/75`}
                       </span>
                     )}
                   </div>
                   <span className="text-white/30 text-xs capitalize">{sec.skill?.toLowerCase()}</span>
                   {pct !== null && (
                     <div className="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+                      <div className={`h-full rounded-full ${colorBand}`} style={{ width: `${pct}%` }} />
                     </div>
                   )}
                   {sec.aiFeedback && <p className="text-white/45 text-xs mt-2 leading-relaxed">{sec.aiFeedback}</p>}
@@ -504,16 +783,21 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
               </thead>
               <tbody>
                 {responses.flatMap((r: any) =>
-                  (r.rubricScores ?? []).map((rs: any) => (
-                    <tr key={`${r.id}-${rs.criterionId}`} className="border-b border-white/[0.03]">
-                      <td className="px-4 py-3 text-white/65 text-sm">{rs.criterionName}</td>
-                      <td className="px-4 py-3 text-right">
-                        <span className="text-white font-bold text-sm">{rs.maxScore > 0 ? (rs.score / rs.maxScore * 75).toFixed(1) : '—'}</span>
-                        <span className="text-white/30 text-xs">/75</span>
-                      </td>
-                      <td className="px-4 py-3 text-white/45 text-xs hidden sm:table-cell">{rs.feedback || '—'}</td>
-                    </tr>
-                  )),
+                  (r.rubricScores ?? []).map((rs: any) => {
+                    const isBand = isBandScore(rs.maxScore);
+                    const display = isBand
+                      ? `${Number(rs.score).toFixed(1)}/9`
+                      : `${rs.maxScore > 0 ? (rs.score / rs.maxScore * 75).toFixed(1) : '—'}/75`;
+                    return (
+                      <tr key={`${r.id}-${rs.criterionId}`} className="border-b border-white/[0.03]">
+                        <td className="px-4 py-3 text-white/65 text-sm">{rs.criterionName}</td>
+                        <td className="px-4 py-3 text-right">
+                          <span className={`font-bold text-sm ${isBand ? bandColor(Number(rs.score)) : 'text-white'}`}>{display}</span>
+                        </td>
+                        <td className="px-4 py-3 text-white/45 text-xs hidden sm:table-cell">{rs.feedback || '—'}</td>
+                      </tr>
+                    );
+                  }),
                 )}
               </tbody>
             </table>
@@ -535,6 +819,30 @@ const AttemptDetail: React.FC<{ attemptId: string; status: AttemptStatus }> = ({
                 indexedBlob={indexedBlobs[i] ?? null}
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Written responses (essays) with AI evaluation */}
+      {responses.some((r: any) => r.aiEvaluation && !r?.answer?.audio) && (
+        <div className="space-y-2">
+          <p className="text-[10px] font-black text-white/35 uppercase tracking-widest">Yozma javoblar tahlili</p>
+          <div className="space-y-3">
+            {responses
+              .map((r: any, i: number) => ({ r, i }))
+              .filter(({ r }) => r.aiEvaluation && !r?.answer?.audio)
+              .map(({ r, i }) => (
+                <div key={r.id ?? i} className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-4 space-y-3">
+                  <span className="text-white/45 text-[10px] font-bold uppercase tracking-widest">Savol {i + 1}</span>
+                  {typeof r?.answer?.text === 'string' && r.answer.text.trim() && (
+                    <div className="bg-white/[0.02] border border-white/5 rounded-lg p-3">
+                      <p className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1">Sizning javobingiz</p>
+                      <p className="text-white/70 text-xs leading-relaxed whitespace-pre-wrap">{r.answer.text}</p>
+                    </div>
+                  )}
+                  <AiEvaluationCard evaluation={r.aiEvaluation} />
+                </div>
+              ))}
           </div>
         </div>
       )}
@@ -630,10 +938,17 @@ const AttemptCard: React.FC<{
           <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center justify-center">
             {(item as any).totalScore != null ? (
               <>
-                <span className="text-white text-sm font-black leading-none">
-                  {parseFloat(String((item as any).totalScore)).toFixed(1)}
-                </span>
-                <span className="text-white/30 text-[9px] leading-none">/75</span>
+                {(() => {
+                  const score = parseFloat(String((item as any).totalScore));
+                  const isBand = isBandScore((item as any).maxTotalScore ?? score);
+                  const colorClass = isBand ? bandColor(score) : 'text-white';
+                  return (
+                    <>
+                      <span className={`text-sm font-black leading-none ${colorClass}`}>{score.toFixed(1)}</span>
+                      <span className="text-white/30 text-[9px] leading-none">/{isBand ? '9' : '75'}</span>
+                    </>
+                  );
+                })()}
                 {(() => {
                   const estimatedLevel = (item as any).estimatedCefrLevel;
                   const lvl = estimatedLevel
@@ -705,9 +1020,7 @@ const AttemptCard: React.FC<{
               <div>
                 <p className="text-white/30 text-[9px] uppercase tracking-wider mb-0.5">Ball</p>
                 <p className="text-white/65 text-xs">
-                  {(item as any).totalScore != null && (item as any).maxTotalScore != null
-                    ? `${Math.round((item as any).totalScore)} / ${Math.round((item as any).maxTotalScore)}`
-                    : '—'}
+                  {formatScoreOver((item as any).totalScore, (item as any).maxTotalScore)}
                 </p>
               </div>
             </div>
